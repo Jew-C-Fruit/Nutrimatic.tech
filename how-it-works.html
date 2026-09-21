@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!--
+  Nutrimatic Website - how-it-works.html
+  Version 1.3.0
+  Created: 2026-09-13 - Initial marketing site (v1.0.0)
+  Modified: 2026-09-15 - Now carries all product information: cutaway process story, feature tiles, pricing, audiences, founders; language pass (v1.1.0)
+  Modified: 2026-09-15 - Contact via LinkedIn; email address removed from markup and structured data (v1.1.1)
+  Modified: 2026-09-15 - Process story: three cartridge stops, compact cutaway (v1.1.2)
+  Modified: 2026-09-15 - Feature tiles: wash tile removed, bottle without label, screen tile shows building a drink (v1.1.3)
+  Modified: 2026-09-15 - Ordering tile: build / pay by phone / mix with portioning; app tile with early-access link; blend is whey + creatine + collagen (v1.1.4)
+  Modified: 2026-09-15 - Opens on "When you get home"; deck-style sections removed; economics as a graphic; co-founders kept (v1.2.0)
+  Modified: 2026-09-16 - New opener subtitle; scroll-story chapters are kicker + headline only (v1.2.1)
+  Modified: 2026-09-17 - Hard edges in the tile illustrations and bar graphic; bottle stays rounded (v1.2.2)
+  Modified: 2026-09-18 - Page renamed to "How it works" (file, nav, titles) (v1.3.0)
+-->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How it works — Nutrimatic</title>
+<meta name="description" content="Why Nutrimatic puts your supplement cabinet on the gym floor, and how the machine builds a 500 ml drink to order from sealed cartridges in about 45 seconds.">
+<link rel="canonical" href="https://nutrimatic.tech/how-it-works.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Nutrimatic">
+<meta property="og:title" content="How Nutrimatic works">
+<meta property="og:description" content="A self-serve protein shake machine for gyms that doses a sealed cartridge, mixes 500 ml to order, and cleans itself.">
+<meta property="og:url" content="https://nutrimatic.tech/how-it-works.html">
+<meta property="og:image" content="https://nutrimatic.tech/assets/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Nutrimatic wordmark next to the kiosk">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:title" content="How Nutrimatic works">
+<meta name="twitter:description" content="Why Nutrimatic puts your supplement cabinet on the gym floor, and how the machine builds a 500 ml drink to order from sealed cartridges in about 45 seconds.">
+<meta name="twitter:image" content="https://nutrimatic.tech/assets/og.png">
+<meta name="theme-color" content="#111111">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/logo-512.png">
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@graph": [
+  {
+   "@type": "Organization",
+   "@id": "https://nutrimatic.tech/#organization",
+   "name": "Nutrimatic",
+   "url": "https://nutrimatic.tech/",
+   "logo": {
+    "@type": "ImageObject",
+    "url": "https://nutrimatic.tech/assets/logo-512.png",
+    "width": 512,
+    "height": 512
+   },
+   "image": "https://nutrimatic.tech/assets/og.png",
+   "description": "Nutrimatic builds a self-serve protein shake machine for gyms that mixes a 500 ml shake to order from a sealed cartridge in about 45 seconds, and a point-of-sale trial channel for sports nutrition brands.",
+   "founder": [
+    {
+     "@type": "Person",
+     "name": "Cole Maisonpierre"
+    },
+    {
+     "@type": "Person",
+     "name": "Ilinca Iorga"
+    }
+   ],
+   "sameAs": []
+  },
+  {
+   "@type": "WebSite",
+   "@id": "https://nutrimatic.tech/#website",
+   "url": "https://nutrimatic.tech/",
+   "name": "Nutrimatic",
+   "publisher": {
+    "@id": "https://nutrimatic.tech/#organization"
+   },
+   "inLanguage": "en"
+  },
+  {
+   "@type": "AboutPage",
+   "@id": "https://nutrimatic.tech/how-it-works.html#webpage",
+   "url": "https://nutrimatic.tech/how-it-works.html",
+   "name": "How Nutrimatic works",
+   "description": "How Nutrimatic works: a self-serve protein shake machine for gyms that doses a sealed cartridge, mixes 500 ml to order, and cleans itself.",
+   "isPartOf": {
+    "@id": "https://nutrimatic.tech/#website"
+   },
+   "about": {
+    "@id": "https://nutrimatic.tech/#organization"
+   },
+   "inLanguage": "en",
+   "primaryImageOfPage": {
+    "@type": "ImageObject",
+    "url": "https://nutrimatic.tech/assets/og.png",
+    "width": 1200,
+    "height": 630
+   }
+  },
+  {
+   "@type": "Person",
+   "@id": "https://nutrimatic.tech/how-it-works.html#cole",
+   "name": "Cole Maisonpierre",
+   "jobTitle": "Co-founder & CEO",
+   "sameAs": ["https://www.linkedin.com/in/maisonpierre"],
+   "worksFor": {
+    "@id": "https://nutrimatic.tech/#organization"
+   },
+   "image": "https://nutrimatic.tech/assets/team/cole-maisonpierre.jpg",
+   "alumniOf": [
+    {
+     "@type": "CollegeOrUniversity",
+     "name": "Brown University"
+    },
+    {
+     "@type": "CollegeOrUniversity",
+     "name": "Rhode Island School of Design"
+    }
+   ]
+  },
+  {
+   "@type": "Person",
+   "@id": "https://nutrimatic.tech/how-it-works.html#ilinca",
+   "name": "Ilinca Iorga",
+   "jobTitle": "Co-founder",
+   "worksFor": {
+    "@id": "https://nutrimatic.tech/#organization"
+   },
+   "image": "https://nutrimatic.tech/assets/team/ilinca-iorga.jpg"
+  }
+ ]
+}
+</script>
+<link rel="preload" href="assets/fonts/archivo-latin-var.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/site.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav">
+  <div class="container nav__inner">
+    <a class="brand" href="index.html"><img class="brand__mark" src="assets/nu-mark.svg" alt="" width="26" height="26"><span>Nutrimatic</span></a>
+    <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Menu"><span></span></button>
+    <ul class="nav__links" id="nav-links">
+      <li><a href="how-it-works.html" aria-current="page">How it works</a></li>
+      <li><a href="contact.html">Contact</a></li>
+      <li><a class="btn" href="waitlist.html">Join the waitlist</a></li>
+    </ul>
+  </div>
+</header>
+
+<main id="main">
+  <section class="page-hero">
+    <div class="container">
+      <p class="kicker">How it works</p>
+      <h1><span class="nowrap">“When you get home”</span> isn't good enough.</h1>
+      <p class="lead">When it comes to supporting hard exercise, there are some things you need right away. That's why we're putting your supplement cabinet on the gym floor.</p>
+    </div>
+  </section>
+
+  <section class="scrolly scrolly--wide" data-scrolly data-scrolly-src="assets/process.svg" data-scrolly-ms="19200" data-scrolly-still="assets/process-static.png" aria-label="How a drink is made">
+    <div class="scrolly__stage">
+      <div class="scrolly__visual" data-scrolly-visual>
+        <img class="scrolly__fallback" src="assets/process-static.png" alt="" width="1880" height="1040">
+      </div>
+      <div class="container scrolly__inner">
+        <div class="scrolly__captions">
+          <div class="chapter" data-chapter data-start="0" data-end="0.08">
+            <p class="kicker">Place</p>
+            <h2>Drop a bottle in the port.</h2>
+          </div>
+          <div class="chapter" data-chapter data-start="0.08" data-end="0.19">
+            <p class="kicker">Prime</p>
+            <h2>A splash of water first.</h2>
+          </div>
+          <div class="chapter" data-chapter data-start="0.19" data-end="0.52">
+            <p class="kicker">Dose</p>
+            <h2>Your blend, one cartridge at a time.</h2>
+          </div>
+          <div class="chapter" data-chapter data-start="0.52" data-end="0.73">
+            <p class="kicker">Mix</p>
+            <h2>Water and whisk, bottom to rim.</h2>
+          </div>
+          <div class="chapter" data-chapter data-start="0.73" data-end="0.82">
+            <p class="kicker">Deliver</p>
+            <h2>Yours, in about 45 seconds.</h2>
+          </div>
+          <div class="chapter" data-chapter data-start="0.82" data-end="1">
+            <p class="kicker">Wash</p>
+            <h2>Then it cleans itself.</h2>
+          </div>
+        </div>
+      </div>
+      <p class="scrolly__hint" aria-hidden="true">Scroll</p>
+      <div class="scrolly__progress" aria-hidden="true"><span data-scrolly-bar></span></div>
+    </div>
+  </section>
+
+  <section class="section" aria-label="What's inside">
+    <div class="container">
+      <div class="tiles">
+        <article class="tile tile--dark">
+          <svg class="tile__art" viewBox="0 0 320 240" aria-hidden="true">
+            <style>.t1-ring{transform-box:fill-box;transform-origin:50% 50%;animation:t1 2.4s ease-out infinite}.t1-ring--b{animation-delay:.8s}.t1-ring--c{animation-delay:1.6s}@keyframes t1{0%{transform:scale(.4);opacity:.9}100%{transform:scale(1.6);opacity:0}}@media(prefers-reduced-motion:reduce){.t1-ring{animation:none;opacity:.5}}</style>
+            <rect x="110" y="20" width="100" height="200" fill="#ececE8" stroke="#d2d2ce" stroke-width="2"/>
+            <rect x="122" y="196" width="76" height="5" fill="#e4002b"/>
+            <path d="M145 220h30l-8 18h-14z" fill="#2b2b30"/>
+            <circle cx="160" cy="120" r="7" fill="#111114"/>
+            <circle class="t1-ring" cx="160" cy="120" r="16" fill="none" stroke="#e4002b" stroke-width="2"/>
+            <circle class="t1-ring t1-ring--b" cx="160" cy="120" r="16" fill="none" stroke="#e4002b" stroke-width="2"/>
+            <circle class="t1-ring t1-ring--c" cx="160" cy="120" r="16" fill="none" stroke="#e4002b" stroke-width="2"/>
+          </svg>
+          <div class="tile__copy">
+            <p class="kicker">Cartridges</p>
+            <h3>The powder cartridge: sealed, ID chipped, swapped in seconds.</h3>
+            <p>Each cartridge tells the machine what's inside and how to process it, while keeping track of expiration date and remaining stock.</p>
+          </div>
+        </article>
+        <article class="tile">
+          <svg class="tile__art" viewBox="0 0 320 240" aria-hidden="true">
+            <style>.t2-fill{transform-box:fill-box;transform-origin:50% 100%;animation:t2 4s ease-in-out infinite}@keyframes t2{0%,10%{transform:scaleY(0)}60%,90%{transform:scaleY(1)}100%{transform:scaleY(0)}}@media(prefers-reduced-motion:reduce){.t2-fill{animation:none}}</style>
+            <defs><clipPath id="t2c"><rect x="118" y="52" width="84" height="176" rx="18"/></clipPath></defs>
+            <rect x="142" y="26" width="36" height="30" fill="#ececE8"/>
+            <rect x="118" y="52" width="84" height="176" rx="18" fill="#fafaf8" stroke="#cfcfca" stroke-width="2"/>
+            <g clip-path="url(#t2c)"><rect class="t2-fill" x="118" y="70" width="84" height="158" fill="#e9cf9c"/></g>
+          </svg>
+          <div class="tile__copy">
+            <p class="kicker">The shake</p>
+            <h3>500 ml, mixed to order.</h3>
+            <p>Water is dosed to fill the bottle exactly, accounting for the powder's own volume, and the whisk works the whole column. Nothing sits pre-made in a cooler.</p>
+          </div>
+        </article>
+        <article class="tile">
+          <svg class="tile__art" viewBox="0 0 320 240" aria-hidden="true">
+            <style>
+              .s-on { opacity: 0; }
+              .s-on-1 { opacity: 1; animation: s-on-1 14s linear infinite; }
+              .s-on-4 { opacity: 1; animation: s-on-4 14s linear infinite; }
+              .s-on-5 { opacity: 1; animation: s-on-5 14s linear infinite; }
+              .s-list { animation: s-list 14s linear infinite; }
+              .s-portions { opacity: 0; animation: s-portions 14s linear infinite; }
+              .s-val-a { animation: s-val-a 14s linear infinite; }
+              .s-val-b { opacity: 0; animation: s-val-b 14s linear infinite; }
+              .s-fill-a { animation: s-fill-a 14s ease-in-out infinite; }
+              .s-knob-a { animation: s-knob-a 14s ease-in-out infinite; }
+              .s-finger { opacity: 0; animation: s-finger 14s ease-in-out infinite; }
+              .s-pay { opacity: 0; animation: s-pay 14s linear infinite; }
+              .s-nfc { animation: s-nfc 1.2s ease-out infinite; } .s-nfc-2 { animation-delay: 0.3s; } .s-nfc-3 { animation-delay: 0.6s; }
+              .s-paid { opacity: 0; animation: s-paid 14s linear infinite; }
+              .s-mix { opacity: 0; animation: s-mix 14s linear infinite; }
+              .s-ring { transform-box: fill-box; transform-origin: 50% 50%; transform: rotate(-90deg); stroke-dasharray: 176; stroke-dashoffset: 176; animation: s-ring 14s linear infinite; }
+              .s-check { opacity: 0; animation: s-check 14s linear infinite; }
+              .s-step-build { animation: s-step-build 14s linear infinite; }
+              .s-step-pay { opacity: 0; animation: s-step-pay 14s linear infinite; }
+              .s-step-mix { opacity: 0; animation: s-step-mix 14s linear infinite; }
+              @keyframes s-on-1 { 0%, 5.7% { opacity: 0; } 7.1%, 96% { opacity: 1; } 98%, 100% { opacity: 0; } }
+              @keyframes s-on-4 { 0%, 12.9% { opacity: 0; } 14.3%, 96% { opacity: 1; } 98%, 100% { opacity: 0; } }
+              @keyframes s-on-5 { 0%, 20% { opacity: 0; } 21.4%, 96% { opacity: 1; } 98%, 100% { opacity: 0; } }
+              @keyframes s-list { 0%, 24.3% { opacity: 1; } 27.1%, 97% { opacity: 0; } 100% { opacity: 1; } }
+              @keyframes s-portions { 0%, 27.1% { opacity: 0; } 30%, 45.7% { opacity: 1; } 48.6%, 100% { opacity: 0; } }
+              @keyframes s-val-a { 0%, 35.7% { opacity: 1; } 37%, 97% { opacity: 0; } 100% { opacity: 1; } }
+              @keyframes s-val-b { 0%, 35.7% { opacity: 0; } 37%, 97% { opacity: 1; } 100% { opacity: 0; } }
+              @keyframes s-fill-a { 0%, 32.9% { transform: scaleX(0.4); } 40%, 97% { transform: scaleX(0.7); } 100% { transform: scaleX(0.4); } }
+              @keyframes s-knob-a { 0%, 32.9% { transform: translateX(0); } 40%, 97% { transform: translateX(25.8px); } 100% { transform: translateX(0); } }
+              @keyframes s-finger { 0%, 4.3% { opacity: 0; transform: translate(0, 0); } 5.7%, 7.1% { opacity: 1; transform: translate(0, 0); } 12.9%, 14.3% { opacity: 1; transform: translate(0, 84px); } 20%, 21.4% { opacity: 1; transform: translate(0, 112px); } 24.3% { opacity: 0; transform: translate(0, 112px); } 30% { opacity: 0; transform: translate(-38.6px, 4px); } 32.9% { opacity: 1; transform: translate(-38.6px, 4px); } 40%, 41% { opacity: 1; transform: translate(-12.8px, 4px); } 44.3%, 45.7% { opacity: 1; transform: translate(-30px, 141px); } 47%, 100% { opacity: 0; transform: translate(-30px, 141px); } }
+              @keyframes s-pay { 0%, 48.6% { opacity: 0; } 51.4%, 70% { opacity: 1; } 72.9%, 100% { opacity: 0; } }
+              @keyframes s-nfc { 0% { opacity: 0.15; } 40% { opacity: 1; } 100% { opacity: 0.15; } }
+              @keyframes s-paid { 0%, 65.7% { opacity: 0; } 67%, 70% { opacity: 1; } 72.9%, 100% { opacity: 0; } }
+              @keyframes s-mix { 0%, 70% { opacity: 0; } 72.9%, 97.1% { opacity: 1; } 100% { opacity: 0; } }
+              @keyframes s-ring { 0%, 72.9% { stroke-dashoffset: 176; } 90%, 100% { stroke-dashoffset: 0; } }
+              @keyframes s-check { 0%, 91.4% { opacity: 0; } 92.5%, 97.1% { opacity: 1; } 100% { opacity: 0; } }
+              @keyframes s-step-build { 0%, 46% { opacity: 1; } 48%, 98% { opacity: 0; } 100% { opacity: 1; } }
+              @keyframes s-step-pay { 0%, 46% { opacity: 0; } 48%, 70% { opacity: 1; } 72%, 100% { opacity: 0; } }
+              @keyframes s-step-mix { 0%, 70% { opacity: 0; } 72%, 98% { opacity: 1; } 100% { opacity: 0; } }
+              @media (prefers-reduced-motion: reduce) { .s-on, .s-list, .s-portions, .s-val-a, .s-val-b, .s-fill-a, .s-knob-a, .s-finger, .s-pay, .s-nfc, .s-paid, .s-mix, .s-ring, .s-check, .s-step-build, .s-step-pay, .s-step-mix { animation: none; } }
+            </style>
+            <rect x="105" y="8" width="110" height="200" fill="#0f0f10"/>
+            <rect x="113" y="17" width="22" height="3" fill="#e4002b"/>
+            <g class="s-list">
+              <text x="207" y="21" text-anchor="end" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="7" font-weight="700" fill="#8a8a8c">BUILD YOUR DRINK</text>
+              <rect x="113" y="32" width="94" height="24" fill="#1f1f22"/><circle cx="124" cy="44" r="4" fill="#e9cf9c"/><text x="133" y="47.5" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="9" font-weight="600" fill="#cfcfcb">Whey protein</text>
+              <g class="s-on s-on-1"><rect x="113" y="32" width="94" height="24" fill="#ffffff"/><circle cx="124" cy="44" r="4" fill="#e9cf9c" stroke="#111" stroke-width="0.8"/><text x="133" y="47.5" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="9" font-weight="700" fill="#111111">Whey protein</text><path d="M193 44l3 3 6-6" fill="none" stroke="#e4002b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g>
+              <rect x="113" y="60" width="94" height="24" fill="#1f1f22"/><circle cx="124" cy="72" r="4" fill="#b9c98a"/><text x="133" y="75.5" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="9" font-weight="600" fill="#cfcfcb">Plant protein</text>
+              <g class="s-on s-on-2"><rect x="113" y="60" width="94" height="24" fill="#ffffff"/><circle cx="124" cy="72" r="4" fill="#b9c98a" stroke="#111" stroke-width="0.8"/><text x="133" y="75.5" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="9" font-weight="700" fill="#111111">Plant protein</text><path d="M193 72l3 3 6-6" fill="none" stroke="#e4002b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g>
+              <rect x="113" y="88" width="94" height="24" fill="#1f1f22"/><circle cx="124" cy="100" r="4" fill="#6fc7e8"/><text x="133" y="103.5" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="9" font-weight="600" fill="#cfcfcb">Electrolytes</text>
+              <g class="s-on s-on-3"><rect x="113" y="88" width="94" height="24" fill="#ffffff"/><circle cx="124" cy="100" r="4" fill="#6fc7e8" stroke="#111" stroke-width="0.8"/><text x="133" y="103.5" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="9" font-weight="700" fill="#111111">Electrolytes</text><path d="M193 100l3 3 6-6" fill="none" stroke="#e4002b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g>
+              <rect x="113" y="116" width="94" height="24" fill="#1f1f22"/><circle cx="124" cy="128" r="4" fill="#e8ecf0"/><text x="133" y="131.5" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="9" font-weight="600" fill="#cfcfcb">Creatine</text>
+              <g class="s-on s-on-4"><rect x="113" y="116" width="94" height="24" fill="#ffffff"/><circle cx="124" cy="128" r="4" fill="#e8ecf0" stroke="#111" stroke-width="0.8"/><text x="133" y="131.5" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="9" font-weight="700" fill="#111111">Creatine</text><path d="M193 128l3 3 6-6" fill="none" stroke="#e4002b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g>
+              <rect x="113" y="144" width="94" height="24" fill="#1f1f22"/><circle cx="124" cy="156" r="4" fill="#d9a6c9"/><text x="133" y="159.5" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="9" font-weight="600" fill="#cfcfcb">Collagen</text>
+              <g class="s-on s-on-5"><rect x="113" y="144" width="94" height="24" fill="#ffffff"/><circle cx="124" cy="156" r="4" fill="#d9a6c9" stroke="#111" stroke-width="0.8"/><text x="133" y="159.5" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="9" font-weight="700" fill="#111111">Collagen</text><path d="M193 156l3 3 6-6" fill="none" stroke="#e4002b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g>
+              <rect x="113" y="176" width="94" height="18" fill="#e4002b"/><text x="160" y="188.5" text-anchor="middle" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="9" font-weight="800" fill="#ffffff">Next</text>
+            </g>
+            <g class="s-portions">
+              <text x="207" y="21" text-anchor="end" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="7" font-weight="700" fill="#8a8a8c">SET YOUR PORTIONS</text>
+              <text x="117" y="38" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="8" font-weight="700" fill="#ffffff">Whey protein</text>
+              <circle cx="112" cy="35" r="3" fill="#e9cf9c"/>
+              <text class="s-val-a" x="203" y="38" text-anchor="end" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="8" font-weight="700" fill="#cfcfcb">25 g</text><text class="s-val-b" x="203" y="38" text-anchor="end" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="8" font-weight="700" fill="#ffffff">35 g</text>
+              <rect x="117" y="44" width="86" height="4" fill="#3a3a3d"/>
+              <rect class="s-fill-a" x="117" y="44" width="86" height="4" fill="#e4002b" transform="scale(0.4 1)" style="transform-box: fill-box; transform-origin: 0 50%; transform: scaleX(0.4);"/>
+              <circle class="s-knob-a" cx="151.4" cy="46" r="5" fill="#ffffff"/>
+              <text x="117" y="82" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="8" font-weight="700" fill="#ffffff">Creatine</text>
+              <circle cx="112" cy="79" r="3" fill="#e8ecf0"/>
+              <text x="203" y="82" text-anchor="end" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="8" font-weight="700" fill="#cfcfcb">5 g</text>
+              <rect x="117" y="88" width="86" height="4" fill="#3a3a3d"/>
+              <rect class="" x="117" y="88" width="86" height="4" fill="#e4002b" transform="scale(0.3 1)" style="transform-box: fill-box; transform-origin: 0 50%; transform: scaleX(0.3);"/>
+              <circle class="" cx="142.8" cy="90" r="5" fill="#ffffff"/>
+              <text x="117" y="126" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="8" font-weight="700" fill="#ffffff">Collagen</text>
+              <circle cx="112" cy="123" r="3" fill="#d9a6c9"/>
+              <text x="203" y="126" text-anchor="end" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="8" font-weight="700" fill="#cfcfcb">10 g</text>
+              <rect x="117" y="132" width="86" height="4" fill="#3a3a3d"/>
+              <rect class="" x="117" y="132" width="86" height="4" fill="#e4002b" transform="scale(0.5 1)" style="transform-box: fill-box; transform-origin: 0 50%; transform: scaleX(0.5);"/>
+              <circle class="" cx="160.0" cy="134" r="5" fill="#ffffff"/>
+              <rect x="113" y="176" width="94" height="18" fill="#e4002b"/><text x="160" y="188.5" text-anchor="middle" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="9" font-weight="800" fill="#ffffff">Pay</text>
+            </g>
+            <g class="s-pay">
+              <text x="207" y="21" text-anchor="end" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="7" font-weight="700" fill="#8a8a8c">PAY BY PHONE</text>
+              <rect x="140" y="52" width="40" height="76" fill="none" stroke="#ffffff" stroke-width="2"/>
+              <rect x="152" y="57" width="16" height="3" fill="#3a3a3d"/>
+              <path class="s-nfc" d="M151 96a12 12 0 0 1 18 0" fill="none" stroke="#e4002b" stroke-width="2" stroke-linecap="round"/>
+              <path class="s-nfc s-nfc-2" d="M146 91a19 19 0 0 1 28 0" fill="none" stroke="#e4002b" stroke-width="2" stroke-linecap="round"/>
+              <path class="s-nfc s-nfc-3" d="M141 86a26 26 0 0 1 38 0" fill="none" stroke="#e4002b" stroke-width="2" stroke-linecap="round"/>
+              <text x="160" y="154" text-anchor="middle" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="14" font-weight="900" fill="#ffffff">$4.50</text>
+              <text x="160" y="170" text-anchor="middle" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="6.5" font-weight="600" fill="#cfcfcb">Hold your phone to the reader</text>
+              <g class="s-paid"><circle cx="160" cy="92" r="20" fill="#e4002b"/><path d="M150 93l7 7 13-14" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></g>
+            </g>
+            <g class="s-mix">
+              <text x="207" y="21" text-anchor="end" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="7" font-weight="700" fill="#8a8a8c">MIXING</text>
+              <circle cx="160" cy="100" r="28" fill="none" stroke="#3a3a3d" stroke-width="4"/>
+              <circle class="s-ring" cx="160" cy="100" r="28" fill="none" stroke="#e4002b" stroke-width="4" stroke-linecap="round"/>
+              <text x="160" y="154" text-anchor="middle" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="7.5" font-weight="700" fill="#ffffff">Whey · Creatine · Collagen</text>
+              <text x="160" y="168" text-anchor="middle" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="7.5" font-weight="600" fill="#cfcfcb">About 45 seconds</text>
+              <g class="s-check"><circle cx="160" cy="100" r="28" fill="#e4002b"/><path d="M147 101l9 9 17-18" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></g>
+            </g>
+            <circle class="s-finger" cx="190" cy="44" r="9" fill="#ffffff" fill-opacity="0.55" stroke="#ffffff" stroke-width="1.5"/>
+            <g font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="9" font-weight="800" text-anchor="middle">
+              <text x="125" y="230" fill="#8a8a86">Build</text><text x="160" y="230" fill="#8a8a86">Pay</text><text x="195" y="230" fill="#8a8a86">Mix</text>
+              <text class="s-step-build" x="125" y="230" fill="#e4002b">Build</text><text class="s-step-pay" x="160" y="230" fill="#e4002b">Pay</text><text class="s-step-mix" x="195" y="230" fill="#e4002b">Mix</text>
+            </g>
+          </svg>
+          <div class="tile__copy">
+            <p class="kicker">Ordering</p>
+            <h3>Build your drink, pay by phone, mix it.</h3>
+            <p>Pick your products and set each portion on the screen, hold your phone to the reader, and the machine takes it from there. Nothing to install to use the machine.</p>
+          </div>
+        </article>
+        <article class="tile tile--dark">
+          <svg class="tile__art" viewBox="0 0 320 240" aria-hidden="true">
+            <style>
+              .a-toast { animation: a-toast 6s ease-in-out infinite; }
+              @keyframes a-toast { 0%, 55% { transform: translateY(40px); opacity: 0; } 62%, 90% { transform: translateY(0); opacity: 1; } 97%, 100% { transform: translateY(40px); opacity: 0; } }
+              @media (prefers-reduced-motion: reduce) { .a-toast { animation: none; transform: none; opacity: 1; } }
+            </style>
+            <rect x="108" y="6" width="104" height="228" fill="#2a2a2f"/>
+            <rect x="113" y="11" width="94" height="218" fill="#0f0f10"/>
+            <rect x="146" y="15" width="28" height="5" fill="#2a2a2f"/>
+            <rect x="121" y="30" width="22" height="3" fill="#e4002b"/>
+            <text x="121" y="48" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="9" font-weight="800" fill="#ffffff">Saved drinks</text>
+            <rect x="121" y="56" width="78" height="46" fill="#ffffff"/>
+            <text x="127" y="68" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="8" font-weight="800" fill="#111111">Post-lift</text>
+            <circle cx="129" cy="78" r="3" fill="#e9cf9c"/><circle cx="137" cy="78" r="3" fill="#e8ecf0" stroke="#d2d2ce" stroke-width="0.6"/><circle cx="145" cy="78" r="3" fill="#d9a6c9"/>
+            <text x="127" y="90" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="6" font-weight="600" fill="#63636a">Whey 35 g · Creatine 5 g</text><text x="127" y="98" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="6" font-weight="600" fill="#63636a">Collagen 10 g</text>
+            <rect x="121" y="108" width="78" height="40" fill="#1f1f22"/>
+            <text x="127" y="120" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="8" font-weight="800" fill="#cfcfcb">Morning</text>
+            <circle cx="129" cy="130" r="3" fill="#b9c98a"/><circle cx="137" cy="130" r="3" fill="#6fc7e8"/>
+            <text x="127" y="143" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="6" font-weight="600" fill="#8a8a8c">Plant 30 g · Electrolytes</text>
+            <rect x="121" y="156" width="78" height="20" fill="#e4002b"/><text x="160" y="169.5" text-anchor="middle" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="8.5" font-weight="800" fill="#ffffff">Order &amp; pay</text>
+            <g class="a-toast"><rect x="121" y="196" width="78" height="24" fill="#ffffff"/><circle cx="133" cy="208" r="6" fill="#e4002b"/><path d="M130 208l2.5 2.5 4.5-5" fill="none" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><text x="143" y="206" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="6.5" font-weight="800" fill="#111111">Ready to pour</text><text x="143" y="215" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="5.5" font-weight="600" fill="#63636a">Tap the screen</text></g>
+          </svg>
+          <div class="tile__copy">
+            <p class="kicker">The app</p>
+            <h3>Build it once. Order it from your phone.</h3>
+            <p>Save your blends and portions, order ahead, pay from your phone, and walk up to a bottle that's already yours. Coming with the first machines. <a href="waitlist.html?type=member">Get early access</a></p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+
+
+  <section class="section" id="economics" aria-label="Price per drink">
+    <div class="container econ">
+      <div class="econ__copy">
+        <p class="kicker">The economics</p>
+        <h2>Priced for routine.</h2>
+        <p>Every other shake on site is priced like a treat.</p>
+      </div>
+      <svg class="econ__art" viewBox="0 0 640 240" aria-label="Price per drink: Nutrimatic $3 to $5, a bottled shake at the gym $5 to $7, the smoothie counter $16 to $18">
+        <style>
+          .e-bar { transform-box: fill-box; transform-origin: 50% 100%; animation: e-grow 0.9s cubic-bezier(.2,.8,.2,1) both; }
+          .e-price { opacity: 0; animation: e-fade 0.5s ease-out both; }
+          @keyframes e-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+          @keyframes e-fade { to { opacity: 1; } }
+          @media (prefers-reduced-motion: reduce) { .e-bar, .e-price { animation: none; opacity: 1; transform: none; } }
+        </style>
+        <line x1="30" y1="200.5" x2="610" y2="200.5" stroke="#111111" stroke-width="1.5"/>
+      <g class="e-bar" style="animation-delay:0.00s"><rect x="60" y="165" width="140" height="35" fill="#e4002b"/></g>
+      <text class="e-price" style="animation-delay:0.50s" x="130" y="153" text-anchor="middle" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="24" font-weight="900" fill="#e4002b">$3–5</text>
+      <text x="130" y="224" text-anchor="middle" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="12" font-weight="800" fill="#111111">Nutrimatic</text>
+      <g class="e-bar" style="animation-delay:0.15s"><rect x="250" y="147" width="140" height="53" fill="#cfcfca"/></g>
+      <text class="e-price" style="animation-delay:0.65s" x="320" y="135" text-anchor="middle" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="24" font-weight="900" fill="#111111">$5–7</text>
+      <text x="320" y="224" text-anchor="middle" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#63636a">Bottled shake at the gym</text>
+      <g class="e-bar" style="animation-delay:0.30s"><rect x="440" y="50" width="140" height="150" fill="#cfcfca"/></g>
+      <text class="e-price" style="animation-delay:0.80s" x="510" y="38" text-anchor="middle" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="24" font-weight="900" fill="#111111">$16–18</text>
+      <text x="510" y="224" text-anchor="middle" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#63636a">Smoothie counter</text>
+      </svg>
+    </div>
+  </section>
+
+  <section class="section section--alt">
+    <div class="container prose">
+      <h2>The co-founders</h2>
+      <div class="team">
+        <article class="person">
+          <img src="assets/team/cole-maisonpierre.jpg" alt="Cole Maisonpierre" width="640" height="640" loading="lazy">
+          <h3>Cole Maisonpierre</h3>
+          <p class="person__role">Co-founder &amp; CEO · Tech development, product management</p>
+          <p class="person__link"><a href="https://www.linkedin.com/in/maisonpierre" rel="noopener noreferrer" target="_blank">linkedin.com/in/maisonpierre</a></p>
+          <p>Master of Design Engineering, Brown University and Rhode Island School of Design.</p>
+          <p>Early and mid-stage startup experience in tech development, product management, and FDA-compliant design control.</p>
+        </article>
+        <article class="person">
+          <img src="assets/team/ilinca-iorga.jpg" alt="Ilinca Iorga" width="640" height="640" loading="lazy">
+          <h3>Ilinca Iorga</h3>
+          <p class="person__role">Co-founder · Business management, marketing</p>
+          <p>Finance Manager at American Express. Eight years in strategic finance, investment optimization, customer economics and commercial business cases.</p>
+          <p>Early-stage startup experience spanning social media marketing and fundraising.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="container band__inner">
+      <div>
+        <h2>Be first in line.</h2>
+        <p>We're placing the first pilot machines now. Tell us where you train, what you run, or what you make.</p>
+      </div>
+      <a class="btn btn--lg" href="waitlist.html">Join the waitlist</a>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div>
+        <a class="brand" href="index.html"><img class="brand__mark" src="assets/nu-mark-red.svg" alt="" width="26" height="26"><span>Nutrimatic</span></a>
+        <p>Sports nutrition, mixed to order, built into the gym floor.</p>
+      </div>
+      <div>
+        <h4>Company</h4>
+        <ul>
+          <li><a href="how-it-works.html">How it works</a></li>
+          <li><a href="contact.html">Contact</a></li>
+          <li><a href="waitlist.html">Waitlist</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Get in touch</h4>
+        <ul>
+          <li><a href="https://www.linkedin.com/in/maisonpierre" rel="noopener noreferrer" target="_blank">linkedin.com/in/maisonpierre</a></li>
+          <li><a href="waitlist.html?type=owner">Gyms: get a machine</a></li>
+          <li><a href="waitlist.html?type=member">Members: bring it to my gym</a></li>
+          <li><a href="waitlist.html?type=brand">Brands: advertise with us</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <span>© <span data-year>2026</span> Nutrimatic · nutrimatic.tech</span>
+      <span>Provisional patent filed.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/config.js"></script>
+<script src="js/site.js" defer></script>
+</body>
+</html>

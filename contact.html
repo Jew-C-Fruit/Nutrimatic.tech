@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!--
+  Nutrimatic Website - contact.html
+  Version 1.1.1
+  Created: 2026-09-13 - Initial marketing site (v1.0.0)
+  Modified: 2026-09-15 - Language pass: "advertise with us" for brands, no "fresh" (v1.1.0)
+  Modified: 2026-09-15 - Contact via LinkedIn; email address removed from markup and structured data (v1.1.1)
+-->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contact — Nutrimatic</title>
+<meta name="description" content="Questions, press, brand partnerships, or a gym that wants a machine. Get in touch with the Nutrimatic team.">
+<link rel="canonical" href="https://nutrimatic.tech/contact.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Nutrimatic">
+<meta property="og:title" content="Contact Nutrimatic">
+<meta property="og:description" content="Questions, press, brand partnerships, or a gym that wants a machine.">
+<meta property="og:url" content="https://nutrimatic.tech/contact.html">
+<meta property="og:image" content="https://nutrimatic.tech/assets/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Nutrimatic wordmark next to the kiosk">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:title" content="Contact Nutrimatic">
+<meta name="twitter:description" content="Questions, press, brand partnerships, or a gym that wants a machine. Get in touch with the Nutrimatic team.">
+<meta name="twitter:image" content="https://nutrimatic.tech/assets/og.png">
+<meta name="theme-color" content="#111111">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/logo-512.png">
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@graph": [
+  {
+   "@type": "Organization",
+   "@id": "https://nutrimatic.tech/#organization",
+   "name": "Nutrimatic",
+   "url": "https://nutrimatic.tech/",
+   "logo": {
+    "@type": "ImageObject",
+    "url": "https://nutrimatic.tech/assets/logo-512.png",
+    "width": 512,
+    "height": 512
+   },
+   "image": "https://nutrimatic.tech/assets/og.png",
+   "description": "Nutrimatic builds a self-serve protein shake machine for gyms that mixes a 500 ml shake to order from a sealed cartridge in about 45 seconds, and a point-of-sale trial channel for sports nutrition brands.",
+   "founder": [
+    {
+     "@type": "Person",
+     "name": "Cole Maisonpierre"
+    },
+    {
+     "@type": "Person",
+     "name": "Ilinca Iorga"
+    }
+   ],
+   "sameAs": [],
+   "contactPoint": [
+    {
+     "@type": "ContactPoint",
+     "contactType": "sales",
+     "url": "https://nutrimatic.tech/contact.html",
+     "availableLanguage": "en"
+    }
+   ]
+  },
+  {
+   "@type": "WebSite",
+   "@id": "https://nutrimatic.tech/#website",
+   "url": "https://nutrimatic.tech/",
+   "name": "Nutrimatic",
+   "publisher": {
+    "@id": "https://nutrimatic.tech/#organization"
+   },
+   "inLanguage": "en"
+  },
+  {
+   "@type": "ContactPage",
+   "@id": "https://nutrimatic.tech/contact.html#webpage",
+   "url": "https://nutrimatic.tech/contact.html",
+   "name": "Contact Nutrimatic",
+   "description": "Questions, press, brand partnerships, or a gym that wants a machine.",
+   "isPartOf": {
+    "@id": "https://nutrimatic.tech/#website"
+   },
+   "about": {
+    "@id": "https://nutrimatic.tech/#organization"
+   },
+   "inLanguage": "en",
+   "primaryImageOfPage": {
+    "@type": "ImageObject",
+    "url": "https://nutrimatic.tech/assets/og.png",
+    "width": 1200,
+    "height": 630
+   }
+  }
+ ]
+}
+</script>
+<link rel="preload" href="assets/fonts/archivo-latin-var.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/site.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav">
+  <div class="container nav__inner">
+    <a class="brand" href="index.html"><img class="brand__mark" src="assets/nu-mark.svg" alt="" width="26" height="26"><span>Nutrimatic</span></a>
+    <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Menu"><span></span></button>
+    <ul class="nav__links" id="nav-links">
+      <li><a href="how-it-works.html">How it works</a></li>
+      <li><a href="contact.html" aria-current="page">Contact</a></li>
+      <li><a class="btn" href="waitlist.html">Join the waitlist</a></li>
+    </ul>
+  </div>
+</header>
+
+<main id="main">
+  <section class="page-hero">
+    <div class="container">
+      <p class="kicker">Contact</p>
+      <h1>Say hi.</h1>
+      <p class="lead">Questions, press, brand partnerships, or you just want to tell us which flavour we'd better have loaded. We read everything.</p>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:0">
+    <div class="container two-col">
+      <form class="form card" data-form="contact" action="#" method="post">
+        <div class="form__fields">
+          <div class="field">
+            <label for="ct-name">Name</label>
+            <input class="input" id="ct-name" name="name" type="text" required autocomplete="name">
+            <span class="error-msg">Please tell us your name.</span>
+          </div>
+          <div class="field">
+            <label for="ct-email">Email</label>
+            <input class="input" id="ct-email" name="email" type="email" required autocomplete="email" inputmode="email">
+            <span class="error-msg">Enter a valid email address so we can reply.</span>
+          </div>
+          <div class="field">
+            <label for="ct-message">Message</label>
+            <textarea class="textarea" id="ct-message" name="message" required></textarea>
+            <span class="error-msg">The message is the important part.</span>
+          </div>
+          <div class="hp" aria-hidden="true">
+            <label>Leave this field empty <input name="_gotcha" type="text" tabindex="-1" autocomplete="off"></label>
+          </div>
+          <div class="form__actions">
+            <button class="btn btn--lg" type="submit">Send message</button>
+            <p class="form__status" role="status" aria-live="polite"></p>
+          </div>
+        </div>
+        <div class="form__success" role="status" aria-live="polite">
+          <div class="success-badge"><svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg></div>
+          <h3>Message sent.</h3>
+          <p>Thanks. We'll get back to you at <strong data-success-email></strong>.</p>
+          <p data-success-mailto hidden>Your email app should have opened with your message filled in. Just hit send. If it didn't, reach us at <a href="https://www.linkedin.com/in/maisonpierre" rel="noopener noreferrer" target="_blank">linkedin.com/in/maisonpierre</a>.</p>
+        </div>
+      </form>
+
+      <aside>
+        <dl class="info">
+          <dt>Direct line</dt>
+          <dd>The form is the fastest way to reach us. Prefer a person? <a href="https://www.linkedin.com/in/maisonpierre" rel="noopener noreferrer" target="_blank">linkedin.com/in/maisonpierre</a></dd>
+          <dt>Gym owners &amp; managers</dt>
+          <dd>Want a machine? <a href="waitlist.html?type=owner">Join the waitlist as a gym</a> and we'll reach out with footprint, timing and terms.</dd>
+          <dt>Gym members</dt>
+          <dd>Want one where you train? <a href="waitlist.html?type=member">Tell us your gym</a>. The more members ask for the same gym, the sooner it happens.</dd>
+          <dt>Supplement brands</dt>
+          <dd>Want your product in the machine for the pilot? <a href="waitlist.html?type=brand">Advertise with us</a> and tell us what you'd stock.</dd>
+        </dl>
+      </aside>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div>
+        <a class="brand" href="index.html"><img class="brand__mark" src="assets/nu-mark-red.svg" alt="" width="26" height="26"><span>Nutrimatic</span></a>
+        <p>Sports nutrition, mixed to order, built into the gym floor.</p>
+      </div>
+      <div>
+        <h4>Company</h4>
+        <ul>
+          <li><a href="how-it-works.html">How it works</a></li>
+          <li><a href="contact.html">Contact</a></li>
+          <li><a href="waitlist.html">Waitlist</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Get in touch</h4>
+        <ul>
+          <li><a href="https://www.linkedin.com/in/maisonpierre" rel="noopener noreferrer" target="_blank">linkedin.com/in/maisonpierre</a></li>
+          <li><a href="waitlist.html?type=owner">Gyms: get a machine</a></li>
+          <li><a href="waitlist.html?type=member">Members: bring it to my gym</a></li>
+          <li><a href="waitlist.html?type=brand">Brands: advertise with us</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <span>© <span data-year>2026</span> Nutrimatic · nutrimatic.tech</span>
+      <span>Provisional patent filed.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/config.js"></script>
+<script src="js/site.js" defer></script>
+</body>
+</html>

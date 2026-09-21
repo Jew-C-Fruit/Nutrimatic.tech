@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 520" width="940" height="520" role="img" aria-labelledby="pr-title pr-desc">
+  <!--
+    Nutrimatic Website - process.svg
+    Version 2.2.0
+    Created: 2026-09-15 - Cutaway of the kiosk showing how a drink is made (v1.0.0)
+    Modified: 2026-09-15 - Compact layout; three cartridge stops pouring different colours (v2.0.0)
+    Modified: 2026-09-15 - Tighter interior with a lighter background, taller mixer head, whisk turns only
+    while mixing and washing (v2.1.0). Port and bay lightened (v2.1.1). Light-grey interior to match the site palette; red ready-glow (v2.1.2). Glow removed (v2.1.3). Hard edges except the bottle (v2.2.0). Sequence per Master Module/docs/SEQUENCE_DOCUMENTATION.md.
+    One 20 s loop; the About page scrubs it with scroll. Reduced motion shows the "ready" state.
+  -->
+  <title id="pr-title">How a Nutrimatic drink is made</title>
+  <desc id="pr-desc">Cutaway of the kiosk: a carriage moves a bottle along a rail from the port to the mixer, under three cartridges that each add a different powder, back to the mixer where water pours and a whisk rises through the bottle, then to the port, while the mixer washes itself in a tank.</desc>
+  <defs>
+    <clipPath id="pr-bottle-clip"><rect x="109" y="270" width="52" height="118" rx="11"/></clipPath>
+    <clipPath id="pr-mixer-clip"><rect x="270" y="202" width="100" height="290"/></clipPath>
+    <clipPath id="pr-tank-clip"><rect x="284" y="434" width="72" height="37"/></clipPath>
+  </defs>
+  <style>
+    .pr-carriage { animation: pr-carriage 20s ease-in-out infinite; }
+    .pr-bottle { animation: pr-bottle 20s ease-out infinite; }
+    .pr-mixer { animation: pr-mixer 20s ease-in-out infinite; }
+    .pr-layer, .pr-prime-water, .pr-blend, .pr-tankwater { transform-box: fill-box; transform-origin: 50% 100%; }
+    .pr-prime-water { animation: pr-prime-water 20s linear infinite; }
+    .pr-blend { animation: pr-blend 20s linear infinite; }
+    .pr-tankwater { opacity: 0; animation: pr-tankwater 20s linear infinite; }
+    .pr-prime, .pr-water, .pr-wash, .pr-pour { opacity: 0; }
+    .pr-prime { animation: pr-prime 20s linear infinite; }
+    .pr-water { animation: pr-water 20s linear infinite; }
+    .pr-wash { animation: pr-wash 20s linear infinite; }
+    .pr-auger-0, .pr-auger-1, .pr-auger-2 { transform-box: fill-box; transform-origin: 50% 50%; }
+    .pr-ring { transform-box: fill-box; transform-origin: 50% 50%; transform: rotate(-90deg); stroke-dasharray: 125.7; stroke-dashoffset: 125.7; animation: pr-ring 20s linear infinite; }
+    .pr-whisk { transform-box: fill-box; transform-origin: 50% 50%; animation: pr-spin 20s linear infinite; }
+    .pr-vortex { opacity: 0; animation: pr-vortex 20s linear infinite; }
+    .pr-stream { stroke-dasharray: 6 9; animation: pr-dash 0.5s linear infinite; }
+    .pr-pour-0 { animation: pr-pour-0 20s linear infinite; } .pr-layer-0 { animation: pr-layer-0 20s linear infinite; } .pr-auger-0 { animation: pr-auger-0 20s linear infinite; } .pr-wig-0 { animation: pr-wig-0 20s linear infinite; }
+    .pr-pour-1 { animation: pr-pour-1 20s linear infinite; } .pr-layer-1 { animation: pr-layer-1 20s linear infinite; } .pr-auger-1 { animation: pr-auger-1 20s linear infinite; } .pr-wig-1 { animation: pr-wig-1 20s linear infinite; }
+    .pr-pour-2 { animation: pr-pour-2 20s linear infinite; } .pr-layer-2 { animation: pr-layer-2 20s linear infinite; } .pr-auger-2 { animation: pr-auger-2 20s linear infinite; } .pr-wig-2 { animation: pr-wig-2 20s linear infinite; }
+    
+    @keyframes pr-carriage { 0%, 3% { transform: translateX(0); } 8%, 14% { transform: translateX(185px); } 19%, 26% { transform: translateX(385px); } 29%, 36% { transform: translateX(585px); } 39%, 45% { transform: translateX(685px); } 51%, 70% { transform: translateX(185px); } 76%, 100% { transform: translateX(0); } }
+    @keyframes pr-bottle { 0% { opacity: 0; transform: translateY(-24px); } 2.5%, 96% { opacity: 1; transform: translateY(0); } 98%, 100% { opacity: 0; transform: translateY(0); } }
+    @keyframes pr-mixer { 0%, 8% { transform: translateY(0); } 10%, 12.5% { transform: translateY(184px); } 14%, 51% { transform: translateY(0); } 53%, 55% { transform: translateY(184px); } 65% { transform: translateY(94px); } 68%, 76% { transform: translateY(0); } 80%, 90% { transform: translateY(259px); } 93%, 100% { transform: translateY(0); } }
+    @keyframes pr-prime { 0%, 9.5% { opacity: 0; } 10%, 12.5% { opacity: 1; } 13%, 100% { opacity: 0; } }
+    @keyframes pr-prime-water { 0%, 10% { transform: scaleY(0); } 12.5%, 97% { transform: scaleY(1); } 98%, 100% { transform: scaleY(0); } }
+    @keyframes pr-pour-0 { 0%, 19.0% { opacity: 0; } 19.5%, 25.5% { opacity: 1; } 26%, 100% { opacity: 0; } }
+    @keyframes pr-pour-1 { 0%, 29.0% { opacity: 0; } 29.5%, 35.5% { opacity: 1; } 36%, 100% { opacity: 0; } }
+    @keyframes pr-pour-2 { 0%, 39.0% { opacity: 0; } 39.5%, 44.5% { opacity: 1; } 45%, 100% { opacity: 0; } }
+    @keyframes pr-layer-0 { 0%, 19.5% { transform: scaleY(0); } 26%, 97% { transform: scaleY(1); } 98%, 100% { transform: scaleY(0); } }
+    @keyframes pr-layer-1 { 0%, 29.5% { transform: scaleY(0); } 36%, 97% { transform: scaleY(1); } 98%, 100% { transform: scaleY(0); } }
+    @keyframes pr-layer-2 { 0%, 39.5% { transform: scaleY(0); } 45%, 97% { transform: scaleY(1); } 98%, 100% { transform: scaleY(0); } }
+    @keyframes pr-auger-0 { 0%, 19.5% { transform: rotate(0deg); } 26%, 100% { transform: rotate(900deg); } }
+    @keyframes pr-auger-1 { 0%, 29.5% { transform: rotate(0deg); } 36%, 100% { transform: rotate(900deg); } }
+    @keyframes pr-auger-2 { 0%, 39.5% { transform: rotate(0deg); } 45%, 100% { transform: rotate(900deg); } }
+    @keyframes pr-wig-0 { 0%, 19.20% { transform: translateX(0); } 19.50% { transform: translateX(1.5px); } 19.75% { transform: translateX(-1.5px); } 20.00% { transform: translateX(1.5px); } 20.25% { transform: translateX(-1.5px); } 20.50% { transform: translateX(1.5px); } 20.75% { transform: translateX(-1.5px); } 21.00% { transform: translateX(1.5px); } 21.25% { transform: translateX(-1.5px); } 21.50% { transform: translateX(1.5px); } 21.75% { transform: translateX(-1.5px); } 22.00% { transform: translateX(1.5px); } 22.25% { transform: translateX(-1.5px); } 22.50% { transform: translateX(1.5px); } 22.75% { transform: translateX(-1.5px); } 23.00% { transform: translateX(1.5px); } 23.25% { transform: translateX(-1.5px); } 23.50% { transform: translateX(1.5px); } 23.75% { transform: translateX(-1.5px); } 24.00% { transform: translateX(1.5px); } 24.25% { transform: translateX(-1.5px); } 24.50% { transform: translateX(1.5px); } 24.75% { transform: translateX(-1.5px); } 25.00% { transform: translateX(1.5px); } 25.25% { transform: translateX(-1.5px); } 25.50% { transform: translateX(1.5px); } 25.75% { transform: translateX(-1.5px); } 26.00% { transform: translateX(1.5px); } 26.30%, 100% { transform: translateX(0); } }
+    @keyframes pr-wig-1 { 0%, 29.20% { transform: translateX(0); } 29.50% { transform: translateX(1.5px); } 29.75% { transform: translateX(-1.5px); } 30.00% { transform: translateX(1.5px); } 30.25% { transform: translateX(-1.5px); } 30.50% { transform: translateX(1.5px); } 30.75% { transform: translateX(-1.5px); } 31.00% { transform: translateX(1.5px); } 31.25% { transform: translateX(-1.5px); } 31.50% { transform: translateX(1.5px); } 31.75% { transform: translateX(-1.5px); } 32.00% { transform: translateX(1.5px); } 32.25% { transform: translateX(-1.5px); } 32.50% { transform: translateX(1.5px); } 32.75% { transform: translateX(-1.5px); } 33.00% { transform: translateX(1.5px); } 33.25% { transform: translateX(-1.5px); } 33.50% { transform: translateX(1.5px); } 33.75% { transform: translateX(-1.5px); } 34.00% { transform: translateX(1.5px); } 34.25% { transform: translateX(-1.5px); } 34.50% { transform: translateX(1.5px); } 34.75% { transform: translateX(-1.5px); } 35.00% { transform: translateX(1.5px); } 35.25% { transform: translateX(-1.5px); } 35.50% { transform: translateX(1.5px); } 35.75% { transform: translateX(-1.5px); } 36.00% { transform: translateX(1.5px); } 36.30%, 100% { transform: translateX(0); } }
+    @keyframes pr-wig-2 { 0%, 39.20% { transform: translateX(0); } 39.50% { transform: translateX(1.5px); } 39.75% { transform: translateX(-1.5px); } 40.00% { transform: translateX(1.5px); } 40.25% { transform: translateX(-1.5px); } 40.50% { transform: translateX(1.5px); } 40.75% { transform: translateX(-1.5px); } 41.00% { transform: translateX(1.5px); } 41.25% { transform: translateX(-1.5px); } 41.50% { transform: translateX(1.5px); } 41.75% { transform: translateX(-1.5px); } 42.00% { transform: translateX(1.5px); } 42.25% { transform: translateX(-1.5px); } 42.50% { transform: translateX(1.5px); } 42.75% { transform: translateX(-1.5px); } 43.00% { transform: translateX(1.5px); } 43.25% { transform: translateX(-1.5px); } 43.50% { transform: translateX(1.5px); } 43.75% { transform: translateX(-1.5px); } 44.00% { transform: translateX(1.5px); } 44.25% { transform: translateX(-1.5px); } 44.50% { transform: translateX(1.5px); } 44.75% { transform: translateX(-1.5px); } 45.00% { transform: translateX(1.5px); } 45.30%, 100% { transform: translateX(0); } }
+    @keyframes pr-spin { 0% { transform: scaleX(1); } 52.80% { transform: scaleX(1); } 53.00% { transform: scaleX(1); } 53.50% { transform: scaleX(0.15); } 54.00% { transform: scaleX(1); } 54.50% { transform: scaleX(0.15); } 55.00% { transform: scaleX(1); } 55.50% { transform: scaleX(0.15); } 56.00% { transform: scaleX(1); } 56.50% { transform: scaleX(0.15); } 57.00% { transform: scaleX(1); } 57.50% { transform: scaleX(0.15); } 58.00% { transform: scaleX(1); } 58.50% { transform: scaleX(0.15); } 59.00% { transform: scaleX(1); } 59.50% { transform: scaleX(0.15); } 60.00% { transform: scaleX(1); } 60.50% { transform: scaleX(0.15); } 61.00% { transform: scaleX(1); } 61.50% { transform: scaleX(0.15); } 62.00% { transform: scaleX(1); } 62.50% { transform: scaleX(0.15); } 63.00% { transform: scaleX(1); } 63.50% { transform: scaleX(0.15); } 64.00% { transform: scaleX(1); } 64.50% { transform: scaleX(0.15); } 65.00% { transform: scaleX(1); } 65.50% { transform: scaleX(0.15); } 66.00% { transform: scaleX(1); } 66.20% { transform: scaleX(1); } 80.80% { transform: scaleX(1); } 81.00% { transform: scaleX(1); } 81.50% { transform: scaleX(0.15); } 82.00% { transform: scaleX(1); } 82.50% { transform: scaleX(0.15); } 83.00% { transform: scaleX(1); } 83.50% { transform: scaleX(0.15); } 84.00% { transform: scaleX(1); } 84.50% { transform: scaleX(0.15); } 85.00% { transform: scaleX(1); } 85.50% { transform: scaleX(0.15); } 86.00% { transform: scaleX(1); } 86.50% { transform: scaleX(0.15); } 87.00% { transform: scaleX(1); } 87.50% { transform: scaleX(0.15); } 88.00% { transform: scaleX(1); } 88.50% { transform: scaleX(0.15); } 89.00% { transform: scaleX(1); } 89.50% { transform: scaleX(0.15); } 90.00% { transform: scaleX(1); } 90.20% { transform: scaleX(1); } 100% { transform: scaleX(1); } }
+    @keyframes pr-water { 0%, 53% { opacity: 0; } 53.5%, 63% { opacity: 1; } 63.5%, 100% { opacity: 0; } }
+    @keyframes pr-blend { 0%, 54% { transform: scaleY(0); } 66%, 97% { transform: scaleY(1); } 98%, 100% { transform: scaleY(0); } }
+    @keyframes pr-vortex { 0%, 55% { opacity: 0; } 57%, 64% { opacity: 1; } 66%, 100% { opacity: 0; } }
+    @keyframes pr-wash { 0%, 80.5% { opacity: 0; } 81%, 88% { opacity: 1; } 88.5%, 100% { opacity: 0; } }
+    @keyframes pr-tankwater { 0%, 80.5% { opacity: 1; transform: scaleY(0); } 88% { opacity: 1; transform: scaleY(1); } 90.5%, 100% { opacity: 1; transform: scaleY(0); } }
+    @keyframes pr-ring { 0%, 3% { stroke-dashoffset: 125.7; opacity: 1; } 76% { stroke-dashoffset: 0; opacity: 1; } 78%, 100% { stroke-dashoffset: 0; opacity: 0; } }
+    @keyframes pr-dash { to { stroke-dashoffset: -15; } }
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; }
+      .pr-ring { opacity: 0; }
+    }
+  </style>
+
+  <!-- shell, front panel removed -->
+  <rect x="40" y="30" width="860" height="460" fill="#f3f3f0"/>
+  <rect x="60" y="50" width="820" height="420" fill="#d8d8d3"/>
+  <rect x="60" y="50" width="820" height="420" fill="none" stroke="#c6c6c0" stroke-width="2"/>
+  <!-- screen -->
+  <rect x="80" y="66" width="84" height="150" fill="#0a0a0b"/>
+  <circle cx="122" cy="130" r="20" fill="none" stroke="#e4002b" stroke-width="3"/>
+  <circle class="pr-ring" cx="122" cy="130" r="20" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+  <rect x="106" y="161" width="32" height="4" fill="#ffffff"/><rect x="101" y="171" width="42" height="3" fill="#6f6f72"/>
+
+  <!-- cartridge bay -->
+  <rect x="470" y="60" width="400" height="180" fill="#b9b9b3" stroke="#ffffff" stroke-width="3"/>
+  <g class="pr-wig-0"><rect x="482" y="76" width="76" height="136" fill="#ececE8" stroke="#d2d2ce" stroke-width="1.5"/><line x1="530" y1="78" x2="530" y2="210" stroke="#dcdcd8" stroke-width="1.5"/><rect x="492" y="174" width="56" height="8" fill="#e9cf9c"/><circle cx="520" cy="196" r="11" fill="#1c1c21"/><g class="pr-auger-0"><circle cx="520" cy="196" r="8" fill="none" stroke="#9a9aa0" stroke-width="2"/><line x1="512" y1="196" x2="528" y2="196" stroke="#9a9aa0" stroke-width="2"/><line x1="520" y1="188" x2="520" y2="204" stroke="#9a9aa0" stroke-width="2"/></g><path d="M510 212h20l-5 14h-10z" fill="#2b2b30"/></g>
+  <g><rect x="582" y="76" width="76" height="136" fill="#ececE8" stroke="#d2d2ce" stroke-width="1.5"/><line x1="630" y1="78" x2="630" y2="210" stroke="#dcdcd8" stroke-width="1.5"/><rect x="592" y="174" width="56" height="8" fill="#b9c98a"/><circle cx="620" cy="196" r="11" fill="#1c1c21"/><g class="pr-auger-off"><circle cx="620" cy="196" r="8" fill="none" stroke="#9a9aa0" stroke-width="2"/><line x1="612" y1="196" x2="628" y2="196" stroke="#9a9aa0" stroke-width="2"/><line x1="620" y1="188" x2="620" y2="204" stroke="#9a9aa0" stroke-width="2"/></g><path d="M610 212h20l-5 14h-10z" fill="#2b2b30"/></g>
+  <g class="pr-wig-1"><rect x="682" y="76" width="76" height="136" fill="#ececE8" stroke="#d2d2ce" stroke-width="1.5"/><line x1="730" y1="78" x2="730" y2="210" stroke="#dcdcd8" stroke-width="1.5"/><rect x="692" y="174" width="56" height="8" fill="#e8ecf0"/><circle cx="720" cy="196" r="11" fill="#1c1c21"/><g class="pr-auger-1"><circle cx="720" cy="196" r="8" fill="none" stroke="#9a9aa0" stroke-width="2"/><line x1="712" y1="196" x2="728" y2="196" stroke="#9a9aa0" stroke-width="2"/><line x1="720" y1="188" x2="720" y2="204" stroke="#9a9aa0" stroke-width="2"/></g><path d="M710 212h20l-5 14h-10z" fill="#2b2b30"/></g>
+  <g class="pr-wig-2"><rect x="782" y="76" width="76" height="136" fill="#ececE8" stroke="#d2d2ce" stroke-width="1.5"/><line x1="830" y1="78" x2="830" y2="210" stroke="#dcdcd8" stroke-width="1.5"/><rect x="792" y="174" width="56" height="8" fill="#d9a6c9"/><circle cx="820" cy="196" r="11" fill="#1c1c21"/><g class="pr-auger-2"><circle cx="820" cy="196" r="8" fill="none" stroke="#9a9aa0" stroke-width="2"/><line x1="812" y1="196" x2="828" y2="196" stroke="#9a9aa0" stroke-width="2"/><line x1="820" y1="188" x2="820" y2="204" stroke="#9a9aa0" stroke-width="2"/></g><path d="M810 212h20l-5 14h-10z" fill="#2b2b30"/></g>
+
+  <!-- mixer station and wash tank -->
+  <rect x="314" y="50" width="12" height="80" fill="#2a2a30"/>
+  <rect x="280" y="130" width="80" height="70" fill="#2a2a30" stroke="#1c1c21" stroke-width="2"/>
+  <rect x="340" y="200" width="10" height="12" fill="#1c1c21"/>
+  <rect x="280" y="430" width="80" height="45" fill="#b9b9b3" stroke="#8a8a86" stroke-width="2"/>
+  <g clip-path="url(#pr-tank-clip)"><rect class="pr-tankwater" x="284" y="434" width="72" height="37" fill="#bfe9ff" opacity="0.7"/></g>
+  <rect x="360" y="446" width="50" height="6" fill="#2a2a30"/><rect x="410" y="430" width="8" height="38" fill="#2a2a30"/>
+
+  <!-- gantry rail -->
+  <rect x="90" y="400" width="760" height="10" fill="#2a2a30"/><rect x="90" y="410" width="760" height="3" fill="#45454c"/>
+
+  <!-- delivery port -->
+  <rect x="80" y="240" width="110" height="170" fill="#b9b9b3"/>
+  <rect x="80" y="240" width="110" height="170" fill="none" stroke="#ffffff" stroke-width="5"/>
+
+  <!-- streams: the carriage arrives under them -->
+  <line class="pr-pour pr-pour-0 pr-stream" x1="520" y1="226" x2="520" y2="262" stroke="#e9cf9c" stroke-width="7"/><line class="pr-pour pr-pour-1 pr-stream" x1="720" y1="226" x2="720" y2="262" stroke="#e8ecf0" stroke-width="7"/><line class="pr-pour pr-pour-2 pr-stream" x1="820" y1="226" x2="820" y2="262" stroke="#d9a6c9" stroke-width="7"/>
+  <line class="pr-prime pr-stream" x1="345" y1="214" x2="345" y2="270" stroke="#bfe9ff" stroke-width="5"/>
+  <line class="pr-water pr-stream" x1="345" y1="214" x2="345" y2="270" stroke="#bfe9ff" stroke-width="5"/>
+  <line class="pr-wash pr-stream" x1="345" y1="214" x2="345" y2="434" stroke="#bfe9ff" stroke-width="5"/>
+
+  <!-- carriage with bottle -->
+  <g class="pr-carriage">
+    <rect x="100" y="388" width="70" height="14" fill="#3a3a42"/><rect x="108" y="395" width="54" height="4" fill="#1c1c21"/>
+    <g class="pr-bottle">
+      <rect x="124" y="254" width="22" height="18" fill="#ececE8"/>
+      <rect x="109" y="270" width="52" height="118" rx="11" fill="#fafaf8" stroke="#cfcfca" stroke-width="1.5"/>
+      <g clip-path="url(#pr-bottle-clip)">
+        <rect class="pr-prime-water" x="109" y="378" width="52" height="10" fill="#bfe9ff" opacity="0.8"/>
+        <rect class="pr-layer pr-layer-0" x="109" y="348" width="52" height="30" fill="#e9cf9c"/><rect class="pr-layer pr-layer-1" x="109" y="318" width="52" height="30" fill="#e8ecf0"/><rect class="pr-layer pr-layer-2" x="109" y="288" width="52" height="30" fill="#d9a6c9"/>
+        <rect class="pr-blend" x="109" y="276" width="52" height="112" fill="#dcc6b4"/>
+        <ellipse class="pr-vortex" cx="135" cy="282" rx="13" ry="4" fill="#c4ab9a"/>
+      </g>
+    </g>
+  </g>
+
+  <!-- mixer shaft and whisk, hidden in the head when raised; the whisk turns only while mixing and washing -->
+  <g clip-path="url(#pr-mixer-clip)"><g class="pr-mixer"><rect x="317" y="-400" width="6" height="592" fill="#cfcfca"/><ellipse class="pr-whisk" cx="320" cy="196" rx="16" ry="5" fill="#e6e6e2"/></g></g>
+</svg>

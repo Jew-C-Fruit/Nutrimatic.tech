@@ -1,0 +1,34 @@
+/*
+ * Nutrimatic Website - custom-css.css
+ * Version 1.0.0
+ * Created: 2026-09-13 - Paste into Squarespace Design -> Custom CSS (v1.0.0)
+ * Brand: Archivo, black / white, red #E4002B.
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&display=swap");
+
+:root { --nm-ink: #111111; --nm-red: #e4002b; --nm-line: #e3e3e0; --nm-paper-2: #f6f6f4; }
+
+/* Headings: heavy, uppercase, tight */
+h1, h2, h3 { font-family: "Archivo", "Helvetica Neue", Arial, sans-serif !important; font-weight: 900 !important; letter-spacing: -0.03em; text-transform: uppercase; }
+h1 { line-height: 0.95; }
+
+/* Kicker: small caps label with a red bar (add the "nm-kicker" class via a Code Block or Markdown block) */
+.nm-kicker { display: flex; align-items: center; gap: 0.75rem; font-size: 0.78rem; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; }
+.nm-kicker::before { content: ""; width: 1.6rem; height: 3px; background: var(--nm-red); }
+
+/* Buttons */
+.sqs-block-button-element, .sqs-button-element--primary { border-radius: 6px !important; font-weight: 800 !important; letter-spacing: 0.02em; background: var(--nm-ink) !important; color: #fff !important; border: 2px solid var(--nm-ink) !important; }
+.sqs-block-button-element:hover, .sqs-button-element--primary:hover { background: var(--nm-red) !important; border-color: var(--nm-red) !important; color: #fff !important; }
+.sqs-button-element--secondary { background: transparent !important; color: var(--nm-ink) !important; border: 2px solid var(--nm-ink) !important; border-radius: 6px !important; font-weight: 800 !important; }
+
+/* Forms */
+.form-wrapper .field-list .title { font-weight: 700; font-size: 0.93rem; }
+.form-wrapper input[type="text"], .form-wrapper input[type="email"], .form-wrapper input[type="url"], .form-wrapper textarea { border: 1.5px solid #cfcfca !important; border-radius: 6px !important; padding: 0.9rem 1rem !important; }
+.form-wrapper input:focus, .form-wrapper textarea:focus { border-color: var(--nm-ink) !important; box-shadow: 0 0 0 4px rgba(228, 0, 43, 0.12); outline: none; }
+
+/* Price ladder: four Text Blocks side by side, give the Nutrimatic one the "nm-hot" class */
+.nm-rung { border-top: 3px solid var(--nm-line); padding-top: 1rem; color: #6b6b70; }
+.nm-rung strong { display: block; font-size: 2rem; font-weight: 900; letter-spacing: -0.03em; line-height: 1; }
+.nm-rung.nm-hot { border-top-color: var(--nm-red); color: var(--nm-red); }
+.nm-rung.nm-hot span { color: var(--nm-ink); font-weight: 700; }

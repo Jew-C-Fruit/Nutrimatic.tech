@@ -1,0 +1,173 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 900" width="960" height="900" role="img" aria-labelledby="nm-title nm-desc">
+  <!--
+    Nutrimatic Website - machine.svg
+    Version 2.2.0
+    Created: 2026-09-13 - Animated flat elevation of the kiosk for the splash page (v1.0.0)
+    Modified: 2026-09-15 - Two cartridge doors (8 slots) with product callouts, centred screen, sliding port door (v2.0.0)
+    Modified: 2026-09-15 - Upper door aligned to the screen top, lower door to the port bottom, taller bottle,
+    larger labels shown longer; loop lengthened to 16 s (v2.1.0)
+    Modified: 2026-09-17 - Hard edges: no rounded corners except the bottle (v2.2.0)
+    Loop (16 s): both doors lift and the labels appear; the screen runs a 45 s mix; the port door slides open
+    on the bottle. Reduced motion shows the "ready" state. Inlined by js/site.js so labels use the site font.
+  -->
+  <title id="nm-title">Nutrimatic kiosk</title>
+  <desc id="nm-desc">A white wall-standing kiosk with a touchscreen, two lift-up doors revealing eight labelled cartridges, and a small port with a sliding door where the finished bottle appears.</desc>
+  <defs>
+    <radialGradient id="nm-glow" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="#ffffff" stop-opacity="0.55"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></radialGradient>
+    <linearGradient id="nm-lid" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#dededa"/></linearGradient>
+    <linearGradient id="nm-bay" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0c0c0d"/><stop offset="1" stop-color="#1f1f22"/></linearGradient>
+    <clipPath id="nm-door-clip"><rect x="210" y="40" width="250" height="190"/></clipPath>
+    <clipPath id="nm-door2-clip"><rect x="210" y="242" width="250" height="190"/></clipPath>
+    <clipPath id="nm-port"><rect x="70" y="302" width="90" height="130"/></clipPath>
+    <path id="nm-mark" d="M81.654 31.555L81.654 68.204C81.654 79.824 77.439 83.401 70.16 83.401C62.881 83.401 58.955 79.933 58.809 68.445L58.825 30.648C58.825 11.749 51.165 0.0 34.053 0.0C27.03 0.0 21.41 2.682 18.346 5.876L18.346 1.405L0.725 1.405L0.725 68.445L18.346 68.445L18.346 31.797C18.346 20.176 22.559 16.601 29.84 16.601C37.12 16.601 41.045 20.068 41.191 31.557L41.173 69.354C41.173 88.253 48.835 100.0 65.947 100.0C72.97 100.0 78.589 97.318 81.654 94.126L81.654 98.595L99.275 98.595L99.275 31.555L81.654 31.555L81.654 31.555Z" fill-rule="evenodd"/>
+  </defs>
+  <style>
+    .nm-door, .nm-door2 { transform-box: fill-box; transform-origin: 50% 0%; }
+    .nm-door { animation: nm-door 16s ease-in-out infinite; }
+    .nm-door2 { animation: nm-door2 16s ease-in-out infinite; }
+    .nm-cart-glow { opacity: 0.25; animation: nm-cart-glow 16s ease-in-out infinite; }
+    .nm-callouts { opacity: 0; animation: nm-callouts 16s ease-in-out infinite; }
+    .nm-breathe { transform-box: fill-box; transform-origin: 50% 50%; animation: nm-breathe 2.6s ease-in-out infinite; }
+    .nm-progress { transform-box: fill-box; transform-origin: 50% 50%; transform: rotate(-90deg); stroke-dasharray: 226.2; stroke-dashoffset: 226.2; opacity: 0; animation: nm-progress 16s linear infinite; }
+    .nm-tap { animation: nm-tap 16s linear infinite; }
+    .nm-check { opacity: 0; animation: nm-check 16s linear infinite; }
+    .nm-port-glow { animation: nm-port-glow 16s ease-in-out infinite; }
+    .nm-portdoor { transform: translateY(-134px); animation: nm-portdoor 16s ease-in-out infinite; }
+    .nm-bottle { animation: nm-bottle 16s ease-out infinite; }
+
+    @keyframes nm-door { 0%, 3% { transform: scaleY(1); } 8%, 36% { transform: scaleY(0.09); } 41%, 100% { transform: scaleY(1); } }
+    @keyframes nm-door2 { 0%, 5% { transform: scaleY(1); } 10%, 38% { transform: scaleY(0.09); } 43%, 100% { transform: scaleY(1); } }
+    @keyframes nm-cart-glow { 0%, 6% { opacity: 0.25; } 11%, 34% { opacity: 1; } 40%, 100% { opacity: 0.25; } }
+    @keyframes nm-callouts { 0%, 9% { opacity: 0; } 12%, 34% { opacity: 1; } 37%, 100% { opacity: 0; } }
+    @keyframes nm-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+    @keyframes nm-progress { 0%, 44% { stroke-dashoffset: 226.2; opacity: 0; } 44.5% { opacity: 1; } 70% { stroke-dashoffset: 0; opacity: 1; } 72%, 100% { stroke-dashoffset: 0; opacity: 0; } }
+    @keyframes nm-tap { 0%, 43% { opacity: 1; } 44%, 92% { opacity: 0; } 95%, 100% { opacity: 1; } }
+    @keyframes nm-check { 0%, 72% { opacity: 0; } 74%, 86% { opacity: 1; } 89%, 100% { opacity: 0; } }
+    @keyframes nm-port-glow { 0%, 70% { opacity: 0; } 73%, 91% { opacity: 1; } 95%, 100% { opacity: 0; } }
+    @keyframes nm-portdoor { 0%, 70% { transform: translateY(0); } 73%, 93% { transform: translateY(-134px); } 97%, 100% { transform: translateY(0); } }
+    @keyframes nm-bottle { 0%, 64% { opacity: 0; } 66%, 91% { opacity: 1; } 93%, 100% { opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) {
+      .nm-door, .nm-door2, .nm-cart-glow, .nm-callouts, .nm-breathe, .nm-progress, .nm-tap, .nm-check, .nm-port-glow, .nm-portdoor, .nm-bottle { animation: none; }
+      .nm-progress, .nm-check, .nm-callouts { opacity: 0; }
+    }
+  </style>
+
+  <ellipse cx="260" cy="886" rx="236" ry="9" fill="#000" opacity="0.14"/>
+  <rect x="40" y="20" width="440" height="860" fill="#f6f6f4" stroke="#d3d3cf" stroke-width="2"/>
+  <rect x="40" y="850" width="440" height="30" fill="#e6e6e2"/>
+  <line x1="40" y1="850" x2="480" y2="850" stroke="#d3d3cf" stroke-width="2"/>
+  <line x1="41" y1="470" x2="479" y2="470" stroke="#d8d8d4" stroke-width="2"/>
+  <line x1="41" y1="680" x2="479" y2="680" stroke="#d8d8d4" stroke-width="2"/>
+  <line x1="200" y1="21" x2="200" y2="470" stroke="#d8d8d4" stroke-width="2"/>
+  <g fill="#c9c9c5"><circle cx="52" cy="482" r="2.2"/><circle cx="468" cy="482" r="2.2"/><circle cx="52" cy="692" r="2.2"/><circle cx="468" cy="692" r="2.2"/></g>
+
+  <!-- cartridge bays: upper door aligned with the screen top, lower door with the port bottom -->
+  <g clip-path="url(#nm-door-clip)">
+    <rect x="210" y="40" width="250" height="190" fill="url(#nm-bay)"/>
+    <rect x="210" y="212" width="250" height="18" fill="#2a2a2e"/>
+    <g fill="#2f2f33"><rect x="210" y="40" width="13" height="190"/><rect x="269" y="40" width="13" height="190"/><rect x="328" y="40" width="13" height="190"/><rect x="387" y="40" width="13" height="190"/><rect x="446" y="40" width="14" height="190"/></g>
+      <rect x="223" y="58" width="46" height="158" fill="#f1f1ee" stroke="#d2d2ce" stroke-width="1.5"/>
+      <line x1="253" y1="60" x2="253" y2="214" stroke="#dcdcd8" stroke-width="1.5"/>
+      <rect x="229" y="194" width="34" height="8" fill="#e9cf9c"/>
+      <g class="nm-cart-glow" fill="#111111"><path d="M81.654 31.555L81.654 68.204C81.654 79.824 77.439 83.401 70.16 83.401C62.881 83.401 58.955 79.933 58.809 68.445L58.825 30.648C58.825 11.749 51.165 0.0 34.053 0.0C27.03 0.0 21.41 2.682 18.346 5.876L18.346 1.405L0.725 1.405L0.725 68.445L18.346 68.445L18.346 31.797C18.346 20.176 22.559 16.601 29.84 16.601C37.12 16.601 41.045 20.068 41.191 31.557L41.173 69.354C41.173 88.253 48.835 100.0 65.947 100.0C72.97 100.0 78.589 97.318 81.654 94.126L81.654 98.595L99.275 98.595L99.275 31.555L81.654 31.555L81.654 31.555Z" transform="translate(231 156) scale(0.2)"/></g>
+      <rect x="282" y="58" width="46" height="158" fill="#f1f1ee" stroke="#d2d2ce" stroke-width="1.5"/>
+      <line x1="312" y1="60" x2="312" y2="214" stroke="#dcdcd8" stroke-width="1.5"/>
+      <rect x="288" y="194" width="34" height="8" fill="#f3e6c8"/>
+      <g class="nm-cart-glow" fill="#111111"><path d="M81.654 31.555L81.654 68.204C81.654 79.824 77.439 83.401 70.16 83.401C62.881 83.401 58.955 79.933 58.809 68.445L58.825 30.648C58.825 11.749 51.165 0.0 34.053 0.0C27.03 0.0 21.41 2.682 18.346 5.876L18.346 1.405L0.725 1.405L0.725 68.445L18.346 68.445L18.346 31.797C18.346 20.176 22.559 16.601 29.84 16.601C37.12 16.601 41.045 20.068 41.191 31.557L41.173 69.354C41.173 88.253 48.835 100.0 65.947 100.0C72.97 100.0 78.589 97.318 81.654 94.126L81.654 98.595L99.275 98.595L99.275 31.555L81.654 31.555L81.654 31.555Z" transform="translate(290 156) scale(0.2)"/></g>
+      <rect x="341" y="58" width="46" height="158" fill="#f1f1ee" stroke="#d2d2ce" stroke-width="1.5"/>
+      <line x1="371" y1="60" x2="371" y2="214" stroke="#dcdcd8" stroke-width="1.5"/>
+      <rect x="347" y="194" width="34" height="8" fill="#b9c98a"/>
+      <g class="nm-cart-glow" fill="#111111"><path d="M81.654 31.555L81.654 68.204C81.654 79.824 77.439 83.401 70.16 83.401C62.881 83.401 58.955 79.933 58.809 68.445L58.825 30.648C58.825 11.749 51.165 0.0 34.053 0.0C27.03 0.0 21.41 2.682 18.346 5.876L18.346 1.405L0.725 1.405L0.725 68.445L18.346 68.445L18.346 31.797C18.346 20.176 22.559 16.601 29.84 16.601C37.12 16.601 41.045 20.068 41.191 31.557L41.173 69.354C41.173 88.253 48.835 100.0 65.947 100.0C72.97 100.0 78.589 97.318 81.654 94.126L81.654 98.595L99.275 98.595L99.275 31.555L81.654 31.555L81.654 31.555Z" transform="translate(349 156) scale(0.2)"/></g>
+      <rect x="400" y="58" width="46" height="158" fill="#f1f1ee" stroke="#d2d2ce" stroke-width="1.5"/>
+      <line x1="430" y1="60" x2="430" y2="214" stroke="#dcdcd8" stroke-width="1.5"/>
+      <rect x="406" y="194" width="34" height="8" fill="#ff6b3d"/>
+      <g class="nm-cart-glow" fill="#111111"><path d="M81.654 31.555L81.654 68.204C81.654 79.824 77.439 83.401 70.16 83.401C62.881 83.401 58.955 79.933 58.809 68.445L58.825 30.648C58.825 11.749 51.165 0.0 34.053 0.0C27.03 0.0 21.41 2.682 18.346 5.876L18.346 1.405L0.725 1.405L0.725 68.445L18.346 68.445L18.346 31.797C18.346 20.176 22.559 16.601 29.84 16.601C37.12 16.601 41.045 20.068 41.191 31.557L41.173 69.354C41.173 88.253 48.835 100.0 65.947 100.0C72.97 100.0 78.589 97.318 81.654 94.126L81.654 98.595L99.275 98.595L99.275 31.555L81.654 31.555L81.654 31.555Z" transform="translate(408 156) scale(0.2)"/></g>
+    <rect x="210" y="40" width="250" height="26" fill="#000" opacity="0.35"/>
+  </g>
+  <g class="nm-door"><rect x="210" y="40" width="250" height="190" fill="url(#nm-lid)" stroke="#d3d3cf" stroke-width="2"/><rect x="212" y="218" width="246" height="10" fill="#dcdcd8"/></g>
+  <line x1="210" y1="40" x2="460" y2="40" stroke="#c9c9c5" stroke-width="2"/>
+  <g clip-path="url(#nm-door2-clip)">
+    <rect x="210" y="242" width="250" height="190" fill="url(#nm-bay)"/>
+    <rect x="210" y="414" width="250" height="18" fill="#2a2a2e"/>
+    <g fill="#2f2f33"><rect x="210" y="242" width="13" height="190"/><rect x="269" y="242" width="13" height="190"/><rect x="328" y="242" width="13" height="190"/><rect x="387" y="242" width="13" height="190"/><rect x="446" y="242" width="14" height="190"/></g>
+      <rect x="223" y="260" width="46" height="158" fill="#f1f1ee" stroke="#d2d2ce" stroke-width="1.5"/>
+      <line x1="253" y1="262" x2="253" y2="416" stroke="#dcdcd8" stroke-width="1.5"/>
+      <rect x="229" y="396" width="34" height="8" fill="#6fc7e8"/>
+      <g class="nm-cart-glow" fill="#111111"><path d="M81.654 31.555L81.654 68.204C81.654 79.824 77.439 83.401 70.16 83.401C62.881 83.401 58.955 79.933 58.809 68.445L58.825 30.648C58.825 11.749 51.165 0.0 34.053 0.0C27.03 0.0 21.41 2.682 18.346 5.876L18.346 1.405L0.725 1.405L0.725 68.445L18.346 68.445L18.346 31.797C18.346 20.176 22.559 16.601 29.84 16.601C37.12 16.601 41.045 20.068 41.191 31.557L41.173 69.354C41.173 88.253 48.835 100.0 65.947 100.0C72.97 100.0 78.589 97.318 81.654 94.126L81.654 98.595L99.275 98.595L99.275 31.555L81.654 31.555L81.654 31.555Z" transform="translate(231 358) scale(0.2)"/></g>
+      <rect x="282" y="260" width="46" height="158" fill="#f1f1ee" stroke="#d2d2ce" stroke-width="1.5"/>
+      <line x1="312" y1="262" x2="312" y2="416" stroke="#dcdcd8" stroke-width="1.5"/>
+      <rect x="288" y="396" width="34" height="8" fill="#e8ecf0"/>
+      <g class="nm-cart-glow" fill="#111111"><path d="M81.654 31.555L81.654 68.204C81.654 79.824 77.439 83.401 70.16 83.401C62.881 83.401 58.955 79.933 58.809 68.445L58.825 30.648C58.825 11.749 51.165 0.0 34.053 0.0C27.03 0.0 21.41 2.682 18.346 5.876L18.346 1.405L0.725 1.405L0.725 68.445L18.346 68.445L18.346 31.797C18.346 20.176 22.559 16.601 29.84 16.601C37.12 16.601 41.045 20.068 41.191 31.557L41.173 69.354C41.173 88.253 48.835 100.0 65.947 100.0C72.97 100.0 78.589 97.318 81.654 94.126L81.654 98.595L99.275 98.595L99.275 31.555L81.654 31.555L81.654 31.555Z" transform="translate(290 358) scale(0.2)"/></g>
+      <rect x="341" y="260" width="46" height="158" fill="#f1f1ee" stroke="#d2d2ce" stroke-width="1.5"/>
+      <line x1="371" y1="262" x2="371" y2="416" stroke="#dcdcd8" stroke-width="1.5"/>
+      <rect x="347" y="396" width="34" height="8" fill="#d9a6c9"/>
+      <g class="nm-cart-glow" fill="#111111"><path d="M81.654 31.555L81.654 68.204C81.654 79.824 77.439 83.401 70.16 83.401C62.881 83.401 58.955 79.933 58.809 68.445L58.825 30.648C58.825 11.749 51.165 0.0 34.053 0.0C27.03 0.0 21.41 2.682 18.346 5.876L18.346 1.405L0.725 1.405L0.725 68.445L18.346 68.445L18.346 31.797C18.346 20.176 22.559 16.601 29.84 16.601C37.12 16.601 41.045 20.068 41.191 31.557L41.173 69.354C41.173 88.253 48.835 100.0 65.947 100.0C72.97 100.0 78.589 97.318 81.654 94.126L81.654 98.595L99.275 98.595L99.275 31.555L81.654 31.555L81.654 31.555Z" transform="translate(349 358) scale(0.2)"/></g>
+      <rect x="400" y="260" width="46" height="158" fill="#f1f1ee" stroke="#d2d2ce" stroke-width="1.5"/>
+      <line x1="430" y1="262" x2="430" y2="416" stroke="#dcdcd8" stroke-width="1.5"/>
+      <rect x="406" y="396" width="34" height="8" fill="#b393d3"/>
+      <g class="nm-cart-glow" fill="#111111"><path d="M81.654 31.555L81.654 68.204C81.654 79.824 77.439 83.401 70.16 83.401C62.881 83.401 58.955 79.933 58.809 68.445L58.825 30.648C58.825 11.749 51.165 0.0 34.053 0.0C27.03 0.0 21.41 2.682 18.346 5.876L18.346 1.405L0.725 1.405L0.725 68.445L18.346 68.445L18.346 31.797C18.346 20.176 22.559 16.601 29.84 16.601C37.12 16.601 41.045 20.068 41.191 31.557L41.173 69.354C41.173 88.253 48.835 100.0 65.947 100.0C72.97 100.0 78.589 97.318 81.654 94.126L81.654 98.595L99.275 98.595L99.275 31.555L81.654 31.555L81.654 31.555Z" transform="translate(408 358) scale(0.2)"/></g>
+    <rect x="210" y="242" width="250" height="26" fill="#000" opacity="0.35"/>
+  </g>
+  <g class="nm-door2"><rect x="210" y="242" width="250" height="190" fill="url(#nm-lid)" stroke="#d3d3cf" stroke-width="2"/><rect x="212" y="420" width="246" height="10" fill="#dcdcd8"/></g>
+  <line x1="210" y1="242" x2="460" y2="242" stroke="#c9c9c5" stroke-width="2"/>
+
+  <!-- product callouts (visible while the doors are open) -->
+  <g class="nm-callouts">
+    <line x1="246" y1="84" x2="520" y2="84" stroke="#111111" stroke-width="1.5"/>
+    <circle cx="246" cy="84" r="5" fill="#e9cf9c" stroke="#111111" stroke-width="1.5"/>
+    <text x="532" y="94" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="28" font-weight="700" fill="#111111">Whey protein</text>
+    <line x1="305" y1="124" x2="520" y2="124" stroke="#111111" stroke-width="1.5"/>
+    <circle cx="305" cy="124" r="5" fill="#f3e6c8" stroke="#111111" stroke-width="1.5"/>
+    <text x="532" y="134" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="28" font-weight="700" fill="#111111">Whey isolate</text>
+    <line x1="364" y1="164" x2="520" y2="164" stroke="#111111" stroke-width="1.5"/>
+    <circle cx="364" cy="164" r="5" fill="#b9c98a" stroke="#111111" stroke-width="1.5"/>
+    <text x="532" y="174" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="28" font-weight="700" fill="#111111">Plant protein</text>
+    <line x1="423" y1="204" x2="520" y2="204" stroke="#111111" stroke-width="1.5"/>
+    <circle cx="423" cy="204" r="5" fill="#ff6b3d" stroke="#111111" stroke-width="1.5"/>
+    <text x="532" y="214" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="28" font-weight="700" fill="#111111">Pre-workout</text>
+    <line x1="246" y1="286" x2="520" y2="286" stroke="#111111" stroke-width="1.5"/>
+    <circle cx="246" cy="286" r="5" fill="#6fc7e8" stroke="#111111" stroke-width="1.5"/>
+    <text x="532" y="296" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="28" font-weight="700" fill="#111111">Glucose + electrolytes</text>
+    <line x1="305" y1="326" x2="520" y2="326" stroke="#111111" stroke-width="1.5"/>
+    <circle cx="305" cy="326" r="5" fill="#e8ecf0" stroke="#111111" stroke-width="1.5"/>
+    <text x="532" y="336" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="28" font-weight="700" fill="#111111">Creatine</text>
+    <line x1="364" y1="366" x2="520" y2="366" stroke="#111111" stroke-width="1.5"/>
+    <circle cx="364" cy="366" r="5" fill="#d9a6c9" stroke="#111111" stroke-width="1.5"/>
+    <text x="532" y="376" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="28" font-weight="700" fill="#111111">Type II collagen peptides</text>
+    <line x1="423" y1="406" x2="520" y2="406" stroke="#111111" stroke-width="1.5"/>
+    <circle cx="423" cy="406" r="5" fill="#b393d3" stroke="#111111" stroke-width="1.5"/>
+    <text x="532" y="416" font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="28" font-weight="700" fill="#111111">Type III collagen peptides</text>
+  </g>
+
+  <!-- touchscreen -->
+  <rect x="70" y="40" width="120" height="240" fill="#0f0f10"/>
+  <rect x="80" y="52" width="26" height="3" fill="#e4002b"/>
+  <rect x="170" y="52" width="10" height="3" fill="#8a8a8c"/>
+  <g class="nm-breathe">
+    <circle cx="130" cy="140" r="36" fill="none" stroke="#e4002b" stroke-width="4"/>
+    <use href="#nm-mark" transform="translate(108 118) scale(0.44)" fill="#ffffff"/>
+  </g>
+  <circle class="nm-progress" cx="130" cy="140" r="36" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
+  <g class="nm-tap"><rect x="98" y="194" width="64" height="6" fill="#ffffff"/><rect x="88" y="208" width="84" height="4" fill="#6f6f72"/></g>
+  <g class="nm-check"><circle cx="130" cy="140" r="36" fill="#e4002b"/><path d="M113 141l11 11 23-24" fill="none" stroke="#ffffff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></g>
+  <line x1="92" y1="260" x2="168" y2="260" stroke="#3a3a3d" stroke-width="1.5"/>
+
+  <!-- delivery port under the display; its bottom lines up with the lower door -->
+  <rect x="70" y="302" width="90" height="130" fill="#101012"/>
+  <rect x="74" y="306" width="82" height="122" fill="#17171a"/>
+  <rect x="74" y="418" width="82" height="10" fill="#2b2b2f"/>
+  <rect class="nm-port-glow" x="74" y="306" width="82" height="122" fill="url(#nm-glow)"/>
+  <g class="nm-bottle">
+    <rect x="103" y="314" width="24" height="10" rx="3" fill="#1c1c1e"/>
+    <rect x="106" y="322" width="18" height="16" fill="#ececE8"/>
+    <rect x="96" y="336" width="38" height="84" rx="9" fill="#fafaf8" stroke="#cfcfca" stroke-width="1.5"/>
+    <use href="#nm-mark" transform="translate(105 364) scale(0.2)" fill="#e4002b"/>
+  </g>
+  <g clip-path="url(#nm-port)">
+    <g class="nm-portdoor">
+      <rect x="70" y="302" width="90" height="130" fill="#f0f0ed" stroke="#d3d3cf" stroke-width="2"/>
+      <rect x="104" y="410" width="22" height="3" fill="#c9c9c5"/>
+    </g>
+  </g>
+  <rect x="70" y="302" width="90" height="130" fill="none" stroke="#0a0a0b" stroke-width="2"/>
+</svg>

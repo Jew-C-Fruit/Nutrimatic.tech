@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!--
+  Nutrimatic Website - waitlist.html
+  Version 1.1.2
+  Created: 2026-09-13 - Initial marketing site (v1.0.0)
+  Modified: 2026-09-15 - Language pass: "advertise with us" for brands, no "fresh" (v1.1.0)
+  Modified: 2026-09-15 - Contact via LinkedIn; email address removed from markup and structured data (v1.1.1)
+  Modified: 2026-09-16 - "Submit" button; what-happens-next and what-we-collect per role (v1.1.2)
+-->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Join the waitlist — Nutrimatic</title>
+<meta name="description" content="Join the Nutrimatic waitlist as a gym owner or manager who wants a machine, a gym member who wants one where you train, or a nutrition brand that wants to advertise in the machine.">
+<link rel="canonical" href="https://nutrimatic.tech/waitlist.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Nutrimatic">
+<meta property="og:title" content="Join the Nutrimatic waitlist">
+<meta property="og:description" content="Gym owners: get a machine. Members: bring one to your gym. Brands: advertise with us.">
+<meta property="og:url" content="https://nutrimatic.tech/waitlist.html">
+<meta property="og:image" content="https://nutrimatic.tech/assets/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Nutrimatic wordmark next to the kiosk">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:title" content="Join the Nutrimatic waitlist">
+<meta name="twitter:description" content="Join the Nutrimatic waitlist as a gym owner or manager who wants a machine, a gym member who wants one where you train, or a nutrition brand that wants to advertise in the machine.">
+<meta name="twitter:image" content="https://nutrimatic.tech/assets/og.png">
+<meta name="theme-color" content="#111111">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/logo-512.png">
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@graph": [
+  {
+   "@type": "Organization",
+   "@id": "https://nutrimatic.tech/#organization",
+   "name": "Nutrimatic",
+   "url": "https://nutrimatic.tech/",
+   "logo": {
+    "@type": "ImageObject",
+    "url": "https://nutrimatic.tech/assets/logo-512.png",
+    "width": 512,
+    "height": 512
+   },
+   "image": "https://nutrimatic.tech/assets/og.png",
+   "description": "Nutrimatic builds a self-serve protein shake machine for gyms that mixes a 500 ml shake to order from a sealed cartridge in about 45 seconds, and a point-of-sale trial channel for sports nutrition brands.",
+   "founder": [
+    {
+     "@type": "Person",
+     "name": "Cole Maisonpierre"
+    },
+    {
+     "@type": "Person",
+     "name": "Ilinca Iorga"
+    }
+   ],
+   "sameAs": []
+  },
+  {
+   "@type": "WebSite",
+   "@id": "https://nutrimatic.tech/#website",
+   "url": "https://nutrimatic.tech/",
+   "name": "Nutrimatic",
+   "publisher": {
+    "@id": "https://nutrimatic.tech/#organization"
+   },
+   "inLanguage": "en"
+  },
+  {
+   "@type": "WebPage",
+   "@id": "https://nutrimatic.tech/waitlist.html#webpage",
+   "url": "https://nutrimatic.tech/waitlist.html",
+   "name": "Join the Nutrimatic waitlist",
+   "description": "Join as a gym owner or manager who wants a machine, a gym member who wants one where you train, or a nutrition brand that wants to advertise in the machine.",
+   "isPartOf": {
+    "@id": "https://nutrimatic.tech/#website"
+   },
+   "about": {
+    "@id": "https://nutrimatic.tech/#organization"
+   },
+   "inLanguage": "en",
+   "primaryImageOfPage": {
+    "@type": "ImageObject",
+    "url": "https://nutrimatic.tech/assets/og.png",
+    "width": 1200,
+    "height": 630
+   }
+  }
+ ]
+}
+</script>
+<link rel="preload" href="assets/fonts/archivo-latin-var.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/site.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav">
+  <div class="container nav__inner">
+    <a class="brand" href="index.html"><img class="brand__mark" src="assets/nu-mark.svg" alt="" width="26" height="26"><span>Nutrimatic</span></a>
+    <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Menu"><span></span></button>
+    <ul class="nav__links" id="nav-links">
+      <li><a href="how-it-works.html">How it works</a></li>
+      <li><a href="contact.html">Contact</a></li>
+      <li><a class="btn" href="waitlist.html" aria-current="page">Join the waitlist</a></li>
+    </ul>
+  </div>
+</header>
+
+<main id="main">
+  <section class="page-hero">
+    <div class="container">
+      <p class="kicker">Waitlist</p>
+      <h1>Get on the list.</h1>
+      <p class="lead">Tell us who you are. Gyms hear about the pilot first, members get an email when a machine is confirmed where they train, and nutrition brands get the details on advertising in the machine.</p>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:0">
+    <div class="container two-col">
+      <form class="form card" data-form="waitlist" action="#" method="post">
+        <div class="form__fields">
+          <fieldset class="field fieldset">
+            <legend>I am a…</legend>
+            <div class="segmented segmented--3">
+              <input type="radio" name="role" id="role-owner" value="owner" checked>
+              <label for="role-owner">Gym owner / manager</label>
+              <input type="radio" name="role" id="role-member" value="member">
+              <label for="role-member">Gym member</label>
+              <input type="radio" name="role" id="role-brand" value="brand">
+              <label for="role-brand">Nutrition brand</label>
+            </div>
+          </fieldset>
+          <p class="role-copy" data-role-copy="owner">We're lining up pilot gyms now. Tell us about yours and we'll reach out with footprint, timing and terms.</p>
+          <p class="role-copy" data-role-copy="member" hidden>Tell us where you train. The more members ask for the same gym, the sooner a machine shows up there, and yes, we'll tell the gym.</p>
+          <p class="role-copy" data-role-copy="brand" hidden>Advertise with us: a placement in the machine puts a full serving of your product in an athlete's hand right after training, tracked to purchase. Tell us what you'd stock and who it's for, and we'll send the pilot details.</p>
+
+          <div class="field">
+            <label for="wl-name"><span data-role-text data-owner="Name" data-member="Name" data-brand="Contact name">Name</span> <span class="optional" data-role-only="owner member">(optional)</span></label>
+            <input class="input" id="wl-name" name="name" type="text" autocomplete="name" data-required-for="brand">
+            <span class="error-msg">Who should we talk to?</span>
+          </div>
+          <div class="field">
+            <label for="wl-email">Email</label>
+            <input class="input" id="wl-email" name="email" type="email" required autocomplete="email" inputmode="email">
+            <span class="error-msg">Enter a valid email address.</span>
+          </div>
+
+          <div class="field" data-role-only="owner member">
+            <label for="wl-gym"><span data-role-text data-owner="Gym name" data-member="Which gym do you go to?">Gym name</span></label>
+            <input class="input" id="wl-gym" name="gym_name" type="text" required autocomplete="organization" placeholder="e.g. Ironworks Fitness" data-role-placeholder data-owner-placeholder="e.g. Ironworks Fitness" data-member-placeholder="e.g. Ironworks Fitness, downtown">
+            <span class="error-msg">Tell us the gym's name.</span>
+          </div>
+          <div class="field" data-role-only="owner member">
+            <label for="wl-location">Gym location</label>
+            <input class="input" id="wl-location" name="gym_location" type="text" required placeholder="City, State">
+            <span class="hint">City and state (or country) is plenty.</span>
+            <span class="error-msg">Where is the gym?</span>
+          </div>
+
+          <div class="field" data-role-only="brand" hidden>
+            <label for="wl-website">Brand website</label>
+            <input class="input" id="wl-website" name="brand_website" type="url" required inputmode="url" placeholder="https://" autocomplete="url">
+            <span class="error-msg">Enter your brand's website, starting with https://.</span>
+          </div>
+          <div class="field" data-role-only="brand" hidden>
+            <label for="wl-product">Product to be stocked</label>
+            <input class="input" id="wl-product" name="product" type="text" required placeholder="e.g. Whey isolate, chocolate">
+            <span class="hint">One product per category: whey, plant protein, pre-workout, hydration, creatine…</span>
+            <span class="error-msg">Which product would go in the machine?</span>
+          </div>
+          <div class="field" data-role-only="brand" hidden>
+            <label for="wl-customer">Target customer</label>
+            <textarea class="textarea" id="wl-customer" name="target_customer" required style="min-height:6rem" placeholder="Who is this product for? e.g. strength athletes, 25–40, already buying whey online"></textarea>
+            <span class="error-msg">Tell us who the product is for.</span>
+          </div>
+
+          <div class="hp" aria-hidden="true">
+            <label>Leave this field empty <input name="_gotcha" type="text" tabindex="-1" autocomplete="off"></label>
+          </div>
+          <p class="consent">We'll only email you about Nutrimatic. No spam, and we never sell your address.</p>
+          <div class="form__actions">
+            <button class="btn btn--lg" type="submit">Submit</button>
+            <p class="form__status" role="status" aria-live="polite"></p>
+          </div>
+        </div>
+        <div class="form__success" role="status" aria-live="polite">
+          <div class="success-badge"><svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg></div>
+          <h3>You're on the list.</h3>
+          <p>We'll be in touch at <strong data-success-email></strong>.</p>
+          <p data-success-mailto hidden>Your email app should have opened with the details filled in. Just hit send. If it didn't, reach us at <a href="https://www.linkedin.com/in/maisonpierre" rel="noopener noreferrer" target="_blank">linkedin.com/in/maisonpierre</a>.</p>
+          <p>Know someone who runs a gym? Send them this page.</p>
+        </div>
+      </form>
+
+      <aside>
+        <dl class="info" data-role-only="owner">
+          <dt>What happens next</dt>
+          <dd>
+            <ol class="next-steps">
+              <li>You get a confirmation email.</li>
+              <li>We reach out about the pilot: footprint, timing and terms.</li>
+              <li>If it's a fit, your gym is on the list for the first machines.</li>
+            </ol>
+          </dd>
+          <dt>What we collect</dt>
+          <dd>Your email, the gym's name and where it is. We use it to decide where the first machines go.</dd>
+          <dt>Something else?</dt>
+          <dd>Press, brands, or a question that doesn't fit a form: <a href="contact.html">contact us</a>.</dd>
+        </dl>
+        <dl class="info" data-role-only="member" hidden>
+          <dt>What happens next</dt>
+          <dd>
+            <ol class="next-steps">
+              <li>You get a confirmation email.</li>
+              <li>We tally requests by gym and go after the ones with the most.</li>
+              <li>You get an email the moment a machine is confirmed where you train.</li>
+            </ol>
+          </dd>
+          <dt>What we collect</dt>
+          <dd>Your email, the gym's name and where it is. We use it to decide where the first machines go.</dd>
+          <dt>Something else?</dt>
+          <dd>Press, brands, or a question that doesn't fit a form: <a href="contact.html">contact us</a>.</dd>
+        </dl>
+        <dl class="info" data-role-only="brand" hidden>
+          <dt>What happens next</dt>
+          <dd>
+            <ol class="next-steps">
+              <li>You get a confirmation email.</li>
+              <li>We send the pilot advertising details.</li>
+              <li>A call with the founders about your product and its placement.</li>
+            </ol>
+          </dd>
+          <dt>What we collect</dt>
+          <dd>A contact, your website, the product you'd stock and who it's for. We use it to decide what goes in the first machines.</dd>
+          <dt>Something else?</dt>
+          <dd>Press, or a question that doesn't fit a form: <a href="contact.html">contact us</a>.</dd>
+        </dl>
+      </aside>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div>
+        <a class="brand" href="index.html"><img class="brand__mark" src="assets/nu-mark-red.svg" alt="" width="26" height="26"><span>Nutrimatic</span></a>
+        <p>Sports nutrition, mixed to order, built into the gym floor.</p>
+      </div>
+      <div>
+        <h4>Company</h4>
+        <ul>
+          <li><a href="how-it-works.html">How it works</a></li>
+          <li><a href="contact.html">Contact</a></li>
+          <li><a href="waitlist.html">Waitlist</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Get in touch</h4>
+        <ul>
+          <li><a href="https://www.linkedin.com/in/maisonpierre" rel="noopener noreferrer" target="_blank">linkedin.com/in/maisonpierre</a></li>
+          <li><a href="waitlist.html?type=owner">Gyms: get a machine</a></li>
+          <li><a href="waitlist.html?type=member">Members: bring it to my gym</a></li>
+          <li><a href="waitlist.html?type=brand">Brands: advertise with us</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <span>© <span data-year>2026</span> Nutrimatic · nutrimatic.tech</span>
+      <span>Provisional patent filed.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/config.js"></script>
+<script src="js/site.js" defer></script>
+</body>
+</html>

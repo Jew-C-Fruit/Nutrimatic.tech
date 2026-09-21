@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!--
+  Nutrimatic Website - index.html (splash page)
+  Version 1.1.4
+  Created: 2026-09-13 - Initial marketing site (v1.0.0)
+  Modified: 2026-09-15 - Splash reduced to the animation plus calls to action; information moved to About; language pass (v1.1.0)
+  Modified: 2026-09-15 - Contact via LinkedIn; email address removed from markup and structured data (v1.1.1)
+  Modified: 2026-09-15 - Splash headline "Custom nutrition in 45 seconds", subtitle removed (v1.1.2)
+  Modified: 2026-09-15 - Cover animation v2 (two doors, callouts, sliding port door), inlined for the site font (v1.1.3)
+  Modified: 2026-09-15 - Cover v2.1 (960 wide), headline left-aligned (v1.1.4)
+-->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nutrimatic — The protein shake machine for gyms</title>
+<meta name="description" content="Nutrimatic is a self-serve protein shake machine for gyms. 500 ml, mixed to order from a sealed cartridge in about 45 seconds. Join the waitlist as a gym, a member, or a brand.">
+<link rel="canonical" href="https://nutrimatic.tech/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Nutrimatic">
+<meta property="og:title" content="Nutrimatic — The protein shake machine for gyms">
+<meta property="og:description" content="A self-serve shake machine for gyms. 500 ml, mixed to order in about 45 seconds. No staff, no blender, no line.">
+<meta property="og:url" content="https://nutrimatic.tech/">
+<meta property="og:image" content="https://nutrimatic.tech/assets/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Nutrimatic wordmark next to the kiosk">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:title" content="Nutrimatic — The protein shake machine for gyms">
+<meta name="twitter:description" content="Nutrimatic is a self-serve protein shake machine for gyms. 500 ml, mixed to order from a sealed cartridge in about 45 seconds. Join the waitlist as a gym, a member, or a brand.">
+<meta name="twitter:image" content="https://nutrimatic.tech/assets/og.png">
+<meta name="theme-color" content="#111111">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/logo-512.png">
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@graph": [
+  {
+   "@type": "Organization",
+   "@id": "https://nutrimatic.tech/#organization",
+   "name": "Nutrimatic",
+   "url": "https://nutrimatic.tech/",
+   "logo": {
+    "@type": "ImageObject",
+    "url": "https://nutrimatic.tech/assets/logo-512.png",
+    "width": 512,
+    "height": 512
+   },
+   "image": "https://nutrimatic.tech/assets/og.png",
+   "description": "Nutrimatic builds a self-serve protein shake machine for gyms that mixes a 500 ml shake to order from a sealed cartridge in about 45 seconds, and a point-of-sale trial channel for sports nutrition brands.",
+   "founder": [
+    {
+     "@type": "Person",
+     "name": "Cole Maisonpierre"
+    },
+    {
+     "@type": "Person",
+     "name": "Ilinca Iorga"
+    }
+   ],
+   "sameAs": []
+  },
+  {
+   "@type": "WebSite",
+   "@id": "https://nutrimatic.tech/#website",
+   "url": "https://nutrimatic.tech/",
+   "name": "Nutrimatic",
+   "publisher": {
+    "@id": "https://nutrimatic.tech/#organization"
+   },
+   "inLanguage": "en"
+  },
+  {
+   "@type": "WebPage",
+   "@id": "https://nutrimatic.tech/#webpage",
+   "url": "https://nutrimatic.tech/",
+   "name": "Nutrimatic — The protein shake machine for gyms",
+   "description": "A self-serve protein shake machine for gyms. 500 ml, mixed to order in about 45 seconds. No staff, no blender, no line.",
+   "isPartOf": {
+    "@id": "https://nutrimatic.tech/#website"
+   },
+   "about": {
+    "@id": "https://nutrimatic.tech/#organization"
+   },
+   "inLanguage": "en",
+   "primaryImageOfPage": {
+    "@type": "ImageObject",
+    "url": "https://nutrimatic.tech/assets/og.png",
+    "width": 1200,
+    "height": 630
+   }
+  }
+ ]
+}
+</script>
+<link rel="preload" href="assets/fonts/archivo-latin-var.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/site.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav nav--overlay">
+  <div class="container nav__inner">
+    <a class="brand" href="index.html"><img class="brand__mark" src="assets/nu-mark.svg" alt="" width="26" height="26"><span>Nutrimatic</span></a>
+    <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Menu"><span></span></button>
+    <ul class="nav__links" id="nav-links">
+      <li><a href="how-it-works.html">How it works</a></li>
+      <li><a href="contact.html">Contact</a></li>
+      <li><a class="btn" href="waitlist.html">Join the waitlist</a></li>
+    </ul>
+  </div>
+</header>
+
+<main id="main">
+  <section class="splash" aria-label="Nutrimatic">
+    <div class="splash__visual" data-hero-media>
+      <div class="hero__media">
+        <picture>
+          <source media="(prefers-reduced-motion: reduce)" srcset="assets/machine-static.png">
+          <img src="assets/machine.svg" width="960" height="900" alt="Nutrimatic kiosk: a white cabinet with a touchscreen, two lift-up doors revealing eight labelled cartridges, and a small port with a sliding door where the finished bottle appears." fetchpriority="high">
+        </picture>
+      </div>
+    </div>
+    <div class="container splash__copy">
+      <h1>Custom nutrition in 45&nbsp;seconds.</h1>
+      <div class="hero__ctas">
+        <a class="btn btn--lg" href="waitlist.html">Join the waitlist</a>
+        <a class="btn btn--lg btn--ghost" href="how-it-works.html">See how it works</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section audiences" aria-label="Who it's for">
+    <div class="container">
+      <div class="three">
+        <a class="who" href="waitlist.html?type=owner">
+          <p class="kicker">Gym owners &amp; managers</p>
+          <h2>Get your members something nice.</h2>
+          <span class="who__go">Get a machine</span>
+        </a>
+        <a class="who" href="waitlist.html?type=member">
+          <p class="kicker">Gym members</p>
+          <h2>Get one where you train.</h2>
+          <span class="who__go">Bring it to my gym</span>
+        </a>
+        <a class="who" href="waitlist.html?type=brand">
+          <p class="kicker">Nutrition brands</p>
+          <h2>Get in the machine.</h2>
+          <span class="who__go">Advertise with us</span>
+        </a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div>
+        <a class="brand" href="index.html"><img class="brand__mark" src="assets/nu-mark-red.svg" alt="" width="26" height="26"><span>Nutrimatic</span></a>
+        <p>Sports nutrition, mixed to order, built into the gym floor.</p>
+      </div>
+      <div>
+        <h4>Company</h4>
+        <ul>
+          <li><a href="how-it-works.html">How it works</a></li>
+          <li><a href="contact.html">Contact</a></li>
+          <li><a href="waitlist.html">Waitlist</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Get in touch</h4>
+        <ul>
+          <li><a href="https://www.linkedin.com/in/maisonpierre" rel="noopener noreferrer" target="_blank">linkedin.com/in/maisonpierre</a></li>
+          <li><a href="waitlist.html?type=owner">Gyms: get a machine</a></li>
+          <li><a href="waitlist.html?type=member">Members: bring it to my gym</a></li>
+          <li><a href="waitlist.html?type=brand">Brands: advertise with us</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <span>© <span data-year>2026</span> Nutrimatic · nutrimatic.tech</span>
+      <span>Provisional patent filed.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/config.js"></script>
+<script src="js/site.js" defer></script>
+</body>
+</html>

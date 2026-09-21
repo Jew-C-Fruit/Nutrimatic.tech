@@ -1,0 +1,34 @@
+<!--
+  Nutrimatic Website - hero-code-block.html
+  Version 1.0.0
+  Created: 2026-09-13 - Squarespace Code Block for the splash-page machine animation (v1.0.0)
+
+  How to use:
+  1. Upload assets/machine.svg and assets/machine-static.png as Squarespace custom files
+     (Design -> Custom CSS -> Manage Custom Files). Note the URLs Squarespace gives you (/s/machine.svg ...).
+  2. Add a Code Block to the hero section, set it to HTML, paste everything below the dashed line, fix the URLs.
+  3. No JavaScript is used, so this works on all Squarespace plans.
+  4. When the rendering animation exists, swap the <picture> for the <video> block at the bottom.
+-->
+<!-- ------------------------------------------------------------------ -->
+<style>
+  .nm-hero { position: relative; display: grid; place-items: center; padding: 2rem; border-radius: 18px; border: 1px solid #e3e3e0;
+             background: radial-gradient(120% 90% at 50% 30%, #ffffff 0%, #f6f6f4 55%, #ebebe8 100%); }
+  .nm-hero picture, .nm-hero img, .nm-hero video { display: block; width: min(100%, 380px); height: auto; margin: 0 auto; }
+  .nm-hero__caption { position: absolute; left: 1.1rem; bottom: 0.9rem; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #6b6b70; }
+</style>
+<div class="nm-hero">
+  <picture>
+    <source media="(prefers-reduced-motion: reduce)" srcset="/s/machine-static.png">
+    <img src="/s/machine.svg" width="520" height="900" alt="Nutrimatic kiosk: a white cabinet with a touchscreen, a lift-up cartridge door, and a lit port where the finished bottle appears.">
+  </picture>
+  <span class="nm-hero__caption">Machine rendering</span>
+</div>
+
+<!-- Video variant: replace the <picture> above with this once machine.mp4 and machine-front.jpg are uploaded.
+<video autoplay muted loop playsinline poster="/s/machine-front.jpg" style="width:100%;border-radius:18px">
+  <source src="/s/machine.webm" type="video/webm">
+  <source src="/s/machine.mp4" type="video/mp4">
+  <img src="/s/machine-front.jpg" alt="Nutrimatic kiosk">
+</video>
+-->
