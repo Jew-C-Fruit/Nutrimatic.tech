@@ -1,11 +1,12 @@
 /*
  * Nutrimatic Website - site.js
- * Version 1.3.0
+ * Version 1.4.0
  *
  * Created: 2026-09-13 - Site behaviour (v1.0.0)
  * Modified: 2026-09-15 - Scroll story takes its SVG, scrub length and still from data attributes (v1.1.0)
  * Modified: 2026-09-21 - Forms with no endpoint and no fallback address show a LinkedIn note (v1.2.2)
  * Modified: 2026-09-21 - Per-form endpoints (formEndpoints.contact / .waitlist); brand sign-ups get their own subject line (v1.3.0)
+ * Modified: 2026-09-21 - Web3Forms support: access key and field names adapted per endpoint; JSON error replies count as failures (v1.4.0)
  *   - Mobile nav toggle
  *   - Hero media: swaps the SVG placeholder for a real render / video when present
  *   - Optional figures that only appear when their image exists
@@ -395,8 +396,9 @@
     var data = collect(form);
     var perForm = cfg.formEndpoints && cfg.formEndpoints[data.form];
     var endpoint = String(perForm || cfg.formEndpoint || "").trim();
-    if (!endpoint) {
-      if (String(cfg.contactEmail || "").trim()) { mailtoFallback(form, data); } else { notConnected(form); }
+    var payload = endpoint ? adaptPayload(endpoint, data) : null;
+    if (!endpoint || !payload) {
+      if (!endpoint && String(cfg.contactEmail || "").trim()) { mailtoFallback(form, data); } else { notConnected(form); }
       return;
     }
 
@@ -405,11 +407,14 @@
     fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json", "Accept": "application/json" },
-      body: JSON.stringify(data)
+      body: JSON.stringify(payload)
     }).then(function (res) {
-      if (!res.ok) { throw new Error("HTTP " + res.status); }
-      setStatus(form, "", false);
-      showSuccess(form, data);
+      return res.json().catch(function () { return {}; }).then(function (json) {
+        // Formspree answers {ok:true}; Web3Forms {success:true}. Either flag false = not delivered.
+        if (!res.ok || json.ok === false || json.success === false) { throw new Error(json.message || ("HTTP " + res.status)); }
+        setStatus(form, "", false);
+        showSuccess(form, data);
+      });
     }).catch(function () {
       setStatus(form, "That didn’t send. Try again, or reach us at linkedin.com/in/maisonpierre.", true);
     }).then(function () {
@@ -488,6 +493,23 @@
       "&body=" + encodeURIComponent(lines.join("\n"));
     showSuccess(form, data, true);
     window.location.href = href;
+  }
+
+  // Shape the payload for the service behind the endpoint. Returns null when
+  // that service needs something that isn't configured (a Web3Forms key).
+  function adaptPayload(endpoint, data) {
+    var out = {};
+    Object.keys(data).forEach(function (key) { out[key] = data[key]; });
+    if (/(^|\/\/|\.)web3forms\.com\//i.test(endpoint)) {
+      var keyCfg = cfg.formAccessKey;
+      var key = String((keyCfg && typeof keyCfg === "object") ? keyCfg[data.form] : keyCfg || "").trim();
+      if (!key) { return null; }
+      out.access_key = key;
+      out.subject = data._subject;          // Web3Forms' name for the subject line
+      out.from_name = "Nutrimatic website";
+      delete out._subject;
+    }
+    return out;
   }
 
   // Nothing configured to receive the form: say so rather than fake a send.
