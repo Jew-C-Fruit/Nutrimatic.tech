@@ -1,6 +1,6 @@
 # Going live: Squarespace integration and SEO
 
-Version 1.1.3 · Created 2026-09-13 · Modified 2026-09-21 (site in its own public repo; forms point to LinkedIn until an endpoint is set; custom domain is typed into Pages settings, not read from a CNAME file)
+Version 1.1.4 · Created 2026-09-13 · Modified 2026-09-21 (site in its own public repo; forms point to LinkedIn until an endpoint is set; custom domain is typed into Pages settings, not read from a CNAME file)
 
 ## Part 1 — Squarespace
 
@@ -43,7 +43,7 @@ The site lives in its own public repo, this one, because GitHub Pages on a free 
 
 **Forms (once)**
 
-6. Squarespace won't receive the forms in this path. Either [web3forms.com](https://web3forms.com) (250 submissions a month free: paste its access key into `formAccessKey` and set `formEndpoint` to `https://api.web3forms.com/submit`) or [formspree.io](https://formspree.io) (50 a month free: paste the form endpoint into `formEndpoint`, or one per form into `formEndpoints`). Both email every submission to you and keep 30 days of history; neither exports to a spreadsheet on the free plan. Until an endpoint is set, submitting a form shows a note pointing to the LinkedIn page, so nobody is told their details were sent when they weren't. `contactEmail` in `js/config.js` is deliberately blank: every visitor downloads that file, so an address there could be scraped.
+6. Squarespace won't receive the forms in this path. Either [web3forms.com](https://web3forms.com) (250 submissions a month free: paste its access key into `formAccessKey` and set `formEndpoint` to `https://api.web3forms.com/submit`) or [formspree.io](https://formspree.io) (50 a month free: paste the form endpoint into `formEndpoint`, or one per form into `formEndpoints`). Both email every submission to you and keep 30 days of history; neither exports to a spreadsheet on the free plan. For a spreadsheet, deploy `tools/apps-script/` to your Google account (its README has the steps) and set `sheetEndpoint`: each submission becomes a row in a Google Sheet plus a short email, with or without the email service. Until an endpoint is set, submitting a form shows a note pointing to the LinkedIn page, so nobody is told their details were sent when they weren't. `contactEmail` in `js/config.js` is deliberately blank: every visitor downloads that file, so an address there could be scraped.
 
 **Everything else is optional:** analytics IDs in `config.js`, the real renders in `assets/renders/`, the frame sequence in `assets/sequence/`.
 

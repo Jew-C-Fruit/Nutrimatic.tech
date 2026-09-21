@@ -1,12 +1,13 @@
 /*
  * Nutrimatic Website - site.js
- * Version 1.4.0
+ * Version 1.5.0
  *
  * Created: 2026-09-13 - Site behaviour (v1.0.0)
  * Modified: 2026-09-15 - Scroll story takes its SVG, scrub length and still from data attributes (v1.1.0)
  * Modified: 2026-09-21 - Forms with no endpoint and no fallback address show a LinkedIn note (v1.2.2)
  * Modified: 2026-09-21 - Per-form endpoints (formEndpoints.contact / .waitlist); brand sign-ups get their own subject line (v1.3.0)
  * Modified: 2026-09-21 - Web3Forms support: access key and field names adapted per endpoint; JSON error replies count as failures (v1.4.0)
+ * Modified: 2026-09-21 - sheetEndpoint: submissions also go to the Google Apps Script that fills the sheet; Web3Forms gets only the human fields, labelled (v1.5.0)
  *   - Mobile nav toggle
  *   - Hero media: swaps the SVG placeholder for a real render / video when present
  *   - Optional figures that only appear when their image exists
@@ -394,31 +395,59 @@
     if (trap && trap.value) { showSuccess(form, collect(form)); return; } // bots get a fake success
 
     var data = collect(form);
-    var perForm = cfg.formEndpoints && cfg.formEndpoints[data.form];
-    var endpoint = String(perForm || cfg.formEndpoint || "").trim();
-    var payload = endpoint ? adaptPayload(endpoint, data) : null;
-    if (!endpoint || !payload) {
-      if (!endpoint && String(cfg.contactEmail || "").trim()) { mailtoFallback(form, data); } else { notConnected(form); }
+    var deliveries = plan(data);
+    if (deliveries === null) { notConnected(form); return; }
+    if (!deliveries.length) {
+      if (String(cfg.contactEmail || "").trim()) { mailtoFallback(form, data); } else { notConnected(form); }
       return;
     }
 
     setBusy(form, true);
     setStatus(form, "Sending…", false);
-    fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Accept": "application/json" },
-      body: JSON.stringify(payload)
-    }).then(function (res) {
-      return res.json().catch(function () { return {}; }).then(function (json) {
-        // Formspree answers {ok:true}; Web3Forms {success:true}. Either flag false = not delivered.
-        if (!res.ok || json.ok === false || json.success === false) { throw new Error(json.message || ("HTTP " + res.status)); }
-        setStatus(form, "", false);
-        showSuccess(form, data);
-      });
+    Promise.all(deliveries.map(function (d) {
+      return send(d).then(function () { return true; }, function () { return false; });
+    })).then(function (landed) {
+      // The email service and the sheet are independent copies; one landing is enough.
+      if (!landed.some(Boolean)) { throw new Error("nothing delivered"); }
+      setStatus(form, "", false);
+      showSuccess(form, data);
     }).catch(function () {
       setStatus(form, "That didn’t send. Try again, or reach us at linkedin.com/in/maisonpierre.", true);
     }).then(function () {
       setBusy(form, false);
+    });
+  }
+
+  // Where a submission goes: the email service (Formspree / Web3Forms) if configured,
+  // and the Google Apps Script that fills the sheet if configured. [] = nothing set up;
+  // null = a configured service is missing something it needs (a Web3Forms key).
+  function plan(data) {
+    var list = [];
+    var perForm = cfg.formEndpoints && cfg.formEndpoints[data.form];
+    var endpoint = String(perForm || cfg.formEndpoint || "").trim();
+    if (endpoint) {
+      var payload = adaptPayload(endpoint, data);
+      if (!payload) { return null; }
+      list.push({ url: endpoint, body: payload, contentType: "application/json" });
+    }
+    var sheet = String(cfg.sheetEndpoint || "").trim();
+    if (sheet) {
+      // text/plain keeps the request "simple" (no preflight), which is what an Apps Script web app can answer cross-origin.
+      list.push({ url: sheet, body: data, contentType: "text/plain;charset=utf-8" });
+    }
+    return list;
+  }
+
+  function send(d) {
+    return fetch(d.url, {
+      method: "POST",
+      headers: { "Content-Type": d.contentType, "Accept": "application/json" },
+      body: JSON.stringify(d.body)
+    }).then(function (res) {
+      return res.json().catch(function () { return {}; }).then(function (json) {
+        // Formspree answers {ok:true}, Web3Forms {success:true}, the sheet script {ok:true}. A false flag = not delivered.
+        if (!res.ok || json.ok === false || json.success === false) { throw new Error(json.message || ("HTTP " + res.status)); }
+      });
     });
   }
 
@@ -495,21 +524,30 @@
     window.location.href = href;
   }
 
+  // Field labels for the Web3Forms notification email, in the order they should appear.
+  // `email` keeps its name so Web3Forms uses it as the reply-to address.
+  var EMAIL_LABELS = [
+    ["name", "Name"], ["email", "email"], ["gym_name", "Gym"], ["gym_location", "Location"],
+    ["brand_website", "Brand website"], ["product", "Product"], ["target_customer", "Target customer"],
+    ["message", "Message"]
+  ];
+
   // Shape the payload for the service behind the endpoint. Returns null when
   // that service needs something that isn't configured (a Web3Forms key).
   function adaptPayload(endpoint, data) {
-    var out = {};
-    Object.keys(data).forEach(function (key) { out[key] = data[key]; });
     if (/(^|\/\/|\.)web3forms\.com\//i.test(endpoint)) {
       var keyCfg = cfg.formAccessKey;
       var key = String((keyCfg && typeof keyCfg === "object") ? keyCfg[data.form] : keyCfg || "").trim();
       if (!key) { return null; }
-      out.access_key = key;
-      out.subject = data._subject;          // Web3Forms' name for the subject line
-      out.from_name = "Nutrimatic website";
-      delete out._subject;
+      // Only the human fields, labelled, so the notification email is short; the
+      // subject line already says which form and which role.
+      var out = { access_key: key, subject: data._subject, from_name: "Nutrimatic website" };
+      EMAIL_LABELS.forEach(function (pair) { if (data[pair[0]]) { out[pair[1]] = data[pair[0]]; } });
+      return out;
     }
-    return out;
+    var copy = {};
+    Object.keys(data).forEach(function (key) { copy[key] = data[key]; });
+    return copy;
   }
 
   // Nothing configured to receive the form: say so rather than fake a send.
