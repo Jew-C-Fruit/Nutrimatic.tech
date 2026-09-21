@@ -1,10 +1,11 @@
 /*
  * Nutrimatic Website - site.js
- * Version 1.2.2
+ * Version 1.3.0
  *
  * Created: 2026-09-13 - Site behaviour (v1.0.0)
  * Modified: 2026-09-15 - Scroll story takes its SVG, scrub length and still from data attributes (v1.1.0)
  * Modified: 2026-09-21 - Forms with no endpoint and no fallback address show a LinkedIn note (v1.2.2)
+ * Modified: 2026-09-21 - Per-form endpoints (formEndpoints.contact / .waitlist); brand sign-ups get their own subject line (v1.3.0)
  *   - Mobile nav toggle
  *   - Hero media: swaps the SVG placeholder for a real render / video when present
  *   - Optional figures that only appear when their image exists
@@ -392,7 +393,8 @@
     if (trap && trap.value) { showSuccess(form, collect(form)); return; } // bots get a fake success
 
     var data = collect(form);
-    var endpoint = String(cfg.formEndpoint || "").trim();
+    var perForm = cfg.formEndpoints && cfg.formEndpoints[data.form];
+    var endpoint = String(perForm || cfg.formEndpoint || "").trim();
     if (!endpoint) {
       if (String(cfg.contactEmail || "").trim()) { mailtoFallback(form, data); } else { notConnected(form); }
       return;
@@ -463,8 +465,12 @@
     data.page = window.location.href;
     data.submitted_at = new Date().toISOString();
     if (data.form === "waitlist") {
-      var who = data.role === "member" ? "Gym member" : "Gym owner / manager";
-      data._subject = "Nutrimatic waitlist: " + who + " — " + (data.gym_name || "");
+      if (data.role === "brand") {
+        data._subject = "Nutrimatic waitlist: Nutrition brand — " + (data.name || data.brand_website || "");
+      } else {
+        var who = data.role === "member" ? "Gym member" : "Gym owner / manager";
+        data._subject = "Nutrimatic waitlist: " + who + " — " + (data.gym_name || "");
+      }
     } else {
       data._subject = "Nutrimatic contact: " + (data.name || data.email || "");
     }

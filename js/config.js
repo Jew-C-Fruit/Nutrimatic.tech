@@ -1,19 +1,34 @@
 /*
  * Nutrimatic Website - config.js
- * Version 1.0.2
+ * Version 1.1.0
  *
  * Created: 2026-09-13 - Site configuration (v1.0.0)
  * Modified: 2026-09-15 - contactEmail documented as fallback-only, not displayed (v1.0.1)
  * Modified: 2026-09-21 - contactEmail blank by default; forms point to LinkedIn until an endpoint is set (v1.0.2)
+ * Modified: 2026-09-21 - formEndpoints: separate endpoints per form, Formspree setup notes (v1.1.0)
  *   - Edit THIS file to wire up forms and the hero media; site.js reads it.
  */
 
 window.NUTRIMATIC_CONFIG = {
-  // Where form submissions go. Any endpoint that accepts a JSON POST works
-  // (Formspree, Basin, Getform, a Google Apps Script web app, your own API).
-  // While this is empty (""), submitting a form shows a note pointing people
-  // to the LinkedIn page instead of pretending to send.
+  // Where form submissions go. Any endpoint that accepts a JSON POST works;
+  // the forms are written for Formspree (https://formspree.io): they send
+  // `_subject` for the notification subject, `email` becomes the reply-to,
+  // and the honeypot is handled before anything is sent.
+  //
+  // Formspree setup: sign in, "+ New form", copy the endpoint it shows
+  // (https://formspree.io/f/xxxxxxxx) and paste it below. Notifications go
+  // to the address on your Formspree account; nothing about it reaches the
+  // site. One form for everything is fine (every submission carries a
+  // `form` field, "contact" or "waitlist", and a `role` for the waitlist);
+  // or make two forms and use formEndpoints to keep two separate inboxes.
+  //
+  // While both are empty, submitting shows a note pointing people to the
+  // LinkedIn page instead of pretending to send.
   formEndpoint: "",
+  formEndpoints: {
+    contact: "",   // overrides formEndpoint for the contact form
+    waitlist: ""   // overrides formEndpoint for the waitlist
+  },
 
   // Optional fallback: if formEndpoint is empty but this is set, the forms
   // open the visitor's email app with the details pre-filled, addressed here.

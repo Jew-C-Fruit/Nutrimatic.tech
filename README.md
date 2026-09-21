@@ -2,7 +2,7 @@
 
 Static marketing site for **nutrimatic.tech**: splash page with the machine animation, How it works, Contact, and a three-way waitlist (gym owners / managers, gym members, nutrition brands).
 
-Version 1.2.1 · Created 2026-09-13 · Modified 2026-09-21 (the site is its own public repo; forms point to LinkedIn until an endpoint is set; no CNAME file, the domain is set in Pages settings)
+Version 1.2.2 · Created 2026-09-13 · Modified 2026-09-21 (the site is its own public repo; forms point to LinkedIn until an endpoint is set; per-form endpoints; no CNAME file, the domain is set in Pages settings)
 
 No build step. This repo *is* the site: every file in it is served as-is, apart from the docs and tooling noted below. It is public because GitHub Pages on a free account only serves public repos. Everything else about Nutrimatic (firmware, master controller) stays in the private Nutrimatic repo.
 
@@ -49,6 +49,7 @@ python3 -m http.server 8080      # from the repo root; or: npx serve .
 | Setting | What it does |
 | --- | --- |
 | `formEndpoint` | Where the waitlist and contact forms POST (JSON). Empty = submitting shows a note pointing to the LinkedIn page (or, if `contactEmail` is set, opens the visitor's email app with everything pre-filled). See **Forms** below. |
+| `formEndpoints` | Optional per-form overrides, `contact` and `waitlist`, for two separate inboxes. Either one left empty falls back to `formEndpoint`. |
 | `contactEmail` | Optional "to" address for the email-app fallback when `formEndpoint` is empty. Blank on purpose: every visitor downloads this file, so anything here can be scraped. Public contact is the LinkedIn link in the footers. |
 | `heroImage` | Path to the still render. Defaults to `assets/renders/machine-front.jpg`; the page uses it as soon as the file exists. |
 | `heroVideo` | Optional `mp4` / `webm` paths for the rendering animation. Plays muted and looping, with `heroImage` as the poster. |
@@ -77,7 +78,7 @@ Both forms post JSON to `formEndpoint` with an `Accept: application/json` header
 | Contact | `name`, `email`, `message` |
 | All | `_subject` (a readable subject line), `form`, `page`, `submitted_at`; `_gotcha` is a honeypot and is dropped |
 
-Quickest setup: create a form at formspree.io, paste its endpoint (`https://formspree.io/f/xxxxxxxx`) into `formEndpoint`, and turn on the Google Sheets integration there so the waitlist lands in a spreadsheet. Any endpoint that accepts JSON works; a Google Apps Script web app writing to a Sheet is a free alternative.
+Quickest setup: create a form at formspree.io, paste its endpoint (`https://formspree.io/f/xxxxxxxx`) into `formEndpoint` (or two forms into `formEndpoints`). The free plan takes 50 submissions a month across the account; every submission is emailed to the account address and kept in the Formspree inbox for 30 days, and the paid plans add the Google Sheets export. Any endpoint that accepts JSON works; a Google Apps Script web app writing to a Sheet is a free alternative.
 
 Links like `waitlist.html?type=owner`, `?type=member` and `?type=brand` pre-select the role.
 

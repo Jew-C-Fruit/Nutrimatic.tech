@@ -1,6 +1,6 @@
 # Going live: Squarespace integration and SEO
 
-Version 1.1.1 · Created 2026-09-13 · Modified 2026-09-21 (site in its own public repo; forms point to LinkedIn until an endpoint is set; custom domain is typed into Pages settings, not read from a CNAME file)
+Version 1.1.2 · Created 2026-09-13 · Modified 2026-09-21 (site in its own public repo; forms point to LinkedIn until an endpoint is set; custom domain is typed into Pages settings, not read from a CNAME file)
 
 ## Part 1 — Squarespace
 
@@ -43,7 +43,7 @@ The site lives in its own public repo, this one, because GitHub Pages on a free 
 
 **Forms (once)**
 
-6. Squarespace won't receive the forms in this path. Create a free form at [formspree.io](https://formspree.io) (or Basin / Getform, or a Google Apps Script that appends to a Sheet), paste its endpoint into `formEndpoint` in `js/config.js`, and turn on the Google Sheets export there so the waitlist lands in a spreadsheet you can sort by role. Until an endpoint is set, submitting a form shows a note pointing to the LinkedIn page, so nobody is told their details were sent when they weren't. `contactEmail` in `js/config.js` is deliberately blank: every visitor downloads that file, so an address there could be scraped.
+6. Squarespace won't receive the forms in this path. Create a free form at [formspree.io](https://formspree.io) (or Basin / Getform, or a Google Apps Script that appends to a Sheet), paste its endpoint into `formEndpoint` in `js/config.js` (or one endpoint per form into `formEndpoints`). Free plan: 50 submissions a month across the account, emailed to you and kept in the Formspree inbox for 30 days; the Google Sheets export is on the paid plans. Until an endpoint is set, submitting a form shows a note pointing to the LinkedIn page, so nobody is told their details were sent when they weren't. `contactEmail` in `js/config.js` is deliberately blank: every visitor downloads that file, so an address there could be scraped.
 
 **Everything else is optional:** analytics IDs in `config.js`, the real renders in `assets/renders/`, the frame sequence in `assets/sequence/`.
 
