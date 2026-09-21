@@ -1,12 +1,13 @@
 # Nutrimatic Website - deploy-website.yml
-# Version 1.1.0
+# Version 1.1.1
 # Created: 2026-09-13 - Publish the site to GitHub Pages (v1.0.0)
 # Modified: 2026-09-21 - The site is its own repo: publish the repo root minus docs and tooling (v1.1.0)
+# Modified: 2026-09-21 - Custom domain is set in Pages settings; a CNAME file is ignored for Actions deployments (v1.1.1)
 #
 # One-time setup: repo Settings -> Pages -> "Build and deployment" -> Source: GitHub Actions.
 # (configure-pages below tries to switch that on by itself on the first run.)
 # After that every push to main deploys; or run this workflow manually.
-# The custom domain comes from CNAME (nutrimatic.tech); DNS lives at Squarespace.
+# The custom domain (nutrimatic.tech) is typed once under Settings -> Pages; DNS lives at Squarespace.
 
 name: Deploy website
 

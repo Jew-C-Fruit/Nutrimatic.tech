@@ -1,6 +1,6 @@
 # Going live: Squarespace integration and SEO
 
-Version 1.1.0 · Created 2026-09-13 · Modified 2026-09-21 (site in its own public repo; forms point to LinkedIn until an endpoint is set)
+Version 1.1.1 · Created 2026-09-13 · Modified 2026-09-21 (site in its own public repo; forms point to LinkedIn until an endpoint is set; custom domain is typed into Pages settings, not read from a CNAME file)
 
 ## Part 1 — Squarespace
 
@@ -24,7 +24,7 @@ The site lives in its own public repo, this one, because GitHub Pages on a free 
 
 1. Repo **Settings → Pages → Build and deployment → Source: GitHub Actions**.
 2. Push to `main` (the first push does it), or run **Actions → Deploy website → Run workflow**. The workflow publishes the repo minus docs and tooling. It also tries to switch Pages on by itself; if that step fails, do step 1 and re-run it.
-3. Back in **Settings → Pages**, confirm **Custom domain** reads `nutrimatic.tech` (it comes from `CNAME`). After DNS resolves, tick **Enforce HTTPS**.
+3. Back in **Settings → Pages**, type `nutrimatic.tech` into **Custom domain** and save. This is typed once: with a GitHub Actions deployment GitHub ignores any `CNAME` file in the repo. When the DNS check under that field goes green, tick **Enforce HTTPS**.
 
 **Squarespace (once)**
 
