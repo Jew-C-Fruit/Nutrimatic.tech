@@ -1,12 +1,13 @@
 /*
  * Nutrimatic Website - config.js
- * Version 1.2.0
+ * Version 1.2.1
  *
  * Created: 2026-09-13 - Site configuration (v1.0.0)
  * Modified: 2026-09-15 - contactEmail documented as fallback-only, not displayed (v1.0.1)
  * Modified: 2026-09-21 - contactEmail blank by default; forms point to LinkedIn until an endpoint is set (v1.0.2)
  * Modified: 2026-09-21 - formEndpoints: separate endpoints per form, Formspree setup notes (v1.1.0)
  * Modified: 2026-09-21 - Web3Forms support: formAccessKey (v1.2.0)
+ * Modified: 2026-09-21 - Forms live on Web3Forms (v1.2.1)
  *   - Edit THIS file to wire up forms and the hero media; site.js reads it.
  */
 
@@ -25,7 +26,7 @@ window.NUTRIMATIC_CONFIG = {
   //
   // While both are empty, submitting shows a note pointing people to the
   // LinkedIn page instead of pretending to send.
-  formEndpoint: "",
+  formEndpoint: "https://api.web3forms.com/submit",
   formEndpoints: {
     contact: "",   // overrides formEndpoint for the contact form
     waitlist: ""   // overrides formEndpoint for the waitlist
@@ -37,7 +38,7 @@ window.NUTRIMATIC_CONFIG = {
   // The key is public by design: it's an alias for your address, which
   // never appears on the site. For two inboxes, make two keys and use an
   // object here: { contact: "key-1", waitlist: "key-2" }.
-  formAccessKey: "",
+  formAccessKey: "4c71010a-bc4a-4656-9e89-e53fc438cce9",
 
   // Optional fallback: if formEndpoint is empty but this is set, the forms
   // open the visitor's email app with the details pre-filled, addressed here.
