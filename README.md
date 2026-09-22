@@ -51,7 +51,7 @@ python3 -m http.server 8080      # from the repo root; or: npx serve .
 | `formEndpoint` | Where the waitlist and contact forms POST (JSON). Empty = submitting shows a note pointing to the LinkedIn page (or, if `contactEmail` is set, opens the visitor's email app with everything pre-filled). See **Forms** below. |
 | `formEndpoints` | Optional per-form overrides, `contact` and `waitlist`, for two separate inboxes. Either one left empty falls back to `formEndpoint`. |
 | `formAccessKey` | Web3Forms only: the access key for your inbox (a string, or `{ contact, waitlist }` for two inboxes), with `formEndpoint` set to `https://api.web3forms.com/submit`. |
-| `sheetEndpoint` | URL of the Google Apps Script web app from `tools/apps-script/` (ends in `/exec`). Rows land in your Google Sheet and you get a short email per submission. Works alongside or instead of `formEndpoint`. |
+| `sheetEndpoint` | URL of the Google Apps Script web app from `tools/apps-script/` (ends in `/exec`). Rows land in your Google Sheet, one tab per waitlist type plus Contact, and you get a short email per submission. Works alongside or instead of `formEndpoint`. |
 | `contactEmail` | Optional "to" address for the email-app fallback when `formEndpoint` is empty. Blank on purpose: every visitor downloads this file, so anything here can be scraped. Public contact is the LinkedIn link in the footers. |
 | `heroImage` | Path to the still render. Defaults to `assets/renders/machine-front.jpg`; the page uses it as soon as the file exists. |
 | `heroVideo` | Optional `mp4` / `webm` paths for the rendering animation. Plays muted and looping, with `heroImage` as the poster. |

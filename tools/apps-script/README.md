@@ -1,8 +1,8 @@
 # Waitlist and contact submissions into a Google Sheet
 
-Version 1.0.0 · Created 2026-09-21
+Version 1.1.0 · Created 2026-09-21 · Modified 2026-09-22 (one tab per waitlist type)
 
-`Code.gs` is a Google Apps Script that lives inside a Google Sheet. Deployed as a web app, it takes each submission from the site, appends a row (tab **Waitlist** or **Contact**, header row added on first use) and emails you a short notification: subject line, then one line per answer, nothing else. Free, runs in your own Google account, no third party. About five minutes to set up.
+`Code.gs` is a Google Apps Script that lives inside a Google Sheet. Deployed as a web app, it takes each submission from the site, appends a row on the tab for that kind of submission (**Gym owners**, **Gym members**, **Nutrition brands** or **Contact**; each tab and its header row are created on first use) and emails you a short notification: subject line, then one line per answer, nothing else. Free, runs in your own Google account, no third party. About five minutes to set up.
 
 ## Setup
 
@@ -27,10 +27,12 @@ Edits don't go live by themselves. After saving a change: **Deploy → Manage de
 
 | Tab | Columns |
 | --- | --- |
-| Waitlist | Received, Role, Name, Email, Gym, Location, Brand website, Product, Target customer, Page |
+| Gym owners | Received, Name, Email, Gym, Location, Page |
+| Gym members | Received, Name, Email, Gym, Location, Page |
+| Nutrition brands | Received, Contact, Email, Brand website, Product, Target customer, Page |
 | Contact | Received, Name, Email, Message, Page |
 
-*Received* is a real date-time cell, so the sheet sorts and filters by it. *Role* is "Gym owner / manager", "Gym member" or "Nutrition brand". *Page* is the URL the form was submitted from, useful if you ever share links like `waitlist.html?type=owner` in different places.
+Each waitlist type has its own tab because they don't share fields. *Received* is a real date-time cell, so the sheet sorts and filters by it. *Page* is the URL the form was submitted from, useful if you ever share links like `waitlist.html?type=owner` in different places.
 
 ## Notes
 

@@ -1,9 +1,11 @@
 /*
  * Nutrimatic Website - Code.gs (Google Apps Script)
- * Version 1.0.0
+ * Version 1.1.0
  *
  * Created: 2026-09-21 - Receives the site's form submissions: one row per submission in a
- *   Google Sheet (tabs "Waitlist" and "Contact") and a short notification email (v1.0.0)
+ *   Google Sheet and a short notification email (v1.0.0)
+ * Modified: 2026-09-22 - One tab per waitlist type (Gym owners, Gym members, Nutrition brands)
+ *   with columns to match, plus the Contact tab (v1.1.0)
  *
  * Lives inside the Google Sheet it writes to (Extensions -> Apps Script), deployed as a
  * web app. Setup steps: README.md next to this file. The site posts JSON as text/plain.
@@ -12,9 +14,12 @@
 // Leave empty to email the Google account that deployed the script; or put an address here.
 var NOTIFY_TO = "";
 
-var TABS = { waitlist: "Waitlist", contact: "Contact" };
+// One tab per kind of submission, each with its own columns.
+var TABS = { owner: "Gym owners", member: "Gym members", brand: "Nutrition brands", contact: "Contact" };
 var COLUMNS = {
-  waitlist: ["Received", "Role", "Name", "Email", "Gym", "Location", "Brand website", "Product", "Target customer", "Page"],
+  owner: ["Received", "Name", "Email", "Gym", "Location", "Page"],
+  member: ["Received", "Name", "Email", "Gym", "Location", "Page"],
+  brand: ["Received", "Contact", "Email", "Brand website", "Product", "Target customer", "Page"],
   contact: ["Received", "Name", "Email", "Message", "Page"]
 };
 var ROLES = { owner: "Gym owner / manager", member: "Gym member", brand: "Nutrition brand" };
@@ -22,12 +27,12 @@ var ROLES = { owner: "Gym owner / manager", member: "Gym member", brand: "Nutrit
 function doPost(e) {
   try {
     var d = JSON.parse((e && e.postData && e.postData.contents) || "{}");
-    var form = d.form === "contact" ? "contact" : (d.form === "waitlist" ? "waitlist" : "");
-    if (!form || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(d.email || ""))) {
+    var kind = kindOf(d);
+    if (!kind || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(d.email || ""))) {
       return reply({ ok: false, message: "rejected" });
     }
-    var row = appendRow(form, d);
-    var mailed = notify(form, d);
+    var row = appendRow(kind, d);
+    var mailed = notify(kind, d);
     return reply({ ok: true, row: row, mailed: mailed });
   } catch (err) {
     return reply({ ok: false, message: String(err) });
@@ -43,28 +48,36 @@ function reply(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
 }
 
-function appendRow(form, d) {
+// "contact", or the waitlist role ("owner" / "member" / "brand"); "" for anything else.
+function kindOf(d) {
+  if (d.form === "contact") { return "contact"; }
+  if (d.form === "waitlist" && COLUMNS.hasOwnProperty(d.role) && d.role !== "contact") { return d.role; }
+  return "";
+}
+
+function appendRow(kind, d) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName(TABS[form]) || ss.insertSheet(TABS[form]);
+  var sheet = ss.getSheetByName(TABS[kind]) || ss.insertSheet(TABS[kind]);
   if (sheet.getLastRow() === 0) {
-    sheet.appendRow(COLUMNS[form]);
+    sheet.appendRow(COLUMNS[kind]);
     sheet.setFrozenRows(1);
-    sheet.getRange(1, 1, 1, COLUMNS[form].length).setFontWeight("bold");
+    sheet.getRange(1, 1, 1, COLUMNS[kind].length).setFontWeight("bold");
   }
   var when = new Date();
-  var row = form === "waitlist"
-    ? [when, roleLabel(d.role), s(d.name), s(d.email), s(d.gym_name), s(d.gym_location), s(d.brand_website), s(d.product), s(d.target_customer), s(d.page)]
-    : [when, s(d.name), s(d.email), s(d.message), s(d.page)];
+  var row;
+  if (kind === "contact") { row = [when, s(d.name), s(d.email), s(d.message), s(d.page)]; }
+  else if (kind === "brand") { row = [when, s(d.name), s(d.email), s(d.brand_website), s(d.product), s(d.target_customer), s(d.page)]; }
+  else { row = [when, s(d.name), s(d.email), s(d.gym_name), s(d.gym_location), s(d.page)]; }
   sheet.appendRow(row);
   return sheet.getLastRow();
 }
 
 // Short email: subject says form and role; body is just the answers, one per line.
-function notify(form, d) {
+function notify(kind, d) {
   var to = NOTIFY_TO || Session.getEffectiveUser().getEmail();
   if (!to) { return false; }
   var lines = [];
-  if (form === "waitlist") {
+  if (kind !== "contact") {
     lines.push(roleLabel(d.role));
     if (d.name) { lines.push(s(d.name)); }
     lines.push(s(d.email));
@@ -79,7 +92,7 @@ function notify(form, d) {
   }
   MailApp.sendEmail({
     to: to,
-    subject: s(d._subject) || ("Nutrimatic " + form),
+    subject: s(d._subject) || ("Nutrimatic " + kind),
     body: lines.join("\n"),
     replyTo: s(d.email),
     name: "Nutrimatic website"
