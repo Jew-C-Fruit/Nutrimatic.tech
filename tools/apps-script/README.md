@@ -1,6 +1,6 @@
 # Waitlist and contact submissions into a Google Sheet
 
-Version 1.1.0 · Created 2026-09-21 · Modified 2026-09-22 (one tab per waitlist type)
+Version 1.2.0 · Created 2026-09-21 · Modified 2026-09-22 (one tab per waitlist type; manifest with pinned permissions)
 
 `Code.gs` is a Google Apps Script that lives inside a Google Sheet. Deployed as a web app, it takes each submission from the site, appends a row on the tab for that kind of submission (**Gym owners**, **Gym members**, **Nutrition brands** or **Contact**; each tab and its header row are created on first use) and emails you a short notification: subject line, then one line per answer, nothing else. Free, runs in your own Google account, no third party. About five minutes to set up.
 
@@ -9,6 +9,7 @@ Version 1.1.0 · Created 2026-09-21 · Modified 2026-09-22 (one tab per waitlist
 1. Create a Google Sheet (any name, e.g. *Nutrimatic sign-ups*).
 2. **Extensions → Apps Script.** Delete the sample code, paste in the whole of `Code.gs`, and save (the disk icon or Ctrl/Cmd-S).
 3. Optional: at the top of the file, put an address in `NOTIFY_TO` if the emails should go somewhere other than the Google account you're using.
+3b. Optional but recommended: pin the permissions. Project Settings (gear icon) → tick **Show "appsscript.json" manifest file in editor** → open `appsscript.json` and replace it with the one next to this README (keep your own `timeZone` if it differs). The script then asks for exactly three things: edit *this* spreadsheet only, send email as you (send only, no reading), and see your email address. Without it Google may ask for access to all your spreadsheets.
 4. **Deploy → New deployment.** Click the gear next to "Select type" and choose **Web app**. Set:
    - Description: anything
    - Execute as: **Me**
