@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - config.js
- * Version 1.3.0
+ * Version 1.3.1
  *
  * Created: 2026-09-13 - Site configuration (v1.0.0)
  * Modified: 2026-09-15 - contactEmail documented as fallback-only, not displayed (v1.0.1)
@@ -9,6 +9,7 @@
  * Modified: 2026-09-21 - Web3Forms support: formAccessKey (v1.2.0)
  * Modified: 2026-09-21 - Forms live on Web3Forms (v1.2.1)
  * Modified: 2026-09-21 - sheetEndpoint: Google Sheet + compact email via Apps Script (v1.3.0)
+ * Modified: 2026-09-22 - Sheet endpoint live (v1.3.1)
  *   - Edit THIS file to wire up forms and the hero media; site.js reads it.
  */
 
@@ -47,7 +48,7 @@ window.NUTRIMATIC_CONFIG = {
   // message then becomes a row in the sheet and a short email. When both this
   // and formEndpoint are set, each submission goes to both; to stop the
   // Web3Forms copy once the sheet works, set formEndpoint to "".
-  sheetEndpoint: "",
+  sheetEndpoint: "https://script.google.com/macros/s/AKfycbxFFzZTfG6g82hcqIsRI8a5FFuMwOkjQHMRvGP9s7vGUYwokRTu8S2NWXI-PQf1dnL1HA/exec",
 
   // Optional fallback: if formEndpoint is empty but this is set, the forms
   // open the visitor's email app with the details pre-filled, addressed here.
