@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - characters.py
-Version 1.0.0
+Version 1.0.1
 
 Created: 2026-10-02 - Cole and Ilinca as sprites: generated bases finished by hand in the face, cut into layers (v1.0.0)
+Modified: 2026-10-02 - Cole's resting mouth is a half smile, not a straight line (v1.0.1)
 
 characters.py - Cole and Ilinca for the desk scene.
 
@@ -95,7 +96,7 @@ class Cole:
     MX, MY = 38, 35
     MOUTHS = {
         'smile':   [".b........b.", "..bbbbbbbb..", "............", "....hhhh...."],
-        'neutral': ["............", "...bbbbbbb..", "............", ".....hhh...."],
+        'neutral': ["..........b.", "...bbbbbbb..", "............", ".....hhh...."],     # at rest: one corner up, a half smile
         'flat':    ["............", "..bbbbbbbbb.", "............", "............"],
         'frown':   ["............", "...bbbbbbb..", "..b.......b.", "............"],
         'open':    ["............", "...bbbbbbb..", "....wwwww...", "....ddddd...", ".....bbb...."],
