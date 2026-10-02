@@ -1,0 +1,16 @@
+{
+  "name": "nutrimatic-site-tests",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Playwright checks for nutrimatic.tech: pages load without errors, forms route correctly, the scroll story scrubs, the desk scene renders.",
+  "scripts": {
+    "serve": "python3 -m http.server 8765 --directory ../..",
+    "test": "node test-site.mjs",
+    "test:forms": "node test-forms-unconnected.mjs",
+    "shots:desk": "node desk-shots.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.47"
+  }
+}

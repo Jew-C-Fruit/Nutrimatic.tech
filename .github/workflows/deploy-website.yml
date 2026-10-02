@@ -1,8 +1,9 @@
 # Nutrimatic Website - deploy-website.yml
-# Version 1.1.1
+# Version 1.1.2
 # Created: 2026-09-13 - Publish the site to GitHub Pages (v1.0.0)
 # Modified: 2026-09-21 - The site is its own repo: publish the repo root minus docs and tooling (v1.1.0)
 # Modified: 2026-09-21 - Custom domain is set in Pages settings; a CNAME file is ignored for Actions deployments (v1.1.1)
+# Modified: 2026-10-02 - CLAUDE.md kept out of the deploy (v1.1.2)
 #
 # One-time setup: repo Settings -> Pages -> "Build and deployment" -> Source: GitHub Actions.
 # (configure-pages below tries to switch that on by itself on the first run.)
@@ -37,7 +38,7 @@ jobs:
         run: |
           mkdir -p dist
           rsync -a --exclude .git --exclude .github --exclude dist --exclude .gitignore \
-            --exclude README.md --exclude GO-LIVE.md --exclude squarespace --exclude tools \
+            --exclude README.md --exclude GO-LIVE.md --exclude CLAUDE.md --exclude squarespace --exclude tools \
             ./ dist/
       - uses: actions/configure-pages@v5
         with:
