@@ -1,6 +1,6 @@
 # nutrimatic.tech — notes for Claude Code sessions
 
-Version 1.0.0 · Created 2026-10-02
+Version 1.1.0 · Created 2026-10-02 · Modified 2026-10-02 (desk scene v0.6: generated figures, where the art lives)
 
 This repo **is** the public website. Every push to `main` deploys to https://nutrimatic.tech within a minute via
 `.github/workflows/deploy-website.yml` (GitHub Pages). `README.md`, `GO-LIVE.md`, `CLAUDE.md`, `squarespace/` and
@@ -14,6 +14,19 @@ The full project handover (history, decisions, feedback, open items) lives in th
 - `main`: live. Only push what's ready to be seen.
 - `desk-scene`: work in progress on the co-founders' pixel-art desk scene (How it works page) and the portrait toolkit.
   Not merged; preview it locally. See the handover for its status.
+
+## The desk scene (on `desk-scene`)
+
+- `js/desk-scene.js` is the scene: room, light, behaviour, scenarios, jointed arms. `js/desk-sprites.js` is its art
+  (Cole, Ilinca, Maker the cat) and is **generated**: edit the sources in `tools/desk/` and run
+  `python3 tools/desk/export_js.py`. Never edit `desk-sprites.js` by hand.
+- The figures come from portraits generated on the GPU machine and reduced to sprites (`tools/portraits/`), then finished
+  by hand in the face only (`tools/desk/characters.py`). Drawing the figures in code was tried four times and rejected;
+  don't go back to it.
+- **Model licences**: only models whose licence allows commercial use may make art for the site. FLUX.2 klein 4B and
+  Qwen-Image-Edit 2511 are Apache 2.0. Qwen-Image 2.1 is research-only: not for site art.
+- Reference photos of the founders and the cat are private. They are not in this repo and must not be added.
+- Look before you ship: `npm run shots:desk` in `tools/test` writes screenshots of every activity and scenario.
 
 ## Conventions (keep these)
 
