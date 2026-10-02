@@ -1,6 +1,6 @@
 # nutrimatic.tech — notes for Claude Code sessions
 
-Version 1.1.0 · Created 2026-10-02 · Modified 2026-10-02 (desk scene v0.6: generated figures, where the art lives)
+Version 1.2.0 · Created 2026-10-02 · Modified 2026-10-02 (desk scene v0.7: arms and hands are generated poses too)
 
 This repo **is** the public website. Every push to `main` deploys to https://nutrimatic.tech within a minute via
 `.github/workflows/deploy-website.yml` (GitHub Pages). `README.md`, `GO-LIVE.md`, `CLAUDE.md`, `squarespace/` and
@@ -21,8 +21,8 @@ The full project handover (history, decisions, feedback, open items) lives in th
   (Cole, Ilinca, Maker the cat) and is **generated**: edit the sources in `tools/desk/` and run
   `python3 tools/desk/export_js.py`. Never edit `desk-sprites.js` by hand.
 - The figures come from portraits generated on the GPU machine and reduced to sprites (`tools/portraits/`), then finished
-  by hand in the face only (`tools/desk/characters.py`). Drawing the figures in code was tried four times and rejected;
-  don't go back to it.
+  by hand in the face only (`tools/desk/characters.py`). Every activity's arms and hands are generated poses as well
+  (`tools/desk/poses.py`). Drawing figures or arms in code was tried and rejected each time; don't go back to it.
 - **Model licences**: only models whose licence allows commercial use may make art for the site. FLUX.2 klein 4B and
   Qwen-Image-Edit 2511 are Apache 2.0. Qwen-Image 2.1 is research-only: not for site art.
 - Reference photos of the founders and the cat are private. They are not in this repo and must not be added.

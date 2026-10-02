@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.6.0
+ * Version 0.7.0
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -15,9 +15,13 @@
  *   The room: ceiling, pendant light, warm walls, a sun patch by day, blue dark with warm pools at night. The cat is
  *   Maker (v0.6.0)
  *
+ * Modified: 2026-10-02 - No arm is drawn in code any more ("arms and hands look dreadful"). Every activity has a body pose
+ *   generated as one picture (torso, arms, hands and what they hold) and drawn under the same head; the hands' part of a
+ *   pose lies over the desk; a few poses have a front part over the face (v0.7.0)
+ *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(),
- *   .face(who, {mouth, brows, look}), .step(n), .state()
+ *   .face(who, {mouth, brows, look}), .poses(who), .step(n), .state()
  */
 
 (function () {
@@ -74,19 +78,6 @@
       var e2 = 2 * err; if (e2 > -dy) { err -= dy; x += sx; } if (e2 < dx) { err += dx; y += sy; }
     }
   }
-  // A limb with volume: every pixel within r of the segment, a one-pixel outline, and a shaded side away from the light.
-  function capsule(x1, y1, x2, y2, r, fill, shade, line) {
-    var x0 = Math.floor(Math.min(x1, x2) - r - 1), xe = Math.ceil(Math.max(x1, x2) + r + 1), y0 = Math.floor(Math.min(y1, y2) - r - 1), ye = Math.ceil(Math.max(y1, y2) + r + 1);
-    var dx = x2 - x1, dy = y2 - y1, len2 = dx * dx + dy * dy || 1;
-    for (var y = y0; y <= ye; y++) {
-      for (var x = x0; x <= xe; x++) {
-        var t = ((x - x1) * dx + (y - y1) * dy) / len2; t = t < 0 ? 0 : t > 1 ? 1 : t;
-        var ox = x - (x1 + dx * t), oy = y - (y1 + dy * t), d = Math.sqrt(ox * ox + oy * oy);
-        if (d > r) { continue; }
-        px(x, y, d > r - 1 ? line : ((ox * 0.5 + oy * 0.87) > r * 0.32 ? shade : fill));
-      }
-    }
-  }
   function lerp(a, b, t) { return a + (b - a) * t; }
   function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
   function hexToRgb(h) { return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]; }
@@ -97,13 +88,20 @@
   function hash(a, b, c) { var n = (a * 73856093) ^ (b * 19349663) ^ (c * 83492791); n = (n ^ (n >>> 13)) * 1274126177; return ((n ^ (n >>> 16)) >>> 0) % 1000; }
 
   /* ---------- sprites: the art arrives as data (js/desk-sprites.js) and is baked to small canvases once ---------- */
+  // A layer's pixels: one character per pixel (0-9a-z = palette index, "." = clear), row after row, with runs
+  // written as the character followed by its length in capital letters (base 26, A = 0).
   function bake(layer, pal) {
     var c = document.createElement("canvas"); c.width = layer.w; c.height = layer.h;
-    var k = c.getContext("2d"), img = k.createImageData(layer.w, layer.h), d = img.data, s = layer.d;
-    for (var i = 0; i < s.length; i++) {
-      var code = s.charCodeAt(i); if (code === 46) { continue; }
-      var rgb = hexToRgb(pal[code < 58 ? code - 48 : code - 87]), j = i * 4;
-      d[j] = rgb[0]; d[j + 1] = rgb[1]; d[j + 2] = rgb[2]; d[j + 3] = 255;
+    var k = c.getContext("2d"), img = k.createImageData(layer.w, layer.h), d = img.data, s = layer.d, i = 0, at = 0;
+    while (i < s.length) {
+      var code = s.charCodeAt(i++), n = 0, counted = false;
+      while (i < s.length) { var u = s.charCodeAt(i); if (u < 65 || u > 90) { break; } n = n * 26 + (u - 65); counted = true; i++; }
+      if (!counted) { n = 1; }
+      if (code !== 46) {
+        var rgb = hexToRgb(pal[code < 58 ? code - 48 : code - 87]);
+        for (var q = 0; q < n; q++) { var j = (at + q) * 4; d[j] = rgb[0]; d[j + 1] = rgb[1]; d[j + 2] = rgb[2]; d[j + 3] = 255; }
+      }
+      at += n;
     }
     k.putImageData(img, 0, 0);
     return { c: c, x: layer.x, y: layer.y, w: layer.w, h: layer.h };
@@ -326,124 +324,59 @@
     rect(x + 5, y - 9, 2, 6, C.mug); px(x + 7, y - 8, C.mug); px(x + 7, y - 5, C.mug); vline(x + 7, y - 8, 4, C.mugS);
     if (steam) { var k = (f >> 2) % 3; px(x - 2 + k, y - 14, C.smoke2); px(x + 1 - k, y - 17, C.smoke2); px(x - 1 + k, y - 20, C.smoke2); }
   }
-  function propLaptop(x) {
-    rect(x - 19, DESK_Y - 26, 38, 26, C.laptop); outline(x - 19, DESK_Y - 26, 38, 26, C.laptopS); hline(x - 18, DESK_Y - 25, 36, C.laptopL); vline(x - 18, DESK_Y - 25, 24, C.laptopL);
-    rect(x - 2, DESK_Y - 16, 5, 5, C.laptopS); px(x - 1, DESK_Y - 15, C.laptop); px(x + 1, DESK_Y - 13, C.laptop);
-    hline(x - 21, DESK_Y - 1, 42, C.laptopS); hline(x - 20, DESK_Y - 2, 40, C.laptopL);
-  }
   function propSolderStation(x) {
     rect(x - 10, DESK_Y - 8, 20, 8, C.ink3); outline(x - 10, DESK_Y - 8, 20, 8, C.ink); px(x - 7, DESK_Y - 5, C.red); px(x - 4, DESK_Y - 5, C.greenL); rect(x, DESK_Y - 6, 6, 3, C.greyLight);
     rect(x + 6, DESK_Y - 20, 2, 12, C.grey); hline(x + 3, DESK_Y - 20, 8, C.grey);
   }
   function propPhoneOnDesk(x) { rect(x - 5, DESK_Y - 2, 10, 2, C.phone); hline(x - 4, DESK_Y - 2, 8, C.ink3); }
-  function propPhone(x, y, f) { rect(x - 4, y - 7, 9, 15, C.phone); rect(x - 3, y - 6, 7, 12, (f % 24 < 20) ? C.phoneScreen : C.white); px(x, y + 7, C.ink3); }
   function propPlane(x, y, dir) {   // a paper airplane pointing in dir (1 = right)
     var d = dir || 1;
     for (var i = 0; i < 9; i++) { px(x + (i - 4) * d, y, C.plane); } for (var j = 0; j < 6; j++) { px(x + (j - 3) * d, y - 1, C.plane); } for (var k = 0; k < 3; k++) { px(x + (k - 2) * d, y - 2, C.plane); }
     px(x + 4 * d, y, C.planeS); px(x - 4 * d, y + 1, C.planeS); px(x - 3 * d, y + 1, C.planeS); px(x - 2 * d, y + 1, C.planeS);
   }
-  function propDS(x, y, open, f) {   // red Nintendo DS; (x, y) = centre of the hinge
-    if (open) {
-      rect(x - 8, y - 10, 16, 9, C.ds); outline(x - 8, y - 10, 16, 9, C.dsS); rect(x - 6, y - 8, 12, 5, C.dsScreen); if ((f >> 1) % 3 === 0) { px(x - 3 + (f % 6), y - 6, C.green); }
-      rect(x - 8, y, 16, 6, C.ds); outline(x - 8, y, 16, 6, C.dsS); rect(x - 3, y + 1, 7, 3, C.dsScreen); px(x - 6, y + 2, C.ink); px(x - 5, y + 3, C.ink); px(x + 6, y + 2, C.ink); hline(x - 8, y - 1, 16, C.dsS);
-    } else { rect(x - 8, y - 3, 16, 6, C.ds); outline(x - 8, y - 3, 16, 6, C.dsS); }
-  }
 
   /* ---------- the characters ---------- */
+  // A figure is a body in one of its poses (the whole torso with arms, hands and whatever they hold, generated as
+  // one picture per pose), the head on top of it, the face frames, and for a few poses a front part that covers the
+  // face (a mug at the mouth). Nothing about the arms is drawn in code.
   function makeCharacter(name, o) {
-    var a = ART[name];
+    var a = ART[name], poses = {};
+    Object.keys(a.poses || {}).forEach(function (k) { var q = a.poses[k]; poses[k] = { body: bake(q.b, a.pal), front: q.f ? bake(q.f, a.pal) : null, pts: q.pts || {} }; });
+    if (!poses.rest) { poses.rest = { body: bake(a.torso, a.pal), front: null, pts: {} }; }
     return {
-      name: name, art: a, torso: bake(a.torso, a.pal), head: bake(a.head, a.pal), x: 0, activities: o.activities, restMouth: o.restMouth, reach: o.reach,
+      name: name, art: a, poses: poses, head: bake(a.head, a.pal), x: 0, activities: o.activities, restMouth: o.restMouth,
       activity: "rest", actUntil: 0, actFrame: 0, look: { x: 0, y: 0 }, lookTarget: { x: 0, y: 0 }, turn: 0, nod: 0, bob: 0, slide: 0, hidden: false,
       mouth: "neutral", brows: null, blink: 0, nextBlink: 20 + Math.random() * 40, talking: false, gesture: false, react: null, reactUntil: 0,
-      phoneOnDesk: false, hold: null, hand: { L: null, R: null }, arms: null
+      phoneOnDesk: false, hold: null, drawn: null
     };
   }
-  var cole = makeCharacter("cole", { restMouth: "neutral", reach: 13, activities: ["type", "solder", "solder", "think", "coffee", "stretch", "rest", "type", "write"] });
-  var ilinca = makeCharacter("ilinca", { restMouth: "smile", reach: 11, activities: ["type", "type", "phone", "coffee", "think", "write", "write", "stretch", "rest"] });
+  var cole = makeCharacter("cole", { restMouth: "neutral", activities: ["type", "solder", "solder", "think", "coffee", "stretch", "rest", "type", "write"] });
+  var ilinca = makeCharacter("ilinca", { restMouth: "smile", activities: ["type", "type", "phone", "coffee", "think", "write", "write", "stretch", "rest"] });
   var people = [cole, ilinca];
   function other(p) { return p === cole ? ilinca : cole; }
   function who(n) { return n === "cole" ? cole : ilinca; }
   function midX() { return (cole.x + ilinca.x) / 2 | 0; }
 
   // Where the figure's sprite sits: its centre column on the character's x, its desk row on the desk top.
-  var DIPS = { type: 1, write: 1, solder: 1, phone: 1, ds: 1 };
-  function origin(p) { var a = p.art; return { x: p.x - a.centre + Math.round(p.slide), y: DESK_Y - a.desk + p.bob + (DIPS[p.activity] || 0) }; }
+  function origin(p) { var a = p.art; return { x: p.x - a.centre + Math.round(p.slide), y: DESK_Y - a.desk + p.bob }; }
   function point(p, name, o) { o = o || origin(p); var q = p.art.points[name]; return { x: o.x + q[0], y: o.y + q[1] + p.nod }; }
   function eyeY(p) { return point(p, "eye").y; }
 
-  // Where each hand wants to be, in scene coordinates. L is the arm on the viewer's left, R the one on the right.
-  function handTargets(p, f, o) {
-    var k = p.actFrame, a = p.activity, x = p.x + Math.round(p.slide), t = (k >> 2) % 2, dir = other(p).x > p.x ? 1 : -1, r = p.reach;
-    var sh = o.y + p.art.joints.shL[1], chest = sh + 12, mouth = point(p, "mouth", o), chin = point(p, "chin", o), eye = point(p, "eye", o), top = o.y;
-    var Lh = [x - r, DESK_Y - 4], Rh = [x + r, DESK_Y - 4];
-    function toward(dx, y) { if (dir > 0) { Rh = [x + dx, y]; } else { Lh = [x - dx, y]; } }
-    if (a === "type") { Lh = [x - 9, DESK_Y - 7 + t]; Rh = [x + 9, DESK_Y - 6 - t]; }
-    else if (a === "write") { Lh = [x - 8 - ((k >> 2) % 3), DESK_Y - 5]; }
-    else if (a === "solder") { Lh = [x - 2, DESK_Y - 17]; Rh = [x + 20, DESK_Y - 6]; }
-    else if (a === "coffee") { var up = (k % 40) >= 12 && (k % 40) < 26; Rh = up ? [mouth.x + 5, mouth.y + 3] : [x + r + 9, DESK_Y - 7]; }
-    else if (a === "think") { Lh = [chin.x - 5, chin.y + 3]; }
-    else if (a === "phone") { Lh = [x - 5, chest + 4]; Rh = [x + 5, chest + 4]; }
-    else if (a === "ds") { Lh = [x - 9, chest + 9 + (t ? 0 : 1)]; Rh = [x + 9, chest + 9 + t]; }
-    else if (a === "dsAway") { Lh = [x - r, DESK_Y + 9]; Rh = [x + r, DESK_Y + 9]; }
-    else if (a === "stretch") { var s = Math.min(k, 6); Lh = [x - 20, top - 2 - s]; Rh = [x + 20, top - 2 - s]; }
-    else if (a === "wave") { var w = ((k >> 1) % 2) ? 4 : -3; Rh = [x + 30 + w, sh - 22]; }
-    else if (a === "highfive") { var reach = Math.min(k * 3, 14); toward(26 + reach, sh - 6 - reach); }
-    else if (a === "fold") { Lh = [x - 6, chest + 9 + t]; Rh = [x + 6, chest + 9 + (1 - t)]; }
-    else if (a === "throw") { Rh = [x + 32, sh - 12]; }
-    else if (a === "shake") { var sk = (k % 2) ? 3 : -2; Lh = [x - 5, chest + 2 + sk]; Rh = [x + 5, chest + 2 + sk]; }
-    else if (a === "drink") { Rh = [mouth.x + 5, mouth.y + 17]; }                       // the bottle's cap at the mouth, the face left clear
-    else if (a === "offer" || a === "take") { toward(30, chest); }
-    else if (a === "rubEye") { Rh = [eye.x + 3, eye.y + 2]; }
-    else if (a === "yawn") { Rh = [mouth.x + 2, mouth.y + 2]; }
-    else if (a === "pet") { toward(30, DESK_Y - 12); }
-    else if (a === "fan") { var fw = ((k >> 1) % 2) ? 3 : -3; Rh = [x + 20 + fw, sh - 8]; }
-    else if (a === "fistpump") { Rh = [x + 24, sh - 26 + ((k >> 1) % 2) * 3]; }
-    else if (a === "carry") { Lh = [x - 9, chest + 6]; Rh = [x + 9, chest + 6]; }
-    if (p.gesture) { var gg = ((f >> 2) % 2) ? 2 : -2; toward(22 + gg, chest - 2 + gg); }
-    if (p.react === "surprise") { Lh = [x - 22, sh - 4]; Rh = [x + 22, sh - 4]; }
-    if (p.react === "laugh") { Lh = [mouth.x - 3, mouth.y + 4]; }
-    return { L: Lh, R: Rh };
+  // Which pose an activity is drawn with. A pose the art does not have falls back to resting.
+  var POSE_OF = {
+    rest: "rest", type: "type", write: "write", solder: "solder", think: "think", phone: "phone", call: "call", ds: "ds", dsAway: "hide",
+    stretch: "stretch", wave: "wave", highfive: "highfive", fold: "fold", "throw": "throw", shake: "shake", drink: "drink", offer: "offer",
+    take: "take", rubEye: "yawn", yawn: "yawn", pet: "pet", fan: "wave", fistpump: "fist", carry: "carry", release: "highfive"
+  };
+  function poseOf(p, f) {
+    var a = p.activity, name = POSE_OF[a] || "rest";
+    if (a === "coffee") { name = ((p.actFrame % 40) >= 12 && (p.actFrame % 40) < 26) ? "sip" : "mug"; }
+    if (p.react === "surprise") { name = "surprise"; }
+    else if (p.gesture && (a === "rest" || a === "think")) { name = "talk"; }      // a hand joins in only when it is free
+    if (name === "wave" && p.poses.wave2 && ((p.actFrame >> 2) % 2)) { name = "wave2"; }
+    return p.poses[name] ? name : "rest";
   }
-  // Two-bone IK: shoulder, upper and forearm lengths, a place for the hand; the elbow hangs down and a little outward.
-  function solveArm(S, T, a, b, side) {
-    var dx = T[0] - S[0], dy = T[1] - S[1], d = Math.sqrt(dx * dx + dy * dy) || 0.001, max = a + b - 0.5, min = Math.abs(a - b) + 0.5;
-    if (d > max) { T = [S[0] + dx / d * max, S[1] + dy / d * max]; d = max; }
-    else if (d < min) { T = [S[0] + dx / d * min, S[1] + dy / d * min]; d = min; }
-    dx = T[0] - S[0]; dy = T[1] - S[1];
-    var base = Math.atan2(dy, dx), ang = Math.acos(clamp((a * a + d * d - b * b) / (2 * a * d), -1, 1));
-    var e1 = [S[0] + a * Math.cos(base + ang), S[1] + a * Math.sin(base + ang)], e2 = [S[0] + a * Math.cos(base - ang), S[1] + a * Math.sin(base - ang)];
-    var E = (e1[1] + e1[0] * side * 0.35 >= e2[1] + e2[0] * side * 0.35) ? e1 : e2;   // the lower one, then the outer one
-    return { S: S, E: [Math.round(E[0]), Math.round(E[1])], H: [Math.round(T[0]), Math.round(T[1])] };
-  }
-  function stepHands(p, f, snap) {
-    var o = origin(p), t = handTargets(p, f, o);
-    ["L", "R"].forEach(function (s) {
-      var h = p.hand[s];
-      if (!h || snap) { p.hand[s] = [t[s][0], t[s][1]]; }
-      else { h[0] += (t[s][0] - h[0]) * 0.5; h[1] += (t[s][1] - h[1]) * 0.5; if (Math.abs(t[s][0] - h[0]) < 0.6) { h[0] = t[s][0]; } if (Math.abs(t[s][1] - h[1]) < 0.6) { h[1] = t[s][1]; } }
-    });
-  }
-  function solveArms(p, o) {
-    var a = p.art, m = a.arm; if (!p.hand.L) { stepHands(p, frame, true); }
-    return {
-      L: solveArm([o.x + a.joints.shL[0], o.y + a.joints.shL[1]], p.hand.L, m.upper, m.fore, -1),
-      R: solveArm([o.x + a.joints.shR[0], o.y + a.joints.shR[1]], p.hand.R, m.upper, m.fore, 1)
-    };
-  }
-  function drawUpperArm(p, arm, r) {
-    var m = p.art.arm, pal = p.art.pal, S = arm.S, E = arm.E, line = pal[m.line];
-    if (m.sleeve >= 1) { capsule(S[0], S[1], E[0], E[1], r, pal[m.cloth[0]], pal[m.cloth[1]], line); return; }
-    capsule(S[0], S[1], E[0], E[1], r - 1, pal[m.skin[0]], pal[m.skin[1]], line);
-    capsule(S[0], S[1], Math.round(lerp(S[0], E[0], m.sleeve)), Math.round(lerp(S[1], E[1], m.sleeve)), r, pal[m.cloth[0]], pal[m.cloth[1]], line);
-  }
-  function drawForearm(p, arm, r) {
-    var m = p.art.arm, pal = p.art.pal, E = arm.E, Hd = arm.H, line = pal[m.line], sleeved = m.sleeve >= 1;
-    capsule(E[0], E[1], Hd[0], Hd[1], r - 2, pal[sleeved ? m.cloth[0] : m.skin[0]], pal[sleeved ? m.cloth[1] : m.skin[1]], line);
-    var dx = Hd[0] - E[0], dy = Hd[1] - E[1], d = Math.sqrt(dx * dx + dy * dy) || 1, ux = dx / d, uy = dy / d;
-    if (sleeved && m.cuff >= 0) { capsule(Math.round(Hd[0] - ux * 4), Math.round(Hd[1] - uy * 4), Math.round(Hd[0] - ux * 2), Math.round(Hd[1] - uy * 2), r - 2, pal[m.cuff], pal[m.cloth[1]], line); }
-    capsule(Hd[0], Hd[1], Math.round(Hd[0] + ux * 2), Math.round(Hd[1] + uy * 2), Math.max(3, r - 3), pal[m.skin[0]], pal[m.skin[1]], line);
-  }
+  function posePoint(p, name) { var d = p.drawn; if (!d || !d.pose.pts[name]) { return null; } var q = d.pose.pts[name]; return { x: d.o.x + q[0], y: d.o.y + q[1] + d.jig }; }
 
   function drawFace(p, o, f) {
     var a = p.art, hy = o.y + p.nod, closed = p.blink > 0 || p.mouth === "laugh" || p.mouth === "yawn";
@@ -456,40 +389,25 @@
   }
 
   function drawCharacter(p, f) {
-    if (p.hidden) { return; }
-    var a = p.activity, o = origin(p), x = p.x + Math.round(p.slide), arms = solveArms(p, o), m = p.art.arm;
-    p.arms = arms;
-    blit(p.torso, o.x, o.y);
-    drawUpperArm(p, arms.L, m.rL); drawUpperArm(p, arms.R, m.rR);
+    if (p.hidden) { p.drawn = null; return; }
+    var o = origin(p), name = poseOf(p, f), pose = p.poses[name];
+    var jig = (p.activity === "shake" && (p.actFrame % 2)) ? 1 : (p.activity === "fistpump" && ((p.actFrame >> 1) % 2)) ? -1 : 0;
+    p.drawn = { o: o, pose: pose, name: name, jig: jig };
+    blit(pose.body, o.x, o.y + jig);
     blit(p.head, o.x, o.y + p.nod);
     drawFace(p, o, f);
-    // what is behind the hands
-    if (a === "type") { /* the laptop goes on after the arms */ }
-    else if (a === "solder") {
-      rect(x + 6, DESK_Y - 9, 18, 7, C.board); outline(x + 6, DESK_Y - 9, 18, 7, C.boardS); px(x + 9, DESK_Y - 7, C.copper); px(x + 13, DESK_Y - 7, C.copper); px(x + 18, DESK_Y - 7, C.copper); hline(x + 10, DESK_Y - 5, 8, C.copper); rect(x + 19, DESK_Y - 8, 3, 3, C.ink3);
-    } else if (a === "write") {
-      rect(x - 20, DESK_Y - 4, 24, 4, C.paper); outline(x - 20, DESK_Y - 4, 24, 4, C.paperLine); hline(x - 4, DESK_Y - 3, 6, C.greyLight);
+    if (pose.front) { blit(pose.front, o.x, o.y + jig); }
+    if (p.activity === "solder") {                                       // the iron's tip: a glow, a wisp of smoke, now and then a spark
+      var tip = posePoint(p, "tip");
+      if (tip) { px(tip.x, tip.y, (f % 6 < 3) ? C.ironHot : C.iron); var sm = (f >> 1) % 10; px(tip.x + (sm % 2), tip.y - 2 - sm, sm < 5 ? C.smoke : C.smoke2); if (f % 23 === 0) { px(tip.x - 1, tip.y - 1, C.sun); px(tip.x + 1, tip.y - 2, C.sun); } }
     }
-    drawForearm(p, arms.L, m.rL); drawForearm(p, arms.R, m.rR);
-    // things in hand
-    var Rh = arms.R.H, Lh = arms.L.H, near = other(p).x > p.x ? Rh : Lh;
-    if (a === "solder") {
-      var tipX = x + 11, tipY = DESK_Y - 9; rect(Lh[0] - 2, Lh[1] - 3, 6, 4, C.red); limb(Lh[0] + 3, Lh[1] + 1, tipX, tipY, 1, C.iron);
-      px(tipX, tipY, (f % 6 < 3) ? C.ironHot : C.iron); var sm = (f >> 1) % 10; px(tipX + (sm % 2), tipY - 2 - sm, sm < 5 ? C.smoke : C.smoke2);
-      if (f % 23 === 0) { px(tipX - 1, tipY - 1, C.sun); px(tipX + 1, tipY - 2, C.sun); }
-    } else if (a === "coffee") {
-      var up = (p.actFrame % 40) >= 12 && (p.actFrame % 40) < 26;
-      if (up) { propMug(Rh[0] - 2, Rh[1] + 4, false, f); } else { propMug(x + p.reach + 12, DESK_Y, true, f); }
-    } else if (a === "phone") { propPhone(x, (Rh[1] + Lh[1]) / 2 - 4, f); }
-    else if (a === "ds") { propDS(x, ((Rh[1] + Lh[1]) / 2 | 0) - 3, true, f); }
-    else if (a === "write") { limb(Lh[0] - 1, Lh[1] - 1, Lh[0] - 4, Lh[1] - 8, 1, C.ink); px(Lh[0], Lh[1] + 1, C.ink3); }
-    else if (a === "type") { propLaptop(x); }
-    else if (a === "fold") { rect(x - 6, ((Rh[1] + Lh[1]) / 2 | 0) - 4, 12, 5, C.paper); outline(x - 6, ((Rh[1] + Lh[1]) / 2 | 0) - 4, 12, 5, C.paperLine); }
-    else if (a === "shake") { propBottle(x, ((Rh[1] + Lh[1]) / 2 | 0) + 12); }
-    else if (a === "drink") { propBottle(Rh[0] - 4, Rh[1] + 13); }
-    else if (a === "offer") { propBottle(near[0], near[1] + 8); }
-    else if (a === "take" && p.hold === "bottle") { propBottle(near[0], near[1] + 8); }
-    else if (a === "carry") { propMug(Lh[0] - 2, Lh[1] + 5, true, f); propMug(Rh[0] + 2, Rh[1] + 5, true, f); }
+  }
+  // Hands, forearms and what they hold lie on the desk: that part of the pose is drawn again once the desk is there.
+  function drawOnDesk(p) {
+    var d = p.drawn; if (p.hidden || !d) { return; }
+    g.save(); g.beginPath(); g.rect(0, DESK_Y, W, H - DESK_Y); g.clip();
+    blit(d.pose.body, d.o.x, d.o.y + d.jig); if (d.pose.front) { blit(d.pose.front, d.o.x, d.o.y + d.jig); }
+    g.restore();
   }
 
   /* ---------- desk set per visit ---------- */
@@ -509,7 +427,7 @@
       if (k === "plant") { propPlant(x); } else if (k === "papers") { propPapers(x); } else if (k === "bottle") { propBottle(x, DESK_Y); }
       else if (k === "cartridge") { propCartridge(x); } else if (k === "mug") { propMug(x, DESK_Y, false, f); } else if (k.indexOf("vase") === 0) { propVase(x, +k[4]); }
     }
-    if (cole.activity === "solder" && !cole.hidden) { propSolderStation(cole.x - 44); }
+    if (cole.activity === "solder" && !cole.hidden) { propSolderStation(cole.x - 50); }
     if (ilinca.phoneOnDesk && !ilinca.hidden) { propPhoneOnDesk(ilinca.x - 28); }
     for (var e = 0; e < extras.length; e++) { var ex = extras[e]; if (ex.kind === "plane") { propPlane(ex.x, DESK_Y - 2, ex.dir); } else if (ex.kind === "bottle") { propBottle(ex.x, DESK_Y); } else if (ex.kind === "mug") { propMug(ex.x, DESK_Y, ex.steam, f); } }
   }
@@ -543,7 +461,7 @@
   function setActivity(p, a, seconds) {
     p.activity = a; p.actFrame = 0; p.actUntil = frame + Math.round(seconds * FPS);
     p.brows = a === "think" ? "down" : (p.brows === "down" ? null : p.brows);
-    if (p === ilinca) { p.phoneOnDesk = a !== "phone"; }
+    if (p === ilinca) { p.phoneOnDesk = a !== "phone" && a !== "call"; }
   }
   function nextActivity(p) {
     var a = p.activities[(Math.random() * p.activities.length) | 0];
@@ -630,8 +548,8 @@
         [2.6, function () { setActivity(cole, "rest", 99); setActivity(ilinca, "rest", 99); cole.mouth = "smile"; ilinca.mouth = "smile"; }]
       ],
       drawFront: function (t, f) {
-        if (actors.clap && f - actors.clap < 6 && cole.arms && ilinca.arms) {
-          var a = cole.arms.R.H, b = ilinca.arms.L.H, mx = (a[0] + b[0]) / 2 | 0, my = ((a[1] + b[1]) / 2 | 0) - 2;
+        if (actors.clap && f - actors.clap < 6) {
+          var a = posePoint(cole, "hand"), b = posePoint(ilinca, "hand"), mx = a && b ? ((a.x + b.x) / 2 | 0) : midX(), my = a && b ? ((a.y + b.y) / 2 | 0) : DESK_Y - 44;
           px(mx, my - 5, C.sun); px(mx - 5, my, C.sun); px(mx + 5, my, C.sun); px(mx, my + 5, C.sun); px(mx - 3, my - 3, C.white); px(mx + 3, my + 3, C.white); px(mx + 3, my - 3, C.white); px(mx - 3, my + 3, C.white);
         }
       }
@@ -641,15 +559,16 @@
       dur: 7.5,
       steps: [
         [0, function () { setActivity(cole, "fold", 99); faceOf(cole, { look: { x: 0, y: 1 }, turn: 0, mouth: "smile" }); }],
-        [2.4, function () { setActivity(cole, "throw", 99); lookAt(cole, ilinca.x, faceLevel(ilinca)); actors.plane = { t0: frame, x: cole.x + 32, y: DESK_Y - 44 }; }],
-        [3.4, function () { faceOf(ilinca, { brows: "down", mouth: "flat" }); lookAt(ilinca, cole.x, faceLevel(cole)); setActivity(ilinca, "rest", 99); }],
-        [3.6, function () { faceOf(cole, { brows: "up", mouth: "smile" }); setActivity(cole, "rest", 99); }],
+        [2.4, function () { setActivity(cole, "throw", 99); lookAt(cole, ilinca.x, faceLevel(ilinca)); }],
+        [3.0, function () { var hand = posePoint(cole, "hand") || { x: cole.x + 32, y: DESK_Y - 44 }; setActivity(cole, "release", 99); actors.plane = { t0: frame, x0: hand.x, y0: hand.y }; }],
+        [3.8, function () { faceOf(ilinca, { brows: "down", mouth: "flat" }); lookAt(ilinca, cole.x, faceLevel(cole)); setActivity(ilinca, "rest", 99); }],
+        [4.0, function () { faceOf(cole, { brows: "up", mouth: "smile" }); setActivity(cole, "rest", 99); }],
         [5.5, function () { faceOf(ilinca, { brows: null, mouth: "smile" }); }]
       ],
       update: function (t, f) {
         var pl = actors.plane; if (!pl || pl.landed) { return; }
-        var k = Math.min(1, (f - pl.t0) / 10), dir = ilinca.x > cole.x ? 1 : -1, x0 = cole.x + 32 * dir, x1 = ilinca.x - 34 * dir;
-        pl.x = x0 + (x1 - x0) * k; pl.y = DESK_Y - 44 - Math.sin(k * Math.PI) * 26 + k * 42;
+        var k = Math.min(1, (f - pl.t0) / 10), dir = ilinca.x > cole.x ? 1 : -1, x0 = pl.x0, x1 = ilinca.x - 34 * dir;
+        pl.x = x0 + (x1 - x0) * k; pl.y = pl.y0 - Math.sin(k * Math.PI) * 22 + k * (DESK_Y - 2 - pl.y0);
         if (k >= 1) { pl.landed = true; extras.push({ kind: "plane", x: x1, dir: dir }); }
       },
       drawFront: function (t, f) { var pl = actors.plane; if (pl && !pl.landed) { propPlane(Math.round(pl.x), Math.round(pl.y), ilinca.x > cole.x ? 1 : -1); } }
@@ -720,7 +639,7 @@
         [0.8, function () { lookAt(cole, ilinca.x, faceLevel(ilinca)); cole.nodAt = frame + 2; cole.mouth = "smile"; }],
         [1.6, function () { actors.away = { dir: ilinca.x > cole.x ? 1 : -1, phase: "out" }; }],
         [8.5, function () { actors.away.phase = "in"; setActivity(ilinca, "carry", 99); }],
-        [11.5, function () { extras.push({ kind: "mug", x: cole.x + cole.reach + 12, steam: true }); setActivity(cole, "coffee", 99); setActivity(ilinca, "coffee", 99); neutral(cole); cole.mouth = "smile"; }]
+        [11.5, function () { setActivity(cole, "coffee", 99); setActivity(ilinca, "coffee", 99); neutral(cole); cole.mouth = "smile"; }]
       ],
       update: function (t, f) {
         var a = actors.away; if (!a) { return; }
@@ -738,8 +657,7 @@
         [2.6, function () { setActivity(cole, "drink", 99); cole.mouth = "o"; cole.lookTarget = { x: 0, y: -1 }; }],
         [4.6, function () { lookAt(ilinca, cole.x, faceLevel(cole)); ilinca.mouth = "smile"; setActivity(ilinca, "take", 99); }],
         [5.2, function () { setActivity(cole, "offer", 99); lookAt(cole, ilinca.x, faceLevel(ilinca)); cole.mouth = "smile"; }],
-        [6.6, function () { ilinca.hold = "bottle"; setActivity(cole, "rest", 99); }],
-        [7.4, function () { setActivity(ilinca, "drink", 99); ilinca.mouth = "o"; ilinca.turn = 0; ilinca.lookTarget = { x: 0, y: -1 }; }],
+        [6.6, function () { setActivity(cole, "rest", 99); setActivity(ilinca, "drink", 99); ilinca.mouth = "o"; ilinca.turn = 0; ilinca.lookTarget = { x: 0, y: -1 }; }],
         [9.6, function () { setActivity(ilinca, "rest", 99); ilinca.mouth = "smile"; ilinca.nodAt = frame + 1; ilinca.hold = null; extras.push({ kind: "bottle", x: midX() + 22 }); }]
       ],
       end: function () { extras = extras.filter(function (e) { return e.kind !== "bottle"; }); }
@@ -776,10 +694,10 @@
     // The phone buzzes; good news; a fist pump.
     call: {
       dur: 11,
-      when: function () { return ilinca.activity !== "phone"; },
+      when: function () { return ilinca.activity !== "phone" && ilinca.activity !== "call"; },
       steps: [
         [0, function () { actors.buzz = { t0: frame }; }],
-        [1.4, function () { setActivity(ilinca, "phone", 99); actors.buzz = null; ilinca.phoneOnDesk = false; faceOf(ilinca, { mouth: "talk", look: { x: 0, y: 0 }, turn: 0 }); }],
+        [1.4, function () { setActivity(ilinca, "call", 99); actors.buzz = null; ilinca.phoneOnDesk = false; faceOf(ilinca, { mouth: "talk", look: { x: 0, y: 0 }, turn: 0 }); }],
         [5.6, function () { ilinca.mouth = "smile"; ilinca.nodAt = frame + 1; }],
         [7.0, function () { setActivity(ilinca, "rest", 99); lookAt(ilinca, cole.x, faceLevel(cole)); ilinca.gesture = true; ilinca.mouth = "talk"; lookAt(cole, ilinca.x, faceLevel(ilinca)); }],
         [8.6, function () { ilinca.gesture = false; ilinca.mouth = "laugh"; setActivity(cole, "fistpump", 99); cole.mouth = "laugh"; }],
@@ -895,7 +813,6 @@
     if (!scenario && !convo && f >= nextScenarioAt && !pointerActive) { if (!pickScenario()) { nextScenarioAt = f + 15 * FPS; } }
     stepScenario(f);
     stepConvo(f);
-    people.forEach(function (p) { stepHands(p, f, false); });
     updateLamp(h);
   }
 
@@ -905,7 +822,7 @@
     drawLampArm();
     if (scenario && scenario.drawBack) { scenario.drawBack(t, f); }
     for (var i = 0; i < people.length; i++) { drawCharacter(people[i], f); }
-    drawDesk(); drawLampBase();
+    drawDesk(); people.forEach(drawOnDesk); drawLampBase();
     drawProps(f);
     drawLampCone(); drawLamp();
     people.forEach(drawNamePlate);
@@ -921,7 +838,6 @@
     if (name === layoutName) { return; }
     layoutName = name; L = LAYOUTS[name]; W = L.W; H = L.H; WIN = L.win; off.width = W; off.height = H;
     cole.x = L.cole; ilinca.x = L.ilinca; lamp.base = L.lamp; var idle = lampIdle(); lamp.hx = lamp.tx = idle.x; lamp.hy = lamp.ty = idle.y;
-    people.forEach(function (p) { p.hand.L = null; p.hand.R = null; });
     makeStars(); extras = [];
     canvas.setAttribute("width", W); canvas.setAttribute("height", H);
   }
@@ -946,17 +862,17 @@
   setActivity(cole, Math.random() < 0.6 ? "solder" : "type", 14); setActivity(ilinca, Math.random() < 0.5 ? "type" : "write", 16);
   host.setAttribute("data-live", reduceMotion ? "still" : "on");
   resize();
-  if (reduceMotion) { update(0); people.forEach(function (p) { stepHands(p, 0, true); }); render(0); }
+  if (reduceMotion) { update(0); render(0); }
 
-  function settle() { people.forEach(function (p) { stepHands(p, frame, true); }); }
   window.NutrimaticDesk = {
     setHour: function (h) { hourOverride = (h === null || h === undefined) ? null : +h; updateLamp(hourNow()); render(frame); },
-    activity: function (n, a, secs) { setActivity(who(n), a, secs || 10); updateLamp(hourNow()); settle(); render(frame); },
-    react: function (n) { react(who(n)); settle(); render(frame); },
+    activity: function (n, a, secs) { setActivity(who(n), a, secs || 10); updateLamp(hourNow()); render(frame); },
+    react: function (n) { react(who(n)); render(frame); },
     scenario: function (name) { var ok = startScenario(name); render(frame); return ok; },
     converse: function () { startConvo(EXCHANGES[0]); stepConvo(frame); render(frame); },
     face: function (n, o) { var p = who(n); faceOf(p, o || {}); if (o && o.look) { p.look = { x: o.look.x, y: o.look.y }; } if (o && o.blink) { p.blink = 2; } p.actUntil = frame + 1e6; render(frame); },
     step: function (n) { for (var i = 0; i < (n || 1); i++) { frame++; update(frame); } render(frame); },
-    state: function () { return { layout: layoutName, size: [W, H], cole: cole.activity, ilinca: ilinca.activity, set: setIndex, hour: hourNow(), running: running, convo: !!convo, scenario: scenario ? scenario.name : null, lamp: { on: lamp.on, x: Math.round(lamp.hx) } }; }
+    poses: function (n) { return Object.keys(who(n).poses); },
+    state: function () { return { layout: layoutName, size: [W, H], cole: cole.activity, ilinca: ilinca.activity, poses: [cole.drawn ? cole.drawn.name : null, ilinca.drawn ? ilinca.drawn.name : null], set: setIndex, hour: hourNow(), running: running, convo: !!convo, scenario: scenario ? scenario.name : null, lamp: { on: lamp.on, x: Math.round(lamp.hx) } }; }
   };
 })();
