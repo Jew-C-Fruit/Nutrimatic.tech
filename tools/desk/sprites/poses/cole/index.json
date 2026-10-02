@@ -1,0 +1,222 @@
+{
+ "drink": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.859,
+  "src": "cole-drink/cand-001-seed6813.png",
+  "x": -1,
+  "y": 0
+ },
+ "ds": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.901,
+  "src": "cole-ds/cand-001-seed3815.png",
+  "x": -3,
+  "y": 0
+ },
+ "fist": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.901,
+  "src": "cole-fist/cand-001-seed2738.png",
+  "x": -8,
+  "y": -13
+ },
+ "fold": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.899,
+  "src": "cole-fold/cand-001-seed3074.png",
+  "x": -1,
+  "y": 0
+ },
+ "hide": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.9,
+  "src": "cole-hide/cand-000-seed2726.png",
+  "x": -2,
+  "y": 0
+ },
+ "highfive": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.907,
+  "src": "cole-highfive/cand-001-seed5182.png",
+  "x": -1,
+  "y": 0
+ },
+ "mug": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.897,
+  "src": "cole-mug/cand-000-seed3711.png",
+  "x": -6,
+  "y": 0
+ },
+ "offer": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.902,
+  "src": "cole-offer/cand-001-seed4948.png",
+  "x": -8,
+  "y": 0
+ },
+ "rest": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.907,
+  "src": "cole-rest/cand-001-seed1002.png",
+  "x": -9,
+  "y": 0
+ },
+ "shake": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.91,
+  "src": "cole-shake/cand-001-seed5240.png",
+  "x": -1,
+  "y": 0
+ },
+ "sip": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.733,
+  "src": "cole-sip/cand-002-seed8745.png",
+  "x": -1,
+  "y": 0
+ },
+ "solder": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.906,
+  "src": "cole-solder/cand-000-seed5248.png",
+  "x": -11,
+  "y": 0
+ },
+ "stretch": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.899,
+  "src": "cole-stretch/cand-001-seed4883.png",
+  "x": 0,
+  "y": -31
+ },
+ "surprise": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.898,
+  "src": "cole-surprise/cand-001-seed4045.png",
+  "x": -3,
+  "y": 0
+ },
+ "talk": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.904,
+  "src": "cole-talk/cand-001-seed6495.png",
+  "x": 0,
+  "y": 0
+ },
+ "think": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.883,
+  "src": "cole-think/cand-002-seed6879.png",
+  "x": 0,
+  "y": 0
+ },
+ "throw": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.817,
+  "src": "cole-throw/cand-000-seed4890.png",
+  "x": -19,
+  "y": 0
+ },
+ "type": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.903,
+  "src": "cole-type/cand-000-seed6956.png",
+  "x": -2,
+  "y": 0
+ },
+ "wave": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.897,
+  "src": "cole-wave/cand-000-seed1021.png",
+  "x": -10,
+  "y": 0
+ },
+ "wave2": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.899,
+  "src": "cole-wave/cand-001-seed1022.png",
+  "x": -10,
+  "y": 0
+ },
+ "write": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.903,
+  "src": "cole-write/cand-000-seed2658.png",
+  "x": -12,
+  "y": 0
+ },
+ "yawn": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.839,
+  "src": "cole-yawn/cand-000-seed8534.png",
+  "x": 0,
+  "y": 0
+ }
+}

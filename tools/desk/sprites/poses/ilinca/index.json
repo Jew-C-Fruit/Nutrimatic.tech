@@ -1,0 +1,192 @@
+{
+ "call": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.813,
+  "src": "ilinca-call/cand-001-seed8336.png",
+  "x": -9,
+  "y": 0
+ },
+ "carry": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.916,
+  "src": "ilinca-carry/cand-000-seed4927.png",
+  "x": -4,
+  "y": 0
+ },
+ "drink": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.827,
+  "src": "ilinca-drink/cand-001-seed5907.png",
+  "x": -9,
+  "y": 0
+ },
+ "highfive": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.876,
+  "src": "ilinca-highfive/cand-001-seed2330.png",
+  "x": -17,
+  "y": 0
+ },
+ "mug": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.879,
+  "src": "ilinca-mug/cand-000-seed5017.png",
+  "x": -9,
+  "y": 0
+ },
+ "pet": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.846,
+  "src": "ilinca-pet/cand-001-seed2726.png",
+  "x": -18,
+  "y": 0
+ },
+ "phone": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.822,
+  "src": "ilinca-phone/cand-002-seed3120.png",
+  "x": -8,
+  "y": 0
+ },
+ "rest": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.947,
+  "src": "ilinca-rest/cand-002-seed3603.png",
+  "x": -11,
+  "y": 0
+ },
+ "sip": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.849,
+  "src": "ilinca-sip/cand-002-seed4555.png",
+  "x": -9,
+  "y": 0
+ },
+ "stretch": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.854,
+  "src": "ilinca-stretch/cand-001-seed6875.png",
+  "x": -2,
+  "y": -35
+ },
+ "surprise": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.913,
+  "src": "ilinca-surprise/cand-001-seed5033.png",
+  "x": -10,
+  "y": 0
+ },
+ "take": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.898,
+  "src": "ilinca-take/cand-000-seed4522.png",
+  "x": -29,
+  "y": 0
+ },
+ "talk": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.883,
+  "src": "ilinca-talk/cand-001-seed2699.png",
+  "x": -17,
+  "y": 0
+ },
+ "think": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.833,
+  "src": "ilinca-think/cand-001-seed4684.png",
+  "x": -6,
+  "y": 0
+ },
+ "type": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.908,
+  "src": "ilinca-type/cand-002-seed4730.png",
+  "x": -20,
+  "y": 0
+ },
+ "wave": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.874,
+  "src": "ilinca-wave/cand-001-seed8857.png",
+  "x": -10,
+  "y": 0
+ },
+ "wave2": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.88,
+  "src": "ilinca-wave/cand-002-seed8858.png",
+  "x": -12,
+  "y": 0
+ },
+ "write": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.888,
+  "src": "ilinca-write/cand-002-seed4710.png",
+  "x": -13,
+  "y": 0
+ },
+ "yawn": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.779,
+  "src": "ilinca-yawn/cand-000-seed5354.png",
+  "x": -4,
+  "y": 0
+ }
+}
