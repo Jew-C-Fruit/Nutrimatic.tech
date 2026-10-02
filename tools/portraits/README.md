@@ -1,10 +1,26 @@
 # Portrait toolkit: GBA-style pixel portraits from your photos
 
-Version 1.0.0 · Created 2026-10-02
+Version 1.1.0 · Created 2026-10-02 · Modified 2026-10-02 (Qwen-Image-Edit route added, preferred)
 
 Runs on bagel or bigbaby. Open weights only. The model produces the **head and torso**; everything that moves
 (eyes, mouth, brows, arms, props) is built afterwards as layers in the same palette, so the result can be animated
 in the desk scene. One good base portrait each is the whole ask of this step.
+
+## 0. Which model
+
+Two routes. Try **Qwen-Image-Edit first**; keep SDXL as the fallback.
+
+| | Qwen-Image-Edit (`generate_qwen.py`) | SDXL + adapters (`generate.py`) |
+| --- | --- | --- |
+| How it works | An instruction-following edit model: give it the photo and say what to draw | Image-to-image plus a face adapter and a pixel-art LoRA |
+| Likeness | Strong, that's what edit models are built for | Fair; the face adapter helps but drifts |
+| Style control | From the prompt, or a second reference image on the 2509 / later models | From LoRAs: pixel-art-xl plus the GBA Fire Emblem LoRAs on Civitai |
+| Pixel crispness | Softer; the cleanup step enforces the palette and the grid | Crisp 8x pixel art out of the box |
+| VRAM | ~40 GB in bf16; 24 GB with `--offload` or ComfyUI's FP8 build | 10 GB |
+
+Z-Image Turbo fits in as a **style reference maker**: it's fast and good from text, but it's a distilled model, so steering it
+with your photo is the weak point. Generate a generic GBA-style mugshot with it (`prompts/style-ref-zimage.txt`), then hand
+that image to Qwen-Image-Edit as `--style-ref` next to your photo: "redraw image 1 in the style of image 2".
 
 ## 1. Hardware and install
 
@@ -33,6 +49,19 @@ The style LoRAs are trained on Nintendo's portraits. Using one to steer a style 
 we are not copying any actual game art onto the site, which is the line I'd keep.
 
 ## 3. Generate
+
+**Qwen route** (edit model; the prompts in `prompts/*-edit.txt` are written as instructions):
+
+```bash
+python generate_qwen.py --photo ../../assets/team/cole-maisonpierre.jpg --prompt-file prompts/cole-edit.txt --out out/cole-qwen --n 8 --seed 1 --offload
+python generate_qwen.py --photo ../../assets/team/ilinca-iorga.jpg   --prompt-file prompts/ilinca-edit.txt --out out/ilinca-qwen --n 8 --seed 1 --offload
+# with a style image from Z-Image Turbo, on a multi-image edit model:
+python generate_qwen.py --photo ... --style-ref refs/gba-style.png --prompt "Redraw the person in image 1 as a pixel art portrait in exactly the style of image 2; keep their face, hair and clothes" --model Qwen/Qwen-Image-Edit-2509 --out out/cole-qwen2
+```
+
+Use `--model` to point at the checkpoint you have (a local folder works). Dials: `--cfg` 3 to 5, `--steps` 30 to 50.
+
+**SDXL route:**
 
 Reference photos: a straight-on or slightly turned head-and-shoulders shot, even light, plain background if you have one.
 The two in `assets/team/` work; a plainer one of Cole would help.
