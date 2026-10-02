@@ -1,0 +1,355 @@
+<!doctype html><meta charset="utf-8"><title>style frames</title>
+<style>body{margin:0;background:#222}canvas{display:block;image-rendering:pixelated}</style>
+<canvas id="c"></canvas>
+<script>
+(function () {
+  var q = new URLSearchParams(location.search);
+  var MODE = q.get("mode") || "day";           // day | dusk | night
+  var STYLE = q.get("style") || "outline";     // outline | selout
+  var CROP = q.get("crop") === "1";
+  var SCENE = q.get("scene") || "work";        // work | talk | night
+  var W = CROP ? 300 : 384, H = 176, SCALE = +(q.get("scale") || 2);
+  var HEAD_Y = 64, DESK_Y = 146;
+  var cv = document.getElementById("c"); cv.width = W * SCALE; cv.height = H * SCALE; cv.style.width = (W * SCALE) + "px";
+  var off = document.createElement("canvas"); off.width = W; off.height = H; var g = off.getContext("2d");
+  function px(x, y, c) { g.fillStyle = c; g.fillRect(x | 0, y | 0, 1, 1); }
+  function rect(x, y, w, h, c) { g.fillStyle = c; g.fillRect(x | 0, y | 0, w | 0, h | 0); }
+  function hline(x, y, w, c) { rect(x, y, w, 1, c); } function vline(x, y, h, c) { rect(x, y, 1, h, c); }
+  function outline(x, y, w, h, c) { hline(x, y, w, c); hline(x, y + h - 1, w, c); vline(x, y, h, c); vline(x + w - 1, y, h, c); }
+  function sprite(rows, x, y, pal) { for (var r = 0; r < rows.length; r++) { var row = rows[r]; for (var i = 0; i < row.length; i++) { var k = row[i]; if (k !== "." && pal[k]) { px(x + i, y + r, pal[k]); } } } }
+  function limb(x1, y1, x2, y2, w, c) { var dx = Math.abs(x2 - x1), dy = Math.abs(y2 - y1), sx = x1 < x2 ? 1 : -1, sy = y1 < y2 ? 1 : -1, err = dx - dy, x = x1, y = y1, o = (w / 2) | 0; g.fillStyle = c; for (var k = 0; k < 600; k++) { g.fillRect(x - o, y - o, w, w); if (x === x2 && y === y2) break; var e2 = 2 * err; if (e2 > -dy) { err -= dy; x += sx; } if (e2 < dx) { err += dx; y += sy; } } }
+  function hexToRgb(h) { return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]; }
+  function mix(h1, h2, t) { var a = hexToRgb(h1), b = hexToRgb(h2); return "#" + [0, 1, 2].map(function (i) { return ("0" + Math.round(a[i] + (b[i] - a[i]) * t).toString(16)).slice(-2); }).join(""); }
+  function hash(a, b, c) { var n = (a * 73856093) ^ (b * 19349663) ^ (c * 83492791); n = (n ^ (n >>> 13)) * 1274126177; return ((n ^ (n >>> 16)) >>> 0) % 1000; }
+  var FONT = { A: "010101111101101", C: "011100100100011", E: "111100110100111", I: "111010010010111", L: "100100100100111", M: "101111111101101", N: "110101101101101", O: "010101101101010", R: "110101110101101", T: "111010010010010", U: "101101101101111" };
+  function drawText(s, x, y, c) { for (var i = 0; i < s.length; i++) { var bits = FONT[s[i]] || "000000000000000"; for (var j = 0; j < 15; j++) { if (bits[j] === "1") px(x + i * 4 + (j % 3), y + ((j / 3) | 0), c); } } }
+
+  // ---------- palette (GBA-ish: base / shade / light / outline per material) ----------
+  var SEL = STYLE === "selout";
+  var P = {
+    cSkin: "#f0c29a", cSkinD: "#d49a74", cSkinL: "#fbe0c4", cSkinO: SEL ? "#b87a55" : "#5a3a28",
+    cHair: "#2f1d13", cHairD: "#1a0f09", cHairL: "#4d3527", cHairO: SEL ? "#1a0f09" : "#120a06",
+    hen: "#3f73b0", henD: "#2e5688", henL: "#5f93cf", henO: SEL ? "#244468" : "#162a44",
+    iSkin: "#f4d2b6", iSkinD: "#d8ad90", iSkinL: "#fdeadb", iSkinO: SEL ? "#c08a6a" : "#5a3a2c",
+    iHair: "#8a6a48", iHairD: "#684c32", iHairL: "#b9966e", iHairO: SEL ? "#4e3622" : "#2e1e12",
+    blz: "#2c2c33", blzD: "#1c1c22", blzL: "#45454f", blzO: SEL ? "#141418" : "#0a0a0d",
+    blouse: "#f6f6f3", blouseD: "#d6d6d8",
+    white: "#ffffff", ink: "#111111", gold: "#c9a36a", lips: "#c86f7a", lipsL: "#e39aa3", mouth: "#5a2e2a", teeth: "#fff6f0",
+    frames: "#1e1e1e", lens: "#bfd3e6", lensL: "#e8f2fb",
+    wallDay: "#e6d9c4", wallDayD: "#d6c7ae", ceil: "#2d2a29", ceilL: "#4a4542", rail: "#cdbca2",
+    deskTop: "#6b4a30", deskTopL: "#8a6442", deskTopD: "#4e3522", deskFront: "#3b2817", deskFrontD: "#2a1b0f", plate: "#efe9dc", plateD: "#b7ad99",
+    laptop: "#cfd2d4", laptopD: "#9a9ea2", laptopL: "#eaeced", board: "#2f6b3a", boardD: "#1f4a28", copper: "#d9a650", iron: "#9a9a9e", ironHot: "#ff6a3d", smoke: "#c9c6bf",
+    lamp: "#1b1b1b", lampShade: "#f2efe6", lampShadeOn: "#ffe9a8", bulb: "#fff1b8",
+    pendant: "#1f1f22", pendantIn: "#ffe6a0", pendantInOff: "#6d6d70", cord: "#2a2a2c",
+    red: "#e4002b", redD: "#a3001f", mug: "#e4002b", mugD: "#a3001f", mugL: "#ff4d6a",
+    paper: "#fbfaf5", paperD: "#d9d5c8", pot: "#a3603c", potD: "#7c4428", leaf: "#3f8f55", leafD: "#2d6a3c", leafL: "#6fb57f",
+    skyNight: "#0d1030", skyNight2: "#1a1f4a", skyDay1: "#8dc5f0", skyDay2: "#cfe8fb", skyDusk1: "#f29a5c", skyDusk2: "#5d4e8c",
+    bldg: "#6e7a8c", bldgFar: "#8f9bab", bldgNight: "#0b0d20", bldgNightFar: "#141735", winLit: "#ffd97a", winLit2: "#ffe9b0", beacon: "#ff3b3b", sun: "#ffd84a", moon: "#f3f1d8", star: "#ffffff", cloud: "#ffffff"
+  };
+
+  // ---------- heads: 24 x 30 ----------
+  var COLE = [
+    "........oooooooo........",
+    ".....ooohhhhhhiiooo.....",
+    "...ogihhhhhhhhhiiiho....",
+    "..oggihhhhhhhhhiiihhho..",
+    ".oggghhhhhhhhhhhhiihhho.",
+    ".ogghhhhhhhhhhhhhhhhhho.",
+    ".ogghhhhhhhhhhhhhhhhhho.",
+    ".ogghhhhhhhhhhhhhhhhhho.",
+    ".ogghhhhgggssssggghhhho.",
+    ".oghhssssssgssssssghhho.",
+    ".oghssssssssssssssssgho.",
+    ".ogssssssssssssssssssgo.",
+    ".ogssssssssssssssssssgo.",
+    ".ogssssssssssssssssssgo.",
+    ".ogssssssssssssssssssgo.",
+    ".ossssssssssssssssssssso",
+    ".oddssssssssssssssssssso",
+    ".oddssssssssssssssssssso",
+    ".oddssssssssssssssssssso",
+    ".odddsssssssssssssssssko",
+    ".kddssssssssssssssssssk.",
+    ".kdddsssssssssssssssssk.",
+    ".kddssssssssssssssssssk.",
+    "..kdddsssssssssssssssk..",
+    "..kddssssssssssssssssk..",
+    "...kdddsssssssssssssk...",
+    "....kddssssssssssssk....",
+    "......kkdsssssssskk.....",
+    "........dssssssd........",
+    "........dssssssd........"
+  ];
+  var ILINCA = [
+    "..........oooo..........",
+    ".....ooohhhhhhooo.......",
+    "...oohhhhhgghhhhioo.....",
+    "..oghhhhhhgghhhhhhio....",
+    ".oghhhhhhhgghhhhhhhio...",
+    "ogghhhhhhhgghhhhhhhhio..",
+    "ogghhhhhhhgghhhhhhhhho..",
+    "ogghhhhhhhhhhhhhhhhhhho.",
+    "ogghhhhhhhhhhhhhhhhhhho.",
+    "oggghhhgggssssssssggghho",
+    "ogghhhgssssssssssssghhho",
+    "ogghgssssssssssssssghho.",
+    "ogghgssssssssssssssghho.",
+    "ogghgssssssssssssssghho.",
+    "ogghgssssssssssssssghho.",
+    "ogghgssssssssssssssghho.",
+    "ogghgssssssssssssssghho.",
+    "ogghgssssssssssssssghho.",
+    "ogghgdsssssssssssssghho.",
+    "ogghgdsssssssssssssghho.",
+    "ogghkdsssssssssssskghho.",
+    "ogghkdsssssssssssskghho.",
+    "ogghkdsssssssssssskghho.",
+    "ogghgkdsssssssssskgghho.",
+    "ogghgkdsssssssssskgghho.",
+    "ogghhhkddsssssssskghhho.",
+    "ogghhhhhkdsssssskghhhho.",
+    "ogghhhhhhkkdsskkghhhhho.",
+    "ogghhhhhhdssssdhhhhhhho.",
+    "ogghhhhhhdssssdhhhhhhho."
+  ];
+  var palCole = { o: P.cHairO, i: P.cHairL, h: P.cHair, g: P.cHairD, s: P.cSkin, d: P.cSkinD, k: P.cSkinO, l: P.cSkinL };
+  var palIl = { o: P.iHairO, i: P.iHairL, h: P.iHair, g: P.iHairD, s: P.iSkin, d: P.iSkinD, k: P.iSkinO, l: P.iSkinL };
+
+  // eyes: 5 wide, 3 tall. look = -1/0/1
+  function eye(x, y, look, pal, lash) {
+    hline(x, y, 6, pal.lid); px(x - 1, y + 1, pal.lid);                       // upper lid, heavier at the outer corner
+    rect(x, y + 1, 6, 2, P.white); hline(x + 1, y + 3, 4, pal.lidL);
+    var ix = x + 1 + look; rect(ix, y + 1, 3, 2, pal.iris); hline(ix, y + 1, 3, pal.irisD); px(ix + 1, y + 2, pal.pupil); px(ix, y + 1, pal.hi);
+    if (lash) { px(x - 1, y, pal.lid); px(x - 2, y + 1, pal.lid); px(x + 6, y, pal.lid); }
+  }
+  function face(who, x, y, o) {
+    var isC = who === "cole", pal = isC ? palCole : palIl, skinD = isC ? P.cSkinD : P.iSkinD, skinO = isC ? P.cSkinO : P.iSkinO;
+    sprite(isC ? COLE : ILINCA, x - 12, y, pal);
+    var ex = x - 12 + (isC ? 4 : 5), ex2 = x - 12 + (isC ? 14 : 13), ey = y + 14;
+    var ep = { lid: isC ? "#2a1a12" : "#3a2418", lidL: skinD, iris: isC ? "#6b4a35" : "#7a5238", irisD: isC ? "#3b2718" : "#4a311f", pupil: "#1a1008", hi: "#ffffff" };
+    if (o.closed) { hline(ex, ey + 2, 6, ep.lid); hline(ex2, ey + 2, 6, ep.lid); } else { eye(ex, ey, o.look || 0, ep, !isC); eye(ex2, ey, o.look || 0, ep, !isC); }
+    // brows
+    var bc = isC ? P.cHairD : P.iHairD, by = y + 12;
+    if (o.brows === "up") by -= 1; if (o.brows === "down") by += 1;
+    if (!(isC && !o.brows)) { hline(ex, by, 5, bc); hline(ex2, by, 5, bc); if (o.brows === "down") { px(ex + 5, by + 1, bc); px(ex2 - 1, by + 1, bc); } if (o.brows === "sad") { px(ex - 1, by + 1, bc); px(ex2 + 5, by + 1, bc); } }
+    // nose
+    px(x, y + 19, skinD); px(x, y + 20, skinD); px(x - 1, y + 21, skinD); px(x, y + 21, skinO); px(x + 1, y + 21, skinD); px(x - 1, y + 19, isC ? P.cSkinL : P.iSkinL);
+    // cheeks
+    if (!isC) { px(x - 7, y + 19, "#e9b0a2"); px(x - 6, y + 19, "#e9b0a2"); px(x + 6, y + 19, "#e9b0a2"); px(x + 7, y + 19, "#e9b0a2"); }
+    px(x + 7, y + 19, isC ? P.cSkinL : P.iSkinL); px(x + 8, y + 19, isC ? P.cSkinL : P.iSkinL); px(x + 8, y + 20, isC ? P.cSkinL : P.iSkinL);   // light on the right cheek
+    // glasses
+    if (isC) {
+      hline(x - 10, y + 13, 21, P.frames); px(x - 11, y + 13, P.frames); px(x + 11, y + 13, P.frames);
+      vline(x - 10, y + 14, 5, P.frames); vline(x - 2, y + 14, 5, P.frames); vline(x + 2, y + 14, 5, P.frames); vline(x + 10, y + 14, 5, P.frames);
+      hline(x - 9, y + 18, 7, "#6a6a6a"); hline(x + 3, y + 18, 7, "#6a6a6a"); hline(x - 1, y + 14, 3, P.frames);
+      px(x - 9, y + 14, P.lensL); px(x + 3, y + 14, P.lensL);
+      px(x - 12, y + 14, P.frames); px(x + 12, y + 14, P.frames);
+    }
+    // mouth on row 24
+    var my = y + 24, lc = isC ? P.mouth : P.lips;
+    if (o.mouth === "smile") { px(x - 4, my - 1, lc); hline(x - 3, my, 6, lc); px(x + 3, my - 1, lc); hline(x - 3, my + 1, 6, skinD); if (!isC) hline(x - 2, my - 1, 4, P.lipsL); }
+    else if (o.mouth === "laugh") { px(x - 5, my - 1, lc); hline(x - 4, my, 8, lc); hline(x - 4, my + 1, 8, P.teeth); hline(x - 3, my + 2, 6, P.mouth); px(x + 4, my - 1, lc); }
+    else if (o.mouth === "open") { rect(x - 2, my, 4, 3, P.mouth); hline(x - 2, my, 4, P.teeth); }
+    else if (o.mouth === "o") { rect(x - 2, my, 3, 3, P.mouth); }
+    else if (o.mouth === "flat") { hline(x - 4, my, 8, lc); }
+    else if (o.mouth === "frown") { px(x - 4, my + 1, lc); hline(x - 3, my, 6, lc); px(x + 3, my + 1, lc); }
+    else { if (isC) { hline(x - 3, my, 6, lc); hline(x - 3, my + 1, 6, skinD); } else { hline(x - 2, my, 4, lc); px(x - 3, my - 1, lc); px(x + 2, my - 1, lc); hline(x - 1, my - 1, 2, P.lipsL); hline(x - 2, my + 1, 4, skinD); } }
+  }
+
+  // ---------- bodies ----------
+  function torso(who, x, sy) {
+    var isC = who === "cole", base = isC ? P.hen : P.blz, dark = isC ? P.henD : P.blzD, light = isC ? P.henL : P.blzL, o = isC ? P.henO : P.blzO, w = 44, half = 22;
+    rect(x - half, sy + 3, w, DESK_Y - sy - 3, base); hline(x - half + 2, sy + 1, w - 4, base); hline(x - half + 1, sy + 2, w - 2, base);
+    // light from the right (window side): highlight right, shade left
+    rect(x - half + 1, sy + 4, 4, DESK_Y - sy - 4, dark); rect(x + half - 5, sy + 4, 3, DESK_Y - sy - 4, light);
+    vline(x - half, sy + 3, DESK_Y - sy - 3, o); vline(x + half - 1, sy + 3, DESK_Y - sy - 3, o); hline(x - half + 2, sy, w - 4, o); px(x - half + 1, sy + 1, o); px(x + half - 2, sy + 1, o); px(x - half, sy + 2, o); px(x + half - 1, sy + 2, o);
+    hline(x - 16, sy + 30, 12, dark); hline(x + 6, sy + 33, 10, dark);                   // a fold or two
+    rect(x - 9, sy + 3, 18, 3, dark); hline(x + 8, sy + 2, 12, light);                     // shadow under the chin, light on the far shoulder
+    if (isC) {
+      // henley: round neck with skin, placket, buttons
+      rect(x - 5, sy, 10, 3, isC ? P.cSkin : P.iSkin); hline(x - 6, sy + 3, 12, dark); px(x - 6, sy + 2, o); px(x + 5, sy + 2, o);
+      rect(x - 3, sy + 4, 6, 16, light); vline(x - 3, sy + 4, 16, dark); vline(x + 2, sy + 4, 16, dark);
+      rect(x - 1, sy + 7, 2, 2, P.white); rect(x - 1, sy + 12, 2, 2, P.white); rect(x - 1, sy + 17, 2, 2, P.white); px(x, sy + 8, P.laptopD); px(x, sy + 13, P.laptopD); px(x, sy + 18, P.laptopD);
+    } else {
+      // blazer open over a white top, lapels catching light, a button
+      var hw = [8, 8, 7, 7, 6, 6, 5, 5, 4, 4, 3, 3, 2, 2, 1, 1];
+      for (var i = 0; i < hw.length; i++) { rect(x - hw[i], sy + i, hw[i] * 2, 1, i < 2 ? P.blouseD : P.blouse); rect(x - hw[i] - 3, sy + i, 3, 1, light); rect(x + hw[i], sy + i, 3, 1, light); px(x - hw[i] - 4, sy + i, o); px(x + hw[i] + 3, sy + i, o); }
+      vline(x, sy + 16, 6, dark); px(x, sy + 24, P.laptopD); px(x, sy + 7, P.gold); px(x - 1, sy + 6, P.gold); px(x + 1, sy + 6, P.gold);
+    }
+  }
+  function arm(who, x, sy, side, pose, o) {
+    var isC = who === "cole", skin = isC ? P.cSkin : P.iSkin, skinD = isC ? P.cSkinD : P.iSkinD, skinO = isC ? P.cSkinO : P.iSkinO, skinL = isC ? P.cSkinL : P.iSkinL;
+    var base = isC ? P.hen : P.blz, dark = isC ? P.henD : P.blzD, light = isC ? P.henL : P.blzL, ol = isC ? P.henO : P.blzO;
+    var shx = x + (side < 0 ? -19 : 19), shy = sy + 5, ex = x + pose[0], ey = sy + pose[1], hx = x + pose[2], hy = sy + pose[3];
+    limb(shx, shy, ex, ey, 11, ol); limb(ex, ey, hx, hy, 10, ol);
+    limb(shx, shy, ex, ey, 9, base); limb(ex, ey, hx, hy, 8, base);
+    limb(shx + (side < 0 ? 2 : -2), shy - 2, ex + (side < 0 ? 2 : -2), ey - 2, 3, side > 0 ? light : dark);   // tone along the upper arm
+    var cx = Math.round(ex + (hx - ex) * 0.8), cy = Math.round(ey + (hy - ey) * 0.8);
+    limb(cx, cy, hx, hy, 8, isC ? light : dark);                                                                   // cuff
+    rect(hx - 4, hy - 4, 9, 9, skinO); rect(hx - 3, hy - 3, 7, 7, skin); rect(hx - 3, hy + 2, 7, 1, skinD); px(hx + 3, hy - 1, skinD); px(hx - 2, hy - 2, skinL);
+    hline(hx - 2, hy, 2, skinD); // knuckle hint
+  }
+  function hairBack(x, y) { var h = P.iHair, d = P.iHairD, l = P.iHairL, o = P.iHairO;
+    rect(x - 16, y + 4, 32, 44, h); rect(x - 15, y + 2, 30, 2, h); rect(x - 12, y, 24, 2, h);
+    vline(x - 16, y + 4, 44, o); vline(x + 15, y + 4, 44, o); hline(x - 15, y + 48, 30, o); hline(x - 13, y + 49, 26, o); rect(x - 14, y + 48, 28, 1, d);
+    rect(x - 15, y + 6, 3, 40, d); rect(x + 11, y + 6, 3, 40, l); vline(x - 10, y + 8, 30, l); vline(x + 8, y + 10, 26, l); vline(x - 4, y + 2, 5, l);
+  }
+  function hairFront(x, y) { var h = P.iHair, d = P.iHairD, l = P.iHairL, o = P.iHairO;
+    rect(x - 16, y + 28, 6, 20, h); rect(x + 10, y + 28, 6, 20, h); vline(x - 16, y + 28, 20, o); vline(x + 15, y + 28, 20, o); vline(x - 11, y + 30, 18, d); vline(x + 10, y + 30, 18, d);
+    hline(x - 15, y + 48, 4, o); hline(x + 11, y + 48, 4, o); vline(x - 14, y + 30, 12, l); vline(x + 13, y + 32, 10, l);
+  }
+  function character(who, x, pose, o) {
+    var y = HEAD_Y, sy = y + 30;
+    if (who === "ilinca") hairBack(x, y - 2);
+    torso(who, x, sy);
+    arm(who, x, sy, -1, pose.L, o); arm(who, x, sy, 1, pose.R, o);
+    face(who, x, y, o);
+    if (who === "ilinca") hairFront(x, y - 2);
+    return { hx: x + pose.R[2], hy: sy + pose.R[3], lhx: x + pose.L[2], lhy: sy + pose.L[3], sy: sy };
+  }
+
+  // ---------- room ----------
+  var WIN = { x: CROP ? 228 : 296, y: 22, w: CROP ? 64 : 72, h: 78 };
+  var FAR = [[2, 10, 22], [26, 9, 20], [44, 12, 24], [58, 8, 18]];
+  var NEAR = [[0, 6, 12, "block"], [7, 10, 18, "empire"], [18, 4, 36, "slender"], [23, 8, 14, "block"], [31, 7, 24, "chrysler"], [39, 6, 10, "block"], [46, 8, 30, "wtc"], [55, 6, 16, "block"], [62, 5, 9, "block"]];
+  function building(b, bx, by, dark, f, far) {
+    var x = bx + b[0], w = b[1], h = b[2], kind = b[3] || "block", col = far ? (dark ? P.bldgNightFar : P.bldgFar) : (dark ? P.bldgNight : P.bldg), top = by - h;
+    if (x + w > bx + WIN.w) { w = bx + WIN.w - x; if (w <= 0) return; }
+    rect(x, top, w, h, col);
+    if (kind === "empire") { rect(x + 1, top - 6, w - 2, 6, col); rect(x + 2, top - 11, w - 4, 5, col); rect(x + 3, top - 16, w - 6, 5, col); vline(x + (w / 2 | 0), top - 22, 6, col); if (dark) { rect(x + 3, top - 16, w - 6, 3, P.winLit2); px(x + (w / 2 | 0), top - 22, P.beacon); } }
+    else if (kind === "chrysler") { rect(x + 1, top - 3, w - 2, 3, col); rect(x + 2, top - 6, w - 4, 3, col); vline(x + (w / 2 | 0), top - 11, 5, col); if (dark) { px(x + 1, top - 2, P.winLit2); px(x + w - 2, top - 2, P.winLit2); px(x + 2, top - 5, P.winLit2); px(x + w - 3, top - 5, P.winLit2); px(x + (w / 2 | 0), top - 7, P.winLit2); } }
+    else if (kind === "wtc") { rect(x + 1, top - 4, w - 2, 4, col); rect(x + 2, top - 8, w - 4, 4, col); vline(x + (w / 2 | 0), top - 16, 8, col); if (dark) { px(x + (w / 2 | 0), top - 16, P.beacon); rect(x + 2, top - 8, w - 4, 1, P.winLit2); } }
+    else if (kind === "slender") { if (dark) { for (var yy = top + 2; yy < by - 1; yy += 3) { if (hash(x, yy, 1) % 3) px(x + 1, yy, P.winLit); if (hash(x + 2, yy, 1) % 3) px(x + 2, yy, P.winLit); } } else { for (var y2 = top + 2; y2 < by - 1; y2 += 3) hline(x, y2, w, mix(col, P.white, 0.18)); } return; }
+    if (!far) { if (dark) { for (var wy = top + 2; wy < by - 1; wy += 2) for (var wx = x + 1; wx < x + w - 1; wx += 2) if (hash(wx, wy, 2) % 5 < 2) px(wx, wy, (hash(wx, wy, 3) % 2) ? P.winLit : P.winLit2); } else { for (var dy = top + 2; dy < by - 1; dy += 3) for (var dx = x + 1; dx < x + w - 1; dx += 3) px(dx, dy, mix(col, P.white, 0.22)); } }
+  }
+  function windowView(mode) {
+    var sky = mode === "night" ? [P.skyNight, P.skyNight2] : mode === "dusk" ? [P.skyDusk1, P.skyDusk2] : [P.skyDay1, P.skyDay2], dark = mode === "night";
+    for (var i = 0; i < 8; i++) rect(WIN.x, WIN.y + Math.round(i * WIN.h / 8), WIN.w, Math.ceil(WIN.h / 8) + 1, mix(sky[0], sky[1], i / 7));
+    if (dark) { for (var s = 0; s < 30; s++) { px(WIN.x + 2 + hash(s, 1, 9) % (WIN.w - 4), WIN.y + 2 + hash(s, 2, 9) % (WIN.h - 44), P.star); } rect(WIN.x + WIN.w - 22, WIN.y + 9, 6, 6, P.moon); px(WIN.x + WIN.w - 22, WIN.y + 9, sky[0]); px(WIN.x + WIN.w - 17, WIN.y + 9, sky[0]); px(WIN.x + WIN.w - 22, WIN.y + 14, sky[0]); px(WIN.x + WIN.w - 17, WIN.y + 14, sky[0]); }
+    else if (mode === "day") { rect(WIN.x + 14, WIN.y + 10, 6, 6, P.sun); px(WIN.x + 14, WIN.y + 10, sky[0]); px(WIN.x + 19, WIN.y + 10, sky[0]); px(WIN.x + 14, WIN.y + 15, sky[0]); px(WIN.x + 19, WIN.y + 15, sky[0]); hline(WIN.x + 32, WIN.y + 14, 12, P.cloud); hline(WIN.x + 31, WIN.y + 15, 14, P.cloud); hline(WIN.x + 50, WIN.y + 26, 9, P.cloud); hline(WIN.x + 49, WIN.y + 27, 11, P.cloud); }
+    else { rect(WIN.x + 40, WIN.y + 26, 6, 6, P.sun); hline(WIN.x + 10, WIN.y + 18, 16, mix(P.cloud, P.skyDusk1, 0.4)); hline(WIN.x + 9, WIN.y + 19, 18, mix(P.cloud, P.skyDusk1, 0.3)); }
+    var by = WIN.y + WIN.h - 4;
+    for (var a = 0; a < FAR.length; a++) building(FAR[a], WIN.x, by - 2, dark, 0, true);
+    for (var b = 0; b < NEAR.length; b++) building(NEAR[b], WIN.x, by, dark, 0, false);
+    rect(WIN.x, by, WIN.w, 4, dark ? "#06071a" : mix(sky[1], "#3a4252", 0.7)); if (dark) { for (var r = 0; r < WIN.w; r += 4) if (hash(r, 1, 4) % 3 === 0) px(WIN.x + r + 1, by + 1, mix(P.winLit, "#06071a", 0.5)); }
+    // frame with depth: outer dark, inner light reveal, cross bars, sill with shadow
+    rect(WIN.x - 4, WIN.y - 4, WIN.w + 8, 4, P.ink); rect(WIN.x - 4, WIN.y + WIN.h, WIN.w + 8, 4, P.ink); rect(WIN.x - 4, WIN.y, 4, WIN.h, P.ink); rect(WIN.x + WIN.w, WIN.y, 4, WIN.h, P.ink);
+    outline(WIN.x - 5, WIN.y - 5, WIN.w + 10, WIN.h + 10, "#3a3a3c"); hline(WIN.x - 4, WIN.y - 4, WIN.w + 8, "#4a4a4c"); vline(WIN.x - 4, WIN.y - 4, WIN.h + 8, "#4a4a4c");
+    rect(WIN.x + (WIN.w / 2 | 0) - 1, WIN.y, 2, WIN.h, P.ink); rect(WIN.x, WIN.y + (WIN.h * 0.42 | 0), WIN.w, 2, P.ink);
+    rect(WIN.x - 8, WIN.y + WIN.h + 4, WIN.w + 16, 4, "#2a2a2c"); hline(WIN.x - 8, WIN.y + WIN.h + 4, WIN.w + 16, "#4a4a4c"); rect(WIN.x - 7, WIN.y + WIN.h + 8, WIN.w + 14, 2, "rgba(0,0,0,0.18)");
+  }
+
+  function room(mode) {
+    var wall = mode === "night" ? mix(P.wallDay, "#1a1f3a", 0.62) : mode === "dusk" ? mix(P.wallDay, "#c47a4a", 0.22) : P.wallDay;
+    var wallD = mode === "night" ? mix(P.wallDayD, "#141830", 0.66) : mode === "dusk" ? mix(P.wallDayD, "#a5603a", 0.25) : P.wallDayD;
+    // ceiling edge
+    rect(0, 0, W, H, wall);
+    for (var i = 0; i < 6; i++) rect(0, 8 + i * 23, W, 23, mix(wall, wallD, i / 5));
+    rect(0, 0, W, 6, P.ceil); hline(0, 6, W, P.ceilL); hline(0, 7, W, mix(P.ceilL, wall, 0.5));
+    // picture rail and baseboard
+    hline(0, 108, W, mix(wallD, "#a08d70", 0.5)); hline(0, 109, W, mix(wall, "#ffffff", 0.3));
+    rect(0, DESK_Y - 10, W, 10, mix(wallD, "#000000", 0.25));
+  }
+  function poster(x, y, w, h) {
+    rect(x + 2, y + 3, w, h, "rgba(0,0,0,0.22)");                                             // drop shadow
+    rect(x, y, w, h, P.ink); rect(x + 2, y + 2, w - 4, h - 4, "#f4f2ec"); outline(x + 1, y + 1, w - 2, h - 2, "#3a3a3c");
+    var NU = ["wwwww.ww.ww", "ww.ww.ww.ww", "ww.ww.ww.ww", "ww.ww.ww.ww", "ww.ww.wwwww"], mx = x + ((w - 33) / 2 | 0), my = y + 12;
+    for (var r = 0; r < 5; r++) for (var i = 0; i < 11; i++) if (NU[r][i] === "w") rect(mx + i * 3, my + r * 3, 3, 3, P.ink);
+    hline(x + 12, my + 20, w - 24, P.ink); drawText("NUTRIMATIC", x + ((w - 39) / 2 | 0), my + 27, P.ink); hline(x + ((w - 20) / 2 | 0), my + 36, 20, "#b9b5ab");
+  }
+  function clock(cx, cy, h) {
+    rect(cx - 8, cy - 8, 17, 17, "#f6f4ee"); outline(cx - 8, cy - 8, 17, 17, P.ink); outline(cx - 7, cy - 7, 15, 15, "#d8d4ca");
+    px(cx, cy - 6, P.ink); px(cx, cy + 6, P.ink); px(cx - 6, cy, P.ink); px(cx + 6, cy, P.ink);
+    var hr = (h % 12) / 12 * Math.PI * 2, mn = (h % 1) * Math.PI * 2;
+    for (var i = 1; i <= 3; i++) px(cx + Math.round(Math.sin(hr) * i), cy - Math.round(Math.cos(hr) * i), P.ink);
+    for (var j = 1; j <= 5; j++) px(cx + Math.round(Math.sin(mn) * j), cy - Math.round(Math.cos(mn) * j), P.red);
+    px(cx, cy, P.ink);
+  }
+  function pendant(x, on) {
+    vline(x, 6, 20, P.cord); vline(x + 1, 6, 20, "#3a3a3d");
+    for (var r = 0; r < 9; r++) { hline(x - 3 - r, 26 + r, 7 + r * 2, P.pendant); } hline(x - 12, 35, 25, "#0e0e10");
+    rect(x - 10, 34, 21, 1, on ? P.pendantIn : P.pendantInOff); rect(x - 3, 36, 7, 2, on ? P.bulb : "#8a8a8c"); hline(x - 2, 38, 5, on ? P.bulb : "#6d6d70");
+    px(x - 8, 28, "#3a3a3d"); px(x - 7, 29, "#3a3a3d");                                              // a glint on the shade
+  }
+  function desk() {
+    rect(0, DESK_Y, W, 6, P.deskTop); hline(0, DESK_Y, W, P.deskTopL); hline(0, DESK_Y + 1, W, mix(P.deskTopL, P.deskTop, 0.5)); hline(0, DESK_Y + 5, W, P.deskTopD);
+    rect(0, DESK_Y + 6, W, H - DESK_Y - 6, P.deskFront); hline(0, DESK_Y + 6, W, P.deskFrontD); hline(0, DESK_Y + 7, W, mix(P.deskFront, P.deskTopL, 0.25));
+    for (var i = 0; i < W; i += 37) { vline(i + 9, DESK_Y + 9, H - DESK_Y - 11, mix(P.deskFront, "#000000", 0.25)); }     // wood grain lines
+  }
+  function plate(x, name) { var w = name.length * 4 + 9; rect(x - (w / 2 | 0) + 1, DESK_Y + 15, w, 11, "rgba(0,0,0,0.3)"); rect(x - (w / 2 | 0), DESK_Y + 13, w, 11, P.plate); outline(x - (w / 2 | 0), DESK_Y + 13, w, 11, P.plateD); drawText(name, x - (w / 2 | 0) + 5, DESK_Y + 16, P.ink); }
+
+  function laptop(x) { rect(x - 17, DESK_Y - 24, 34, 24, P.laptop); outline(x - 17, DESK_Y - 24, 34, 24, P.laptopD); hline(x - 16, DESK_Y - 23, 32, P.laptopL); vline(x - 16, DESK_Y - 23, 22, P.laptopL); rect(x - 3, DESK_Y - 15, 6, 6, P.laptopD); rect(x - 2, DESK_Y - 14, 4, 4, P.laptop); px(x - 1, DESK_Y - 13, P.laptopD); hline(x - 19, DESK_Y - 1, 38, P.laptopD); hline(x - 18, DESK_Y - 2, 36, P.laptopL); }
+  function mug(x, y, steam) { rect(x - 5, y - 11, 10, 11, P.mug); hline(x - 5, y - 11, 10, P.mugD); vline(x - 5, y - 10, 10, P.mugD); vline(x + 3, y - 10, 9, P.mugL); rect(x + 5, y - 9, 2, 6, P.mug); px(x + 7, y - 8, P.mug); px(x + 7, y - 5, P.mug); hline(x - 4, y - 10, 8, "#5a3a3a"); if (steam) { px(x - 1, y - 14, P.smoke); px(x + 1, y - 17, P.smoke); px(x, y - 20, mix(P.smoke, "#ffffff", 0.5)); } }
+  function plant(x) { rect(x - 7, DESK_Y - 10, 14, 10, P.pot); hline(x - 8, DESK_Y - 11, 16, P.potD); vline(x - 6, DESK_Y - 9, 8, P.potD); rect(x + 4, DESK_Y - 9, 2, 8, mix(P.pot, "#ffffff", 0.3)); rect(x - 8, DESK_Y - 20, 5, 8, P.leaf); rect(x + 4, DESK_Y - 23, 5, 10, P.leafL); rect(x - 2, DESK_Y - 28, 5, 16, P.leaf); rect(x - 1, DESK_Y - 31, 3, 3, P.leafL); px(x - 7, DESK_Y - 21, P.leafL); vline(x, DESK_Y - 26, 12, P.leafD); px(x + 5, DESK_Y - 20, P.leafD); }
+  function papers(x) { rect(x - 14, DESK_Y - 5, 28, 5, P.paper); outline(x - 14, DESK_Y - 5, 28, 5, P.paperD); rect(x - 13, DESK_Y - 9, 27, 4, P.paper); outline(x - 13, DESK_Y - 9, 27, 4, P.paperD); hline(x - 9, DESK_Y - 8, 14, P.paperD); hline(x - 9, DESK_Y - 3, 10, P.paperD); }
+  function lamp(baseX, hx, hy, on, cone) {
+    var jy = 44;
+    rect(baseX - 8, DESK_Y - 5, 17, 4, P.lamp); hline(baseX - 7, DESK_Y - 6, 15, P.lamp); hline(baseX - 6, DESK_Y - 5, 13, "#3a3a3c");
+    rect(hx - 2, hy - 2, 5, 5, P.lamp);
+    var sh = on ? P.lampShadeOn : P.lampShade;
+    for (var r = 0; r < 8; r++) { hline(hx - 5 - r, hy + r, 10 + r * 2, sh); px(hx - 6 - r, hy + r, P.lamp); px(hx + 5 + r, hy + r, P.lamp); }
+    hline(hx - 5, hy - 1, 10, P.lamp); hline(hx - 13, hy + 8, 27, P.lamp); for (var k = 0; k < 7; k++) px(hx - 4 + k, hy + 1 + k, mix(sh, "#ffffff", 0.5));
+    if (on) hline(hx - 10, hy + 9, 21, P.bulb);
+    if (on && cone) { for (var y = hy + 10; y < DESK_Y + 6; y++) { var t = (y - hy - 10) / (DESK_Y + 6 - hy - 10), half = Math.round(10 + 16 * t); rect(hx - half, y, half * 2, 1, "rgba(255,214,120,0.22)"); } rect(hx - 32, DESK_Y, 64, 6, "rgba(255,224,150,0.18)"); }
+  }
+  function solderWork(x, hx, hy) {
+    rect(x - 22, DESK_Y - 11, 18, 8, P.board); outline(x - 22, DESK_Y - 11, 18, 8, P.boardD); px(x - 18, DESK_Y - 8, P.copper); px(x - 13, DESK_Y - 8, P.copper); px(x - 8, DESK_Y - 8, P.copper); hline(x - 17, DESK_Y - 6, 9, P.copper); px(x - 20, DESK_Y - 6, "#dddddd"); px(x - 7, DESK_Y - 9, "#dddddd");
+    rect(hx - 5, hy - 2, 8, 4, P.red); hline(hx - 5, hy - 2, 8, P.redD); var tipX = x - 9, tipY = DESK_Y - 10; limb(hx - 6, hy + 1, tipX, tipY, 2, P.iron); px(tipX, tipY, P.ironHot); px(tipX, tipY - 3, P.smoke); px(tipX + 1, tipY - 6, P.smoke); px(tipX, tipY - 9, mix(P.smoke, "#ffffff", 0.5));
+    rect(x - 44, DESK_Y - 8, 20, 8, "#3d3d40"); outline(x - 44, DESK_Y - 8, 20, 8, P.ink); px(x - 40, DESK_Y - 5, P.red); px(x - 36, DESK_Y - 5, P.leafL); rect(x - 32, DESK_Y - 5, 5, 2, "#c4c4c0"); rect(x - 27, DESK_Y - 20, 2, 12, "#8d8d90"); hline(x - 29, DESK_Y - 20, 6, "#8d8d90");
+  }
+  function writing(x, hx, hy) { rect(x - 4, DESK_Y - 5, 24, 5, P.paper); outline(x - 4, DESK_Y - 5, 24, 5, P.paperD); hline(x - 1, DESK_Y - 4, 12, P.paperD); hline(x - 1, DESK_Y - 2, 8, P.paperD); limb(hx + 2, hy - 4, hx + 5, hy - 10, 1, P.ink); px(hx + 5, hy - 11, P.red); }
+
+  // ---------- lighting ----------
+  function sunPatch() {
+    // a slanted patch of daylight from the window onto the wall and desk
+    for (var y = WIN.y + 6; y < DESK_Y + 6; y++) { var t = (y - WIN.y) / (DESK_Y - WIN.y); var x0 = WIN.x - 12 - Math.round(t * 54), w = WIN.w + 8 - Math.round(t * 10); rect(x0, y, w, 1, "rgba(255,240,200,0.22)"); }
+  }
+  function nightLight(pendX, on) {
+    // whole room dimmed, then warm pools from the pendant (and the lamp drawn with its cone)
+    rect(0, 8, W, DESK_Y - 8, "rgba(14,18,46,0.40)"); rect(0, DESK_Y, W, H - DESK_Y, "rgba(14,18,46,0.36)");
+    if (!on) return;
+    var cx = pendX, top = 40;
+    for (var y = top; y < DESK_Y + 8; y++) { var t = (y - top) / (DESK_Y + 8 - top), half = Math.round(16 + 70 * t); rect(cx - half, y, half * 2, 1, "rgba(255,214,140," + (0.16 - t * 0.06).toFixed(3) + ")"); }
+    for (var y2 = top; y2 < DESK_Y + 8; y2++) { var t2 = (y2 - top) / (DESK_Y + 8 - top), h2 = Math.round(8 + 40 * t2); rect(cx - h2, y2, h2 * 2, 1, "rgba(255,224,160,0.10)"); }
+    rect(0, DESK_Y, W, 2, "rgba(255,224,160,0.08)");
+  }
+  function duskLight() { rect(0, 8, W, H - 8, "rgba(255,150,80,0.12)"); for (var y = WIN.y + 10; y < DESK_Y; y++) { var t = (y - WIN.y) / (DESK_Y - WIN.y); rect(WIN.x - 20 - Math.round(t * 60), y, WIN.w + 6, 1, "rgba(255,170,90,0.14)"); } }
+
+  // ---------- compose ----------
+  var coleX = CROP ? 106 : 150, ilX = CROP ? 196 : 234, pendX = (coleX + ilX) / 2 | 0, lampBase = pendX, hour = MODE === "night" ? 23.2 : MODE === "dusk" ? 19 : 10.5;
+  room(MODE);
+  poster(CROP ? 14 : 26, 20, 68, 68);
+  clock(pendX + (CROP ? 0 : 0), 24, hour); // clock sits beside the pendant cord
+  windowView(MODE);
+  if (MODE === "day") sunPatch();
+  pendant(pendX + 40, MODE !== "day");
+  // lamp arm behind figures
+  var work = SCENE === "work" ? { x: coleX - 12, y: DESK_Y - 36 } : SCENE === "write" ? { x: ilX + 8, y: DESK_Y - 36 } : { x: lampBase + 10, y: 48 };
+  var lampOn = MODE !== "day" || SCENE === "work" || SCENE === "write";
+  limb(lampBase, DESK_Y - 6, lampBase, 44, 3, P.lamp); limb(lampBase, 44, work.x, work.y, 3, P.lamp); rect(lampBase - 2, 42, 5, 5, P.lamp); px(lampBase - 1, 43, "#3a3a3c");
+  // poses: [elbowDx, elbowDy, handDx, handDy] from (x, shoulder line); hand on desk = dy 44
+  var poses = {
+    solder: { L: [-26, 18, -14, 42], R: [26, 14, 10, 28] }, type: { L: [-27, 20, -16, 36], R: [27, 20, 16, 37] }, write: { L: [-26, 18, -12, 44], R: [26, 18, 8, 43] },
+    rest: { L: [-26, 18, -12, 44], R: [26, 18, 12, 44] }, coffee: { L: [-26, 18, -12, 44], R: [24, 8, 6, -1] }, gesture: { L: [-26, 18, -12, 44], R: [24, 12, 16, 8] }, listen: { L: [-24, 12, -5, 2], R: [26, 18, 12, 44] }
+  };
+  var cp, ip, cf, iff;
+  if (SCENE === "work") { cp = poses.solder; ip = poses.type; cf = { look: 0, mouth: "neutral" }; iff = { look: 0, mouth: "neutral" }; }
+  else if (SCENE === "write") { cp = poses.type; ip = poses.write; cf = { look: 0 }; iff = { look: 0 }; }
+  else if (SCENE === "talk") { cp = poses.gesture; ip = poses.listen; cf = { look: 1, mouth: "open", brows: "up" }; iff = { look: -1, mouth: "smile" }; }
+  else { cp = poses.type; ip = poses.coffee; cf = { look: 0 }; iff = { look: 0, mouth: "neutral" }; }
+  var c = character("cole", coleX, cp, cf), il = character("ilinca", ilX, ip, iff);
+  desk();
+  // props
+  if (SCENE === "work") { solderWork(coleX, c.hx, c.hy); laptop(ilX); }
+  else if (SCENE === "write") { laptop(coleX); writing(ilX, il.hx, il.hy); }
+  else if (SCENE === "talk") { mug(coleX + 20, DESK_Y, false); laptop(ilX + 0 - 0); }
+  else { laptop(coleX); mug(il.hx, il.hy + 6, true); }
+  plant(CROP ? 268 : 350); if (!CROP) papers(40); mug(CROP ? 20 : 78, DESK_Y, MODE !== "night");
+  lamp(lampBase, work.x, work.y, lampOn, lampOn);
+  if (MODE === "night") nightLight(pendX + 40, true); else if (MODE === "dusk") duskLight();
+  // lamp shade re-drawn so it stays crisp above the tint, then plates
+  if (MODE === "night") { lamp(lampBase, work.x, work.y, lampOn, false); }
+  plate(coleX, "COLE"); plate(ilX, "ILINCA");
+  var ctx = cv.getContext("2d"); ctx.imageSmoothingEnabled = false; ctx.drawImage(off, 0, 0, cv.width, cv.height);
+})();
+</script>
