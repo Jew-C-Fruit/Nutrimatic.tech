@@ -1,99 +1,81 @@
-# Portrait toolkit: GBA-style pixel portraits from your photos
+# Portrait toolkit: pixel portraits from photos
 
-Version 1.1.0 · Created 2026-10-02 · Modified 2026-10-02 (Qwen-Image-Edit route added, preferred)
+Version 1.2.0 · Created 2026-10-02 · Modified 2026-10-02 (first real run: the ComfyUI route is the one in use; pixelize v2)
 
-Runs on bagel or bigbaby. Open weights only. The model produces the **head and torso**; everything that moves
-(eyes, mouth, brows, arms, props) is built afterwards as layers in the same palette, so the result can be animated
-in the desk scene. One good base portrait each is the whole ask of this step.
+This is how the figures in the desk scene were made: a generative model redraws each person from photos as a
+pixel-art portrait, and `pixelize.py` reduces the pick to a true sprite at the scene's resolution. The hand finishing
+(faces, layers, arms) and the export to the site happen in `tools/desk/`.
 
-## 0. Which model
+## 1. What was used
 
-Two routes. Try **Qwen-Image-Edit first**; keep SDXL as the fallback.
-
-| | Qwen-Image-Edit (`generate_qwen.py`) | SDXL + adapters (`generate.py`) |
+| Step | Tool | Notes |
 | --- | --- | --- |
-| How it works | An instruction-following edit model: give it the photo and say what to draw | Image-to-image plus a face adapter and a pixel-art LoRA |
-| Likeness | Strong, that's what edit models are built for | Fair; the face adapter helps but drifts |
-| Style control | From the prompt, or a second reference image on the 2509 / later models | From LoRAs: pixel-art-xl plus the GBA Fire Emblem LoRAs on Civitai |
-| Pixel crispness | Softer; the cleanup step enforces the palette and the grid | Crisp 8x pixel art out of the box |
-| VRAM | ~40 GB in bf16; 24 GB with `--offload` or ComfyUI's FP8 build | 10 GB |
+| Generate | `generate_comfy.py --model klein` | FLUX.2 klein 4B through ComfyUI on bigbaby (RTX 3090), driven from the Pi. About 8 s per picture. |
+| Reduce | `pixelize.py --cell 12` | 1024x1280 picture to a figure about 75x97 px with a 36 px head |
+| Finish | `tools/desk/` | face frames, torso and head layers, arms off; then `export_js.py` writes `js/desk-sprites.js` |
 
-Z-Image Turbo fits in as a **style reference maker**: it's fast and good from text, but it's a distilled model, so steering it
-with your photo is the weak point. Generate a generic GBA-style mugshot with it (`prompts/style-ref-zimage.txt`), then hand
-that image to Qwen-Image-Edit as `--style-ref` next to your photo: "redraw image 1 in the style of image 2".
+Nothing needs a GPU or torch on the machine that runs these scripts. `generate_comfy.py` only talks to the ComfyUI
+server; `pixelize.py` needs numpy, scipy and pillow.
 
-## 1. Hardware and install
+## 2. Models and licences
 
-- NVIDIA GPU with 10 GB or more for the SDXL route (the good one). 6 GB works with `--sd15`.
-- Python 3.10+. From the repo root:
+The site is commercial, so the model's licence has to allow that.
 
-```bash
-cd tools/portraits
-python -m venv .venv && source .venv/bin/activate
-pip install torch --index-url https://download.pytorch.org/whl/cu124    # pick the line for your CUDA from pytorch.org
-pip install -r requirements.txt
-```
-
-Models download themselves from Hugging Face on first run (about 7 GB for SDXL + the face adapter). Nothing needs an account.
-
-## 2. Models used
-
-| Piece | What | Where it comes from |
+| Model | Licence | Use |
 | --- | --- | --- |
-| Base | Stable Diffusion XL 1.0 | `stabilityai/stable-diffusion-xl-base-1.0` (auto) |
-| Pixel art | `pixel-art-xl` LoRA by nerijs: clean 8x pixel art, open weights | `nerijs/pixel-art-xl` (auto) |
-| Likeness | IP-Adapter "plus-face" for SDXL: steers the face toward the photo | `h94/IP-Adapter` (auto) |
-| Optional style | A GBA Fire Emblem portrait LoRA. Several exist on Civitai (search "Fire Emblem GBA portrait" or "FE8 mug"); download the `.safetensors` by hand (Civitai wants a login) into `loras/` and pass `--style-lora loras/<file>.safetensors` | manual |
+| **FLUX.2 klein 4B** (Black Forest Labs), 4-step distilled | Apache 2.0 | **Used.** Edits from one to three reference images; best likeness and the most flattering of what was tried. |
+| **Qwen-Image-Edit 2511** (Alibaba), with the lightx2v Lightning LoRAs | Apache 2.0 | Installed and wired up (`--model qwenedit`). More regular pixels, weaker likeness on these photos. |
+| **Z-Image Turbo** | Apache 2.0 | `--model zimage`, text only. Not needed in the end. |
+| Qwen-Image 2.1 | Qwen Research License: research and evaluation only | **Do not use for site art.** It is on the same machine, which is why this note exists. |
 
-The style LoRAs are trained on Nintendo's portraits. Using one to steer a style is the normal thing people do with them;
-we are not copying any actual game art onto the site, which is the line I'd keep.
+The model files come from `get_ai_models.ps1 -Only klein,qwenedit` on bigbaby (about 37 GB, hashes checked).
 
 ## 3. Generate
 
-**Qwen route** (edit model; the prompts in `prompts/*-edit.txt` are written as instructions):
+The prompt is in two files: the person (`prompts/cole-edit.txt`, `prompts/ilinca-edit.txt`) and the style
+(`prompts/style.txt`). Reference photos are private and stay out of this repo.
 
 ```bash
-python generate_qwen.py --photo ../../assets/team/cole-maisonpierre.jpg --prompt-file prompts/cole-edit.txt --out out/cole-qwen --n 8 --seed 1 --offload
-python generate_qwen.py --photo ../../assets/team/ilinca-iorga.jpg   --prompt-file prompts/ilinca-edit.txt --out out/ilinca-qwen --n 8 --seed 1 --offload
-# with a style image from Z-Image Turbo, on a multi-image edit model:
-python generate_qwen.py --photo ... --style-ref refs/gba-style.png --prompt "Redraw the person in image 1 as a pixel art portrait in exactly the style of image 2; keep their face, hair and clothes" --model Qwen/Qwen-Image-Edit-2509 --out out/cole-qwen2
+cd tools/portraits
+export COMFYUI_URL=http://<gpu machine>:8188        # and optionally COMFYUI_WAKE=<a Wake-on-LAN script>
+python3 generate_comfy.py --model klein --photo three-quarter.png --ref front.png --ref headshot.jpg \
+  --prompt-file prompts/cole-edit.txt --style-file prompts/style.txt --size 1024x1280 --out out/cole --n 12 --seed 101
+python3 generate_comfy.py --model klein --photo studio.jpg \
+  --prompt-file prompts/ilinca-edit.txt --style-file prompts/style.txt --size 1024x1280 --out out/ilinca --n 12 --seed 201
 ```
 
-Use `--model` to point at the checkpoint you have (a local folder works). Dials: `--cfg` 3 to 5, `--steps` 30 to 50.
+Each run writes the candidates, a `contact-sheet.png` and `run.json` (every setting, for reproducing a pick).
 
-**SDXL route:**
+What mattered in practice:
 
-Reference photos: a straight-on or slightly turned head-and-shoulders shot, even light, plain background if you have one.
-The two in `assets/team/` work; a plainer one of Cole would help.
+- **Give it a photo in the pose you want.** A three-quarter photo as image 1 gave three-quarter portraits; a frontal
+  headshot alone drifted.
+- **Several references help the likeness**: klein takes up to three; put the pose first.
+- **Say what to keep**, feature by feature (hair, brows, glasses, build, clothes), then the style. "Half-body from the
+  hips up" gives enough torso for a figure seated behind a desk.
+- **A flat light grey background** makes the cut-out trivial (yellow for the grey cat).
+- **To combine candidates**, pass them as the references and say which part comes from which
+  (`prompts/cole-merge.txt`: face from one, hair and body from another, skin from a third).
+- **To change bearing or expression**, edit the pick itself (`prompts/ilinca-confident.txt`). The same works for
+  expression studies; no second person's photos are needed.
+
+Picking: it looks like the person; a three-quarter view with the whole head in frame; clear shapes; a plain torso
+(the arms are replaced later).
+
+## 4. Reduce to a sprite
 
 ```bash
-python generate.py --photo ../../assets/team/cole-maisonpierre.jpg --prompt-file prompts/cole.txt --out out/cole --n 12 --seed 1
-python generate.py --photo ../../assets/team/ilinca-iorga.jpg   --prompt-file prompts/ilinca.txt --out out/ilinca --n 12 --seed 1
+python3 pixelize.py out/cole/cand-008-seed109.png --out cole --cell 12
 ```
 
-Each run writes the candidates and a `contact-sheet.png`. Then adjust and run again; the dials that matter:
+`--cell` is source pixels per sprite pixel. The generated pictures look like pixel art but are not on a grid, so this
+is a real resampling, in two layers: the flat areas by majority vote per sprite pixel, and the thin dark strokes
+(outlines, glasses frames, eyelids, mouth) found separately and thinned to one pixel so they neither vanish nor turn
+into blobs. It writes `cole-1x.png` (the sprite), `cole-8x.png` (to look at) and `cole.json` (palette and grid).
 
-- `--strength` (default 0.62): lower keeps more of the photo's structure, higher gives the style more freedom. Try 0.5 and 0.72.
-- `--face` (default 0.55): how hard the face adapter pulls toward the photo. 0.4 to 0.7. Too high and it drifts back to a photo.
-- `--style-lora ... --style-weight 0.7`: once you have a GBA LoRA; drop `--pixel-weight` to 0.6 when both are on.
-- `--seed`: a different batch. Twelve candidates a run, a few runs, and pick with the checklist below.
+Faces still need finishing by hand at this size: an eye is three pixels. That is `tools/desk/characters.py`.
 
-Picking criteria, in order: it looks like the person; the head is a clean three-quarter or front view with the whole
-head in frame; flat shading with few colours; hair reads as locks; a plain torso (arms down or out of frame are
-fine, I replace them); nothing important hidden behind text or a border.
+## 5. Other routes, kept but not run on real hardware
 
-## 4. Clean up to a true sprite
-
-```bash
-python pixelize.py out/cole/cand-007-seed8.png --out cole --head 36 --colors 15 --block 8
-```
-
-`--block 8` averages the 8x8 blocks the pixel-art LoRA draws in, so edges stay crisp; `--head 36` sets the head width
-in sprite pixels (the scene wants 32 to 40); `--colors 15` keeps the GBA budget (15 plus transparency).
-It writes `cole-1x.png` (the sprite) and `cole-8x.png` (to look at). Same for Ilinca.
-
-## 5. Send back
-
-The `*-1x.png` for each of you, plus the full-size candidate you picked (it carries detail the cleanup can consult).
-From there I cut the head and torso into layers, draw the eye, mouth and brow frames in the same palette, build the
-seated bodies with arms as separate pieces, and put them into the desk scene with the behaviours already written.
+- `generate_qwen.py`: Qwen-Image-Edit through diffusers, for a machine without ComfyUI. Needs about 58 GB of weights.
+- `generate.py`: SDXL + pixel-art-xl LoRA + IP-Adapter plus-face. The fallback from the first plan.

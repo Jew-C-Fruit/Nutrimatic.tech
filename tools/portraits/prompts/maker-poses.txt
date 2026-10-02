@@ -1,0 +1,6 @@
+# One line per pose; each is followed by prompts/maker-style.txt. "the cat" = MAKER below.
+MAKER: the cat from the photos: a solid blue-grey shorthair cat with a short dense coat, a grey nose, upright ears and yellow-green eyes
+walk: Pixel art sprite of MAKER, seen exactly from the side, walking toward the right with her tail held up, all four legs visible in mid-stride, head facing right.
+sit: Pixel art sprite of MAKER, sitting upright on her haunches, body turned slightly to the right, front paws together, tail curled around her feet, looking at the viewer.
+yawn: Pixel art sprite of MAKER, sitting upright on her haunches, seen from the side facing right, in the middle of a huge yawn: mouth wide open showing a pink tongue and small white teeth, eyes squeezed shut, ears back.
+loaf: Pixel art sprite of MAKER, lying down in a loaf seen from the side with her head at the right, turned to look at the viewer, one front paw stretched forward and hanging down over the edge in front of her, tail tucked.
