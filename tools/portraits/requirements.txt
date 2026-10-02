@@ -1,0 +1,13 @@
+# Nutrimatic portrait toolkit (v1.0.0, 2026-10-02)
+# Install torch first for your GPU: https://pytorch.org/get-started/locally/  (CUDA on bagel/bigbaby; MPS on a Mac)
+diffusers>=0.30
+transformers>=4.44
+accelerate>=0.33
+peft>=0.12
+safetensors>=0.4
+pillow>=10
+numpy
+huggingface_hub>=0.24
+# cleanup step only:
+rembg>=2.0
+onnxruntime>=1.18
