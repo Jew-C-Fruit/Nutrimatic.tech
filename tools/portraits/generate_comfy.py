@@ -83,7 +83,8 @@ def klein_workflow(prompt, images, seed, steps, cfg, size, megapixels):
     pos, neg = ["pos0", 0], ["neg0", 0]
     for n, name in enumerate(images, 1):
         wf["load%d" % n] = {"class_type": "LoadImage", "inputs": {"image": name}}
-        wf["scale%d" % n] = {"class_type": "ImageScaleToTotalPixels", "inputs": {"image": ["load%d" % n, 0], "upscale_method": "lanczos", "megapixels": megapixels, "resolution_steps": 16}}
+        if megapixels > 0: wf["scale%d" % n] = {"class_type": "ImageScaleToTotalPixels", "inputs": {"image": ["load%d" % n, 0], "upscale_method": "lanczos", "megapixels": megapixels, "resolution_steps": 16}}
+        else: wf["scale%d" % n] = {"class_type": "ImageScale", "inputs": {"image": ["load%d" % n, 0], "upscale_method": "nearest-exact", "width": 0, "height": 0, "crop": "disabled"}}   # as it is
         wf["enc%d" % n] = {"class_type": "VAEEncode", "inputs": {"pixels": ["scale%d" % n, 0], "vae": ["vae", 0]}}
         wf["pos%d" % n] = {"class_type": "ReferenceLatent", "inputs": {"conditioning": pos, "latent": ["enc%d" % n, 0]}}
         wf["neg%d" % n] = {"class_type": "ReferenceLatent", "inputs": {"conditioning": neg, "latent": ["enc%d" % n, 0]}}
@@ -157,7 +158,7 @@ def parse():
     ap.add_argument("--steps", type=int); ap.add_argument("--cfg", type=float)
     ap.add_argument("--lightning", type=int, choices=[0, 4, 8], default=4, help="qwenedit: 4- or 8-step LoRA, or 0 for the full model (40 steps, CFG 4)")
     ap.add_argument("--size", help="WxH of the result (multiples of 16); default: the photo's shape at --megapixels")
-    ap.add_argument("--megapixels", type=float, default=1.0, help="klein: size the reference images are scaled to")
+    ap.add_argument("--megapixels", type=float, default=1.0, help="klein: size the reference images are scaled to; 0 = use them as they are (sides must be multiples of 16)")
     ap.add_argument("--server", default=os.environ.get("COMFYUI_URL", DEFAULT_SERVER)); ap.add_argument("--timeout", type=int, default=1800)
     ap.add_argument("--free", action="store_true", help="unload the models from the GPU afterwards"); ap.add_argument("--dry-run", action="store_true", help="print the first workflow and stop")
     return ap.parse_args()

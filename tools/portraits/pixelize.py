@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """
 Nutrimatic portrait toolkit - pixelize.py
-Version 2.0.0
+Version 2.1.0
 
 Created: 2026-10-02 - Turn a picked candidate (or a photo) into a clean 16-colour sprite (v1.0.0)
 Modified: 2026-10-02 - Rewritten after the first real run. The generated pictures look like pixel art but are not on a
   grid, and a plain downscale turned eyes, glasses and mouths into blobs or dropped them. Now two layers: fills by
   majority vote, thin strokes found by black-hat and thinned to one pixel. Cut-out by flood fill (no rembg), palette by
   k-means in OKLab. Needs numpy, scipy, pillow (v2.0.0)
+Modified: 2026-10-02 - pixelize() can take a ready mask and a fixed grid origin and return the uncropped grid, so a set
+  of pose pictures lands on one shared grid (tools/desk/pose_sprites.py) (v2.1.0)
 
 A generated portrait on a flat background -> a true low-resolution sprite. The generated picture looks like pixel art
 but is not on a grid, so it is resampled, in two layers that are treated differently:
@@ -160,8 +162,12 @@ def despeckle(spr, alpha, keep, passes=2):
     return spr
 
 
-def pixelize(rgb, cell, colors=15, line_w=0.95, line_t=0.22, light_t=0.34, cover=0.5, tol=40, seed=0, phases=4, outline=True, line_colors=2, verbose=False):
-    mask, bg = subject_mask(rgb, tol)
+def pixelize(rgb, cell, colors=15, line_w=0.95, line_t=0.22, light_t=0.34, cover=0.5, tol=40, seed=0, phases=4, outline=True, line_colors=2, verbose=False,
+             mask=None, origin=None, crop=True):
+    """mask: a ready cut-out (True = figure) instead of the flood fill. origin: (x, y) of the grid's first cell, both <= 0,
+    to put several pictures on one grid instead of fitting each. crop=False returns the whole grid, uncropped."""
+    if mask is None: mask, bg = subject_mask(rgb, tol)
+    else: bg = np.zeros(3)
     lab = srgb_to_oklab(rgb); L = lab[..., 0]
     # thin dark strokes: darker than their surroundings by a clear margin and narrower than about one sprite pixel
     r = max(1, int(round(cell * line_w / 2)))
@@ -180,8 +186,9 @@ def pixelize(rgb, cell, colors=15, line_w=0.95, line_t=0.22, light_t=0.34, cover
     centers = np.concatenate([pal_line, pal_fill]); k = len(centers)
     fill_idx = nearest(lab, pal_fill) + line_colors; line_idx = nearest(lab, pal_line)
     best = None
-    for oy in np.linspace(0, cell, phases, endpoint=False):
-        for ox in np.linspace(0, cell, phases, endpoint=False):
+    starts = [(origin[0] + cell, origin[1] + cell)] if origin is not None else [(ox, oy) for oy in np.linspace(0, cell, phases, endpoint=False) for ox in np.linspace(0, cell, phases, endpoint=False)]
+    for ox, oy in starts:
+        if True:
             g = Grid(mask.shape, cell, ox - cell, oy - cell)
             v = g.votes(fill_idx, fills, k); tot = v.sum(axis=2)
             score = v.max(axis=2).sum() / max(1, tot.sum())            # how cleanly the fills fall into the cells
@@ -211,7 +218,9 @@ def pixelize(rgb, cell, colors=15, line_w=0.95, line_t=0.22, light_t=0.34, cover
                 if alpha[y, x] and any((not (0 <= xx_ < w and 0 <= yy_)) or (yy_ < h and not alpha[yy_, xx_]) for yy_, xx_ in ((y - 1, x), (y + 1, x), (y, x - 1), (y, x + 1))):
                     out[y, x] = dark
         spr = out
-    ys, xs = np.where(alpha); y0, y1, x0, x1 = ys.min(), ys.max() + 1, xs.min(), xs.max() + 1
+    ys, xs = np.where(alpha)
+    if crop: y0, y1, x0, x1 = ys.min(), ys.max() + 1, xs.min(), xs.max() + 1
+    else: y0, y1, x0, x1 = 0, alpha.shape[0], 0, alpha.shape[1]
     info = dict(cell=cell, offset=[float(ox), float(oy)], crop=[int(x0), int(y0), int(x1), int(y1)], fit=round(float(score), 3), bg=[int(v_) for v_ in bg])
     if verbose: print("  lines %.1f%% lights %.1f%% of figure, fit %.3f" % (100 * lines.sum() / mask.sum(), 100 * lights.sum() / mask.sum(), score))
     return spr[y0:y1, x0:x1], alpha[y0:y1, x0:x1], centers, info
