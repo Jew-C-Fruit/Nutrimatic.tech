@@ -2,7 +2,7 @@
 
 Static marketing site for **nutrimatic.tech**: splash page with the machine animation, How it works, Contact, and a three-way waitlist (gym owners / managers, gym members, nutrition brands).
 
-Version 1.3.0 · Created 2026-09-13 · Modified 2026-09-21 (the site is its own public repo; forms point to LinkedIn until an endpoint is set; per-form endpoints; no CNAME file, the domain is set in Pages settings)
+Version 1.3.1 · Created 2026-09-13 · Modified 2026-10-02 (test scripts and CLAUDE.md added) · Modified 2026-09-21 (the site is its own public repo; forms point to LinkedIn until an endpoint is set; per-form endpoints; no CNAME file, the domain is set in Pages settings)
 
 No build step. This repo *is* the site: every file in it is served as-is, apart from the docs and tooling noted below. It is public because GitHub Pages on a free account only serves public repos. Everything else about Nutrimatic (firmware, master controller) stays in the private Nutrimatic repo.
 
@@ -31,6 +31,8 @@ nutrimatic.tech/   (repo root)
 │   └── team/             Co-founder photos (from the deck)
 ├── squarespace/          Snippets + instructions if you build the pages inside Squarespace
 ├── tools/render-static-assets.mjs   Regenerates machine-static.png and og.png
+├── tools/test/           Playwright checks (see its README); tools/apps-script/ the sheet receiver
+├── CLAUDE.md             Conventions for Claude Code sessions working here
 ├── 404.html              Not-found page (GitHub Pages serves it automatically)
 ├── GO-LIVE.md            Squarespace integration + SEO spec
 ├── .github/workflows/deploy-website.yml   Publishes to GitHub Pages on every push to main
