@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - poses.py
-Version 1.5.0
+Version 1.5.1
 
 Created: 2026-10-02 - The figures' body poses, from generated pictures, as layers under the base head; the neck, and
   Ilinca's top, taken from the base so every pose joins the same head; front boxes by eye (v1.0.0)
@@ -42,6 +42,7 @@ Modified: 2026-10-03 - Note 9: small motion frames for every activity (typing fo
   shift a box; Cole types from the front with his hands hidden behind the screen; the writing paper and the soldering
   boards edge-on, as the flat front view of the desk needs, and Cole's laptop standing on the desk line; hands under
   the desk ('hide') for both, for when Maker walks by (v1.5.0)
+Modified: 2026-10-03 - The soldering boards are props, so they stay on the desk while Cole waves smoke away (v1.5.1)
 
 Every activity in the scene is drawn with a body pose: the whole torso with arms, hands and whatever they hold, made
 by the image model from the figure's own portrait (pose_sprites.py says how) and reduced to a sprite on the base
@@ -79,6 +80,7 @@ CAT_GREYS = {'#9a9ea2', '#cfd2d4', '#5f6368', '#a19c9c', '#ddd6cf', '#d9a650'}
 
 # colours of the props that can be lifted out of a pose
 LAPTOP = {'#cfd2d4', '#9a9ea2', '#5f6368', '#dfe9f5', '#7fb2e0', '#d9d5c8', '#fbfaf5'}
+BOARD = {'#d9a650', '#7d6230', '#2f6b3a', '#1f4a28', '#3d5f99', '#5f6368'}   # the soldering boards and the parts on them
 PAPER = {'#fbfaf5', '#d9d5c8'}
 BOTTLE = {'#fbfaf5', '#d9d5c8', '#cfd2d4', '#e4002b', '#a3001f', '#ff5a72'}
 
@@ -93,12 +95,13 @@ MANUAL = {
                             ('clear', 22, 89, 52, 93),
                             ('under', 25, 85, ['..kk...k....kk.....k..kk.', '.kkkk.kkk..kkkk...kkk.kkkk'.replace('kkkk', 'kiik'), 'k' + 'c' * 24 + 'k', 'k' + 'C' * 24 + 'k', 'k' * 26], SKIN_COLE),
                             ('rows', 37, 83, ['k', '.k', '.k'])],
-                       pts={'tip': (38, 86)}, frames={'solder1': ((48, 68, 68, 88), 0, -1)}),
+                       pts={'tip': (38, 86)}, frames={'solder1': ((48, 68, 68, 88), 0, -1)},
+                       props={'board': (BOARD, (24, 85, 51, 89))}),                # the board stays on the desk when he waves the smoke away
         'solder2': dict(fix=[('recolour', 28, 81, 48, 86, {'#2f6b3a': '#211f1f', '#1f4a28': '#211f1f', '#3d5f99': '#211f1f', '#090507': '#211f1f', '#d9a650': '#211f1f'}),
                              ('clear', 26, 89, 52, 96),
                              ('under', 29, 85, ['...k..kk....kk...k..', '..kik.kBBk..kiik.kck.', 'k' + 'v' * 18 + 'k', 'k' + 'V' * 18 + 'k', 'k' * 20], SKIN_COLE),
                              ('rows', 37, 84, ['k', 'k'])],
-                        pts={'tip': (37, 86)}),
+                        pts={'tip': (37, 86)}, props={'board': (BOARD, (28, 85, 49, 89))}),
         # note 4, "supposed to be a nintendo DS" (his reference: the back of a red New 3DS XL): the console redrawn as seen
         # from across the desk, behind his hands: the lid's red back with its two camera lenses, the hinge with its
         # knuckles, the underside of the bottom half with its label

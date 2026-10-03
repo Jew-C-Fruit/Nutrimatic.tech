@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.14.0
+ * Version 0.14.1
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -58,6 +58,8 @@
  *   air, as soon as Maker's body would reach them, also when she comes for a laptop or a paper (a mug is lifted to drink
  *   instead); the laptop or paper stays put meanwhile (it had vanished: kept before it was known); on a laptop she goes
  *   behind the screen as soon as she touches it and comes out once clear of it (v0.14.0)
+ * Modified: 2026-10-03 - A solder spark starts at the iron's tip, in either way of holding it; the station and the board
+ *   stay on the desk while he waves the smoke away (they vanished with the soldering pose) (v0.14.1)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(),
@@ -566,7 +568,7 @@
     if (p.hidden) { return; }
     var greetFrom = p.react === "greet" && (p.greetAct === "type" || p.greetAct === "write") ? p.greetAct : null;   // waving hello from the keyboard
     var keep = p.keepProps === "type" || p.keepProps === "write" ? p.keepProps : null;
-    var from = p.laptopOut ? "type" : keep || ((p.catLift === "type" || p.catLift === "write") ? p.catLift : greetFrom), q = from && p.poses[from];
+    var from = p.laptopOut ? "type" : keep || p.benchFrom || ((p.catLift === "type" || p.catLift === "write") ? p.catLift : greetFrom), q = from && p.poses[from];
     if (!q || (p.activity === from && !p.laptopOut)) { return; }
     var o = origin(p); Object.keys(q.props).forEach(function (n) { blit(q.props[n], o.x, o.y); });
   }
@@ -601,7 +603,7 @@
         var kind = set[j].indexOf("vase") === 0 ? "vase" : set[j] === "cartridge" ? "papers" : set[j];
         propArt(kind, L.art.slots[j], DESK_Y + 2); if (kind === "mug") { steam(L.art.slots[j] - 1, DESK_Y - 10, f); }
       }
-      if (cole.activity === "solder" && !cole.hidden) { propSolderStation(cole.x - 32); }
+      if ((cole.activity === "solder" || cole.benchFrom) && !cole.hidden) { propSolderStation(cole.x - 32); }
       if (ilinca.phoneOnDesk && !ilinca.hidden) { propPhoneOnDesk(phoneSpot()); }
       for (var m = 0; m < extras.length; m++) {
         var e2 = extras[m];
@@ -615,7 +617,7 @@
       if (k === "plant") { propPlant(x); } else if (k === "papers") { propPapers(x); } else if (k === "bottle") { propBottle(x, DESK_Y); }
       else if (k === "cartridge") { propCartridge(x); } else if (k === "mug") { propMug(x, DESK_Y, false, f); } else if (k.indexOf("vase") === 0) { propVase(x, +k[4]); }
     }
-    if (cole.activity === "solder" && !cole.hidden) { propSolderStation(cole.x - 50); }
+    if ((cole.activity === "solder" || cole.benchFrom) && !cole.hidden) { propSolderStation(cole.x - 50); }
     if (ilinca.phoneOnDesk && !ilinca.hidden) { propPhoneOnDesk(phoneSpot()); }
     for (var e = 0; e < extras.length; e++) { var ex = extras[e]; if (ex.kind === "plane") { propPlane(ex.x, DESK_Y - 2, ex.dir); } else if (ex.kind === "bottle") { propBottle(ex.x, DESK_Y); } else if (ex.kind === "mug") { propMug(ex.x, DESK_Y, ex.steam, f); } }
   }
@@ -975,16 +977,17 @@
     spark: {
       dur: 6.5, when: function () { return cole.activity === "solder"; },
       steps: [
-        [0, function () { actors.puff = { t0: frame }; }],
-        [0.25, function () { faceOf(cole, { brows: "up", mouth: "o" }); cole.bob = -2; setActivity(cole, "fan", 99); }],
+        [0, function () { var tip = posePoint(cole, "tip"); actors.puff = { t0: frame, x: tip ? tip.x : cole.x + 11, y: tip ? tip.y - 1 : DESK_Y - 12 }; }],   // at the iron's tip, whichever way he holds it
+        [0.25, function () { var d = cole.drawn; cole.benchFrom = d && /^solder/.test(d.name) ? d.name : "solder"; faceOf(cole, { brows: "up", mouth: "o" }); cole.bob = -2; setActivity(cole, "fan", 99); }],   // the station and the board stay where they are
         [0.8, function () { lookAt(ilinca, cole.x, faceLevel(cole)); faceOf(ilinca, { brows: "down", mouth: "flat" }); }],
         [2.6, function () { lookAt(cole, ilinca.x, faceLevel(ilinca)); faceOf(cole, { brows: "up", mouth: "smile" }); cole.bob = 0; }],
         [3.6, function () { faceOf(ilinca, { brows: null, mouth: "laugh" }); faceOf(cole, { brows: null, mouth: "laugh" }); }],
-        [5.2, function () { setActivity(cole, "solder", 99); cole.mouth = "neutral"; ilinca.mouth = "smile"; ilinca.turn = 0; ilinca.lookTarget = { x: 0, y: 1 }; }]
+        [5.2, function () { setActivity(cole, "solder", 99); cole.benchFrom = null; cole.mouth = "neutral"; ilinca.mouth = "smile"; ilinca.turn = 0; ilinca.lookTarget = { x: 0, y: 1 }; }]
       ],
+      end: function () { cole.benchFrom = null; },
       drawFront: function (t, f) {
         var pf = actors.puff; if (!pf) { return; }
-        var k = f - pf.t0, cx = cole.x + 11, cy = DESK_Y - 12;
+        var k = f - pf.t0, cx = pf.x, cy = pf.y;
         if (k < 3) { px(cx, cy - 3, C.sun); px(cx - 3, cy, C.sun); px(cx + 3, cy - 1, C.sun); px(cx + 1, cy - 5, C.white); px(cx - 2, cy - 4, C.white); }
         if (k < 30) { var col = k < 14 ? C.smoke : C.smoke2, r = 3 + (k >> 2); for (var i = 0; i < 4; i++) { var ox = [-3, 2, -1, 4][i] * (1 + k / 10), oy = -k * 1.5 - [0, 3, 6, 2][i]; rect(cx + Math.round(ox) - r / 2, cy + Math.round(oy) - r / 2, r, r, col); } }
       }
