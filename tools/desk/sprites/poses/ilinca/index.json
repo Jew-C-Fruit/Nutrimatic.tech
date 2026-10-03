@@ -69,6 +69,16 @@
   "x": -18,
   "y": 0
  },
+ "petcat": {
+  "align": [
+   4,
+   -5
+  ],
+  "fit": 0.664,
+  "src": "ilinca-petcat/cand-001-seed7554.png",
+  "x": -23,
+  "y": -2
+ },
  "petfront": {
   "align": [
    0,
@@ -144,9 +154,9 @@
    0,
    0
   ],
-  "fit": 0.945,
-  "src": "ilinca-take2/cand-002-seed6694.png",
-  "x": -18,
+  "fit": 0.848,
+  "src": "ilinca-take3/cand-001-seed7643.png",
+  "x": -29,
   "y": 0
  },
  "talk": {

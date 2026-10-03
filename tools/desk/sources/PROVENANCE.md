@@ -1,6 +1,6 @@
 # Where the pictures in this folder came from
 
-Version 1.3.0 · Created 2026-10-02 · Modified 2026-10-03 (credits list; lean-back stretches, Ilinca's cleaner hands, Maker's yawn, big-eye references)
+Version 1.4.0 · Created 2026-10-02 · Modified 2026-10-03 (walk cycle; petting with a cat; audit references)
 
 ## Credits to show when the scene goes live (not on the page yet, by Cole's choice)
 
@@ -8,6 +8,15 @@ Version 1.3.0 · Created 2026-10-02 · Modified 2026-10-03 (credits list; lean-b
   palendromist (CC BY 2.0), Wikimedia Commons.
 - *Victory Boogie Woogie*, Piet Mondrian (1942-44), after a photograph by Sailko (CC BY 3.0), Wikimedia Commons.
 - Everything else was generated with FLUX.2 klein 4B (Apache 2.0) and needs no credit.
+
+Looked at only, nothing copied, for the audit of hands and objects (2026-10-03): *Typing on a laptop* (Simon Hattinga
+Verschure, CC0), *Laptop Typing* (Kristin Hardwick, CC0), *Clem Onojeghuo 2016-12-18* (CC0), *Addiction mug*
+(simon.wright, CC BY 2.0), a woman drinking from a bottle (pansy Gronski, CC0), *P20231120AS-1277* (The White House,
+public domain), *Furiously Factoring* (CarbonNYC, CC BY 2.0), *Writing Drawing* (Green Chameleon, CC0), *8 Śląski
+Festiwal Nauki* (Krzysztof Popławski, CC BY-SA 4.0), *Girl with chin resting on hand* (faceseveryday, CC BY 2.0),
+*Ajawajaa* (Yusmery94, CC BY-SA 4.0), *A Warm Welcome from Enniburr* (U.S. Army, public domain), *Katze in Kroatien*
+(ElisabethRied, CC0), *A Kitten Relaxing While Being Petted* (Xoqoni Said, CC0). Links in the work folder's
+`audit/refs/refs.json`.
 
 Looked at only, nothing copied: cute pixel cats on OpenGameArt for the big-eye look (*Cute cat (32x32)* by limafresh,
 CC0; *Cats - Pixel Art* by peony, CC BY 4.0; *Pixel art cute cat* by snoopy11).
@@ -80,6 +89,11 @@ The photographs themselves are not in this repo.
   of the work folder, same style as her other poses).
 - The lean-back stretches (`sprites/poses/*/stretch.png`, `stretchback.png`) come from prompts that let the model
   change the head too (`pose-prompts/pose-prefix-*-free.txt`).
+
+- `maker-walkcycle-seed9703.png`: a four-frame walk cycle for Maker in one picture (her photos; prompt in
+  `run_walk.sh` of the work folder), cut into frames by `maker_build.walk_frames`.
+- The petting poses (`sprites/poses/*/petcat.png`) were generated with a grey cat under the hand; `poses.py` erases
+  that cat and the scene puts Maker in its place.
 
 ## The painting where the poster was (2026-10-02)
 

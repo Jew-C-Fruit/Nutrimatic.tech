@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - poses.py
-Version 1.2.0
+Version 1.3.0
 
 Created: 2026-10-02 - The figures' body poses, from generated pictures, as layers under the base head; the neck, and
   Ilinca's top, taken from the base so every pose joins the same head; front boxes by eye (v1.0.0)
@@ -15,6 +15,10 @@ Modified: 2026-10-02 - New talk, pethead (Cole) and type (Ilinca) pictures: the 
 Modified: 2026-10-03 - Poses may keep their own head (a stretch frame tried it; dropped: Cole's face shape drifted);
   the "nu" mark on the shaker bottles; Ilinca's wave, surprise, think and yawn redone with cleaner hands; her wave rocks
   a pixel (v1.2.0)
+Modified: 2026-10-03 - Audit fixes: Ilinca's hands and held things in front of her hair in every pose; outlines kept
+  where a hand meets the face (the sip); hands in front of mugs and bottles; petting pictures with the stand-in cat
+  erased (the scene puts Maker there); a new typing pose for Cole and take pose for Ilinca; shake2; stray chairs and
+  specks cleared (v1.3.0)
 
 Every activity in the scene is drawn with a body pose: the whole torso with arms, hands and whatever they hold, made
 by the image model from the figure's own portrait (pose_sprites.py says how) and reduced to a sprite on the base
@@ -30,6 +34,7 @@ from). This module cuts each into what the scene draws:
 """
 import json, os, sys
 import numpy as np
+from scipy import ndimage as _nd
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from spritekit import Sprite, load
@@ -42,6 +47,9 @@ GRIDS = {'cole': os.path.join(HERE, 'sprites', 'cole-301.json'), 'ilinca': os.pa
 # the Nutrimatic "nu" monogram (assets/nu-mark.svg reduced to five pixels) for the shaker bottles; '.' keeps a pixel
 NU_MARK = ['kkk..', 'k.k..', 'k.k.k', 'k.k.k', '..kkk']
 
+# the stand-in cat's greys in the petting pictures
+CAT_GREYS = {'#9a9ea2', '#cfd2d4', '#5f6368', '#a19c9c', '#ddd6cf', '#d9a650'}
+
 # colours of the props that can be lifted out of a pose
 LAPTOP = {'#cfd2d4', '#9a9ea2', '#5f6368', '#dfe9f5', '#7fb2e0', '#d9d5c8', '#fbfaf5'}
 PAPER = {'#fbfaf5', '#d9d5c8'}
@@ -50,15 +58,19 @@ BOTTLE = {'#fbfaf5', '#d9d5c8', '#cfd2d4', '#e4002b', '#a3001f', '#ff5a72'}
 # By eye, per pose: the box (base coordinates) whose pixels go over the face, and named points.
 MANUAL = {
     'cole': {
-        'sip': dict(front=(37, 26, 58, 46), front_mode='props'),
-        'drink': dict(front=(40, 28, 61, 58), front_mode='props'),
+        'sip': dict(front=(30, 26, 58, 48), front_mode='limb'),            # the fingers round the mug are in front of it, and of the chin
+        'drink': dict(front=(40, 28, 61, 58), front_mode='limb'),
         'solder': dict(pts={'tip': (35, 82)}),
         'think': dict(neck_fill=False),                                  # the hand at his chin: the gap there is real
+        # petting Maker lying beside him: the picture had a grey cat under his hand; it goes, and the scene lays Maker in
+        # its place (RIG below), so the hand lies exactly on her back; the hand moves a little as it strokes
+        'petcat': dict(fix=[('erase', 28, 60, 86, 93, CAT_GREYS)], frames={'petcat2': ((46, 56, 80, 82), -2, 0)}),
+        'stretch': dict(fix=[('clear', -8, 54, 7, 92), ('clear', 8, 53, 8, 53)]),   # a chair's edge behind him in the generated picture
         # props the scene also draws on their own: the laptop (the cat sits on it), the paper, the bottle being handed over
         'type': dict(props={'laptop': (LAPTOP, (20, 56, 100, 100))}),
         'write': dict(props={'paper': (PAPER, (10, 80, 90, 100))}, frames={'write1': ((14, 64, 36, 92), 1, 0), 'write2': ((14, 64, 36, 92), 2, -1)}),
         'offer': dict(fix=[('recolour', 74, 19, 87, 49, {'#f9eee0': '#fbfaf5'}), ('rows', 78, 28, NU_MARK)], props={'bottle': (BOTTLE, (58, 0, 100, 50))}, empty={'offerEmpty': 'bottle'}),
-        'shake': dict(fix=[('rows', 38, 78, NU_MARK)]),
+        'shake': dict(fix=[('rows', 38, 78, NU_MARK)], frames={'shake2': ((24, 44, 58, 86), 0, -2)}),   # shaking: only the arms and the bottle move
         'highfive': dict(pts={'hand': (67, 24)}),
         'throw': dict(pts={'hand': (76, 34)}),
         'yawn': dict(front=(30, 31, 52, 47), keep_neck=True),
@@ -68,22 +80,25 @@ MANUAL = {
                           ('clear', 82, 78, 83, 79)]),
     },
     'ilinca': {
-        'sip': dict(front=(3, 20, 24, 42), front_mode='props'),
+        'sip': dict(front=(-2, 20, 24, 46), front_mode='limb'),
         'type': dict(props={'laptop': (LAPTOP, (-30, 50, 40, 96))}),
         'wave': dict(frames={'wave2': ((-12, 12, 12, 38), 1, 0)}),          # a casual wave: the hand rocks a pixel
+        # her reaching sleeve ended in a spike up into her hair: its top is cut level at the shoulder, under the hair
+        'petcat': dict(fix=[('erase', -38, 60, 32, 94, CAT_GREYS), ('clear', 0, 30, 16, 45), ('rows', 4, 46, ['kkkkkk'])], frames={'petcat2': ((-18, 54, 14, 76), 2, 0)}),
+        'stretch': dict(fix=[('clear', 63, 38, 67, 84)]),                # a chair's edge behind her
+        'rest': dict(fix=[('recolour', 56, 55, 64, 66, {'#5f6368': '#191718', '#9a9ea2': '#292423'})]),   # a grey chair corner by her shoulder
         'write': dict(props={'paper': (PAPER, (-14, 74, 40, 96))}, frames={'write1': ((-6, 60, 16, 90), 1, 0), 'write2': ((-6, 60, 16, 90), 2, -1)}),
         'think': dict(front=(8, 28, 34, 48), front_mode='diff', keep_neck=True),
         'phone': dict(keep_chest=True),
         'carry': dict(keep_chest=True),
-        'drink': dict(front=(-2, 16, 24, 48), front_mode='props'),
+        'drink': dict(front=(-6, 16, 24, 50), front_mode='limb'),
         'yawn': dict(front=(12, 24, 36, 42), front_mode='diff', keep_neck=True),
         # hands and sleeves that are in front of her hair
         'talk': dict(front=(-16, 28, 14, 64), front_mode='limb'),
         'call': dict(keep_chest=True, front=(4, 24, 15, 46), front_mode='limb'),
         'surprise': dict(keep_chest=True, front=(48, 24, 68, 58), front_mode='limb'),
         # the bottle came out in her skin colours
-        'take': dict(fix=[('recolour', -18, 19, -4, 47, {'#faebe1': '#fbfaf5', '#f9e2d2': '#fbfaf5', '#d18881': '#d9d5c8', '#e1cec4': '#d9d5c8'}), ('rows', -12, 30, NU_MARK)],
-                     props={'bottle': (BOTTLE, (-20, 8, -3, 48))}),
+        'take': dict(fix=[('clear', -30, 78, 13, 84), ('rows', -6, 30, NU_MARK)]),   # her fingers wrap the bottle; a stray grey bar cleared
     },
 }
 
@@ -140,9 +155,10 @@ KEYS = {
 }
 
 
-def soften(spr, who, reach_n=2):
+def soften(spr, who, reach_n=2, keep=None):
     """black line pixels that separate one material from the same material (looking up to reach_n pixels each way along
-    a row, a column or a diagonal, through line pixels only) take that material's dark tone"""
+    a row, a column or a diagonal, through line pixels only) take that material's dark tone; where `keep` is set (around
+    the face) lines stay black: there they part a hand from a cheek, not one finger from the next"""
     s = spr.copy(); idx = spr.idx; h, w = idx.shape
     line = np.isin(idx, [i for i, c in enumerate(spr.pal) if c in LINES[who]])
     for cols, tone in SOFTEN[who]:
@@ -156,8 +172,26 @@ def soften(spr, who, reach_n=2):
                 out |= live & m; live &= l
             return out
         inner = line & ((reach(-1, 0) & reach(1, 0)) | (reach(0, -1) & reach(0, 1)) | (reach(-1, -1) & reach(1, 1)) | (reach(-1, 1) & reach(1, -1)))
+        if keep is not None: inner &= ~keep
         s.idx[inner] = s.color(tone)
     return s
+
+
+# Ilinca's hair hangs down over her chest; her hands, and what they hold, are in front of it whenever they are below her
+# collar (her top starts at row 55, so skin below that is hands): those pixels go on the front layer of every pose.
+HAIR_FRONT_ROW = {'ilinca': 56}
+
+
+def hair_front(body, ox, oy, row, who, front):
+    """the skin and props of a pose below `row` (base coordinates), with the outline touching them, added to its front"""
+    from scipy import ndimage
+    skin = set(SOFTEN[who][0][0]) | set(PS.PROPS)
+    part = np.isin(body.idx, [i for i, c in enumerate(body.pal) if c in skin]); part[:max(0, row - oy), :] = False
+    m = part | (ndimage.binary_dilation(part, structure=np.ones((3, 3), bool)) & PS.dark(body)); m[:max(0, row - oy), :] = False
+    out = front.copy() if front is not None else body.copy()
+    if front is None: out.idx[:] = -1
+    for y, x in zip(*np.where(m)): out.idx[y, x] = out.color(body.pal[body.idx[y, x]])
+    return out
 
 
 def fix(spr, ox, oy, edits, pal_key):
@@ -165,6 +199,18 @@ def fix(spr, ox, oy, edits, pal_key):
     ('clear', x0, y0, x1, y1) and ('recolour', x0, y0, x1, y1, {from: to})"""
     s = spr.copy()
     for e in edits:
+        if e[0] == 'erase':                                              # a generated object to take out (the stand-in cat under a petting hand)
+            from scipy import ndimage
+            _, x0, y0, x1, y1, cols = e; box = np.zeros(s.idx.shape, bool); box[max(0, y0 - oy):max(0, y1 + 1 - oy), max(0, x0 - ox):max(0, x1 + 1 - ox)] = True
+            obj = box & np.isin(s.idx, [i for i, c in enumerate(s.pal) if c in cols])
+            keep = np.isin(s.idx, [i for i, c in enumerate(s.pal) if c not in cols]) & ~PS.dark(s)
+            rim = box & PS.dark(s) & ndimage.binary_dilation(obj, structure=np.ones((3, 3), bool)) & ~ndimage.binary_dilation(keep, structure=np.ones((3, 3), bool))
+            s.idx[obj | rim] = -1
+            lab, n = ndimage.label(s.idx >= 0, structure=np.ones((3, 3), bool))           # crumbs left in the box go too
+            if n > 1:
+                sizes = ndimage.sum(s.idx >= 0, lab, index=np.arange(1, n + 1))
+                small = np.isin(lab, [i + 1 for i, sz in enumerate(sizes) if sz < 20]) & box; s.idx[small] = -1
+            continue
         if e[0] == 'rows':
             _, x, y, rows = e; s.rows(x - ox, y - oy, rows, pal_key)
         elif e[0] == 'clear':
@@ -251,11 +297,15 @@ def build(c):
             out[pose] = dict(body=(soften(spr, who), meta['x'], meta['y']), front=None, pts=man.get('pts', {}), props={}, own_head=True)
             continue
         if man.get('fix'): spr = fix(spr, meta['x'], meta['y'], man['fix'], KEYS[who])     # before softening: a recoloured prop is not skin any more
-        spr = soften(spr, who)
+        face = np.zeros(spr.idx.shape, bool); hy, hx = np.where(_nd.binary_dilation(hm, structure=np.ones((3, 3), bool), iterations=2))
+        py, px = hy - meta['y'], hx - meta['x']; ok = (py >= 0) & (py < spr.h) & (px >= 0) & (px < spr.w); face[py[ok], px[ok]] = True
+        spr = soften(spr, who, keep=face)
         body, front = PS.split(spr, meta['x'], meta['y'], hm, jaw, man.get('front'), hair, None if man.get('keep_neck') else neck, man.get('front_mode', 'all'),
                                base_head=head, chest=None if man.get('keep_chest') else chest,
                                limb=set().union(*[cols for cols, _ in SOFTEN[who]]) | set(PS.PROPS))
         if not man.get('keep_neck') and man.get('neck_fill', True): body = neck_fill(c, torso, head, body, meta['x'], meta['y'])
+        if who in HAIR_FRONT_ROW:                                        # long hair: hands and things held below the collar go in front of it
+            front = hair_front(body, meta['x'], meta['y'], HAIR_FRONT_ROW[who], who, front)
         entry = dict(body=(body, meta['x'], meta['y']), front=(front, meta['x'], meta['y']) if front is not None and (front.idx >= 0).any() else None, pts=man.get('pts', {}), props={})
         masks = {}
         for name, (cols, box) in man.get('props', {}).items():
@@ -270,5 +320,7 @@ def build(c):
                 b2.idx[np.isin(lab, [i + 1 for i, s in enumerate(sizes) if s < 12])] = -1
             out[variant] = dict(body=(b2, meta['x'], meta['y']), front=None, pts=entry['pts'], props={})
         for variant, (box, dx, dy) in man.get('frames', {}).items():
-            out[variant] = dict(body=(shifted(body, meta['x'], meta['y'], box, dx, dy), meta['x'], meta['y']), front=entry['front'], pts=entry['pts'], props=entry['props'])
+            moved = shifted(body, meta['x'], meta['y'], box, dx, dy)
+            vfront = (hair_front(moved, meta['x'], meta['y'], HAIR_FRONT_ROW[who], who, None), meta['x'], meta['y']) if who in HAIR_FRONT_ROW else entry['front']   # the front moves with the hand
+            out[variant] = dict(body=(moved, meta['x'], meta['y']), front=vfront, pts=entry['pts'], props=entry['props'])
     return out

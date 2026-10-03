@@ -99,6 +99,16 @@
   "x": -2,
   "y": 0
  },
+ "petcat": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.913,
+  "src": "cole-petcat/cand-001-seed8196.png",
+  "x": -9,
+  "y": 0
+ },
  "petfront": {
   "align": [
    0,
@@ -214,9 +224,9 @@
    0,
    0
   ],
-  "fit": 0.903,
-  "src": "cole-type/cand-000-seed6956.png",
-  "x": -2,
+  "fit": 0.88,
+  "src": "cole-type4/cand-001-seed3407.png",
+  "x": -10,
   "y": 0
  },
  "wave": {

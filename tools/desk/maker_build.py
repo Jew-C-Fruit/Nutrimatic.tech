@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - maker_build.py
-Version 1.4.0
+Version 1.5.0
 
 Created: 2026-10-02 - Maker the cat: five generated poses on one palette, eyes tidied (v1.0.0)
 Modified: 2026-10-02 - A fifth bigger (reduced again from the generated pictures: 62 px long walking, 45 px tall
@@ -15,6 +15,7 @@ Modified: 2026-10-03 - Round tail tips again, a little longer (pointed was worse
   lying smoothed away, so the hanging one is her only tail (v1.3.1)
 Modified: 2026-10-03 - The big stylized eyes are her look now (the user: "Big eyes are better"); the exporter asks for
   sheet(big=True) (v1.4.0)
+Modified: 2026-10-03 - A real walk cycle: four frames from one generated sheet, cut and reduced on one grid (v1.5.0)
 
 maker_build.py - Maker the cat: generated sprites (FLUX.2 klein 4B on her photos, see sources/PROVENANCE.md), reduced
 with tools/portraits/pixelize.py to a set size, recoloured to one shared palette close to her real blue-grey, and
@@ -49,6 +50,51 @@ def reduce(name, axis, target, cell=10, colors=12):
     s = target * cell / ext; rgb2 = np.asarray(Image.fromarray(rgb).resize((int(rgb.shape[1] * s), int(rgb.shape[0] * s)), Image.LANCZOS))
     spr, alpha, centers, _ = PX.pixelize(rgb2, cell, colors=colors, line_colors=2)
     return Sprite(np.where(alpha, spr, -1), [rgb2hex(c) for c in PX.oklab_to_srgb(centers)])
+
+
+# The walk: one generated picture with four frames of a walk cycle side by side (sources/maker-walkcycle-*.png), cut into
+# its four cells and reduced at one scale on one grid, so the frames line up and only the legs move.
+WALK = ('maker-walkcycle-seed9703.png', 4, 64)      # picture, frames, her length in pixels in the first frame
+
+
+def walk_frames(cell=10, colors=12):
+    """the four cats of the walk-cycle picture, each found on its own (they overlap the quarters of the picture), reduced
+    at one scale, and lined up on the tip of the nose and the feet so only the legs and tail move"""
+    from scipy import ndimage
+    path, n, target = WALK; rgb = np.asarray(Image.open(os.path.join(SRC, path)).convert('RGB'))
+    a = rgb.astype(int); bg = np.median(np.concatenate([a[:4].reshape(-1, 3), a[-4:].reshape(-1, 3)]), axis=0)   # all four cats, not just the biggest
+    near = np.abs(a - bg).sum(axis=2) < 40; l0, k0 = ndimage.label(near); edge = np.unique(np.concatenate([l0[0], l0[-1], l0[:, 0], l0[:, -1]]))
+    mask = ~np.isin(l0, edge[edge != 0]); mask = ndimage.binary_opening(mask, iterations=2)
+    # the cats touch each other here and there: cut between them where the fewest of their pixels stand, near each quarter
+    cols = mask.sum(axis=0); qw = rgb.shape[1] // n; cuts = [0]
+    for q in range(1, n):
+        lo, hi = q * qw - qw // 3, q * qw + qw // 3; cuts.append(lo + int(np.argmin(cols[lo:hi])))
+    cuts.append(rgb.shape[1]); lab = np.zeros(mask.shape, int)
+    for q in range(n):
+        part = np.zeros(mask.shape, bool); part[:, cuts[q]:cuts[q + 1]] = mask[:, cuts[q]:cuts[q + 1]]
+        l2, k2 = ndimage.label(part)
+        if k2: sz = ndimage.sum(part, l2, index=np.arange(1, k2 + 1)); lab[l2 == (int(np.argmax(sz)) + 1)] = q + 1
+    keep = list(range(1, n + 1))
+    boxes = [ndimage.find_objects((lab == i).astype(int))[0] for i in keep]
+    first = boxes[0]; s = target * cell / (first[1].stop - first[1].start)
+    frames = []
+    for i, (ys, xs) in zip(keep, boxes):
+        y0, y1, x0, x1 = max(0, ys.start - 20), min(rgb.shape[0], ys.stop + 20), max(0, xs.start - 20), min(rgb.shape[1], xs.stop + 20)
+        crop = rgb[y0:y1, x0:x1].copy(); m = (lab[y0:y1, x0:x1] == i)
+        big = np.asarray(Image.fromarray(crop).resize((int(crop.shape[1] * s), int(crop.shape[0] * s)), Image.LANCZOS))
+        mb = np.asarray(Image.fromarray(m.astype(np.uint8) * 255).resize((big.shape[1], big.shape[0]), Image.NEAREST)) > 127
+        spr, alpha, centers, _ = PX.pixelize(big, cell, colors=colors, line_colors=2, mask=mb)
+        frames.append(Sprite(np.where(alpha, spr, -1).astype(np.int16), [rgb2hex(q) for q in PX.oklab_to_srgb(centers)]))
+    # line up: the nose (rightmost pixel) on one column, the feet (lowest pixel) on one row
+    left = max(f.w - 1 for f in frames); right = 0; up = max(f.h - 1 for f in frames)
+    W, H = left + 1 + right, up + 1; out = []
+    for f in frames:
+        c = -np.ones((H, W), dtype=np.int16); ox, oy = left - (f.w - 1), up - (f.h - 1)
+        c[oy:oy + f.h, ox:ox + f.w] = f.idx; out.append(Sprite(c, f.pal))
+    m = np.zeros((H, W), bool)
+    for o in out: m |= o.idx >= 0
+    ys, xs = np.where(m)
+    return [Sprite(o.idx[ys.min():ys.max() + 1, xs.min():xs.max() + 1], o.pal) for o in out]
 
 
 def recolour(s):
@@ -99,12 +145,12 @@ def shut(s, x, y, w=2, below=FILL):
 
 
 # eyes the reduction lost (x, y, width, pupil column), found by looking at the zoomed sprites
-EYES = {'walk1': [(54, 15, 3, 1)], 'loaf': [(40, 12, 3, 1)], 'stand': [(52, 16, 3, 1)]}
+EYES = {'loaf': [(40, 12, 3, 1)], 'stand': [(52, 16, 3, 1)], 'walk2': [(57, 11, 3, 1)]}
 
 # Tails held up keep their round generated tips, a few pixels longer (the user preferred round to pointed): the round
 # end is lifted `add` rows and the tail below it repeated to fill the gap.
 # pose: (first row below the round end, columns the tail is in, rows to add)
-TAILS = {'walk0': (4, 14, 3), 'walk1': (4, 14, 3), 'stand': (7, 14, 2)}
+TAILS = {'stand': (7, 14, 2)}
 
 
 def elongate(s, cut, xr, add):
@@ -198,7 +244,8 @@ def big_eyes(s, shut=False):
 
 
 def sprites(big=False):
-    out = {k: recolour(reduce(*job)) for k, job in JOBS.items()}
+    out = {k: recolour(reduce(*job)) for k, job in JOBS.items() if not k.startswith('walk')}
+    for i, fr in enumerate(walk_frames()): out['walk%d' % i] = recolour(fr)
     for k, eyes in EYES.items():
         for e in eyes: eye(out[k], *e)
     for k, (cut, xr, add) in TAILS.items(): out[k] = elongate(out[k], cut, xr, add)

@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - characters.py
-Version 1.1.0
+Version 1.2.0
 
 Created: 2026-10-02 - Cole and Ilinca as sprites: generated bases finished by hand in the face, cut into layers (v1.0.0)
 Modified: 2026-10-02 - Cole's resting mouth is a half smile, not a straight line (v1.0.1)
 Modified: 2026-10-02 - More mouths: grin and smirk for both, soft and pursed for Ilinca, so she isn't smiling all the time (v1.1.0)
+Modified: 2026-10-03 - Ilinca looking down: the whole iris under the lowered lid, the pupil low, so she reads as looking at
+  her work rather than half asleep (v1.2.0)
 
 characters.py - Cole and Ilinca for the desk scene.
 
@@ -188,9 +190,10 @@ class Ilinca:
         for x in range(27, 32): s.put(x, top + 1, c.W)
         for x in range(19, 23): s.put(x, top + 1, c.W)
         ix = 29 + look; fx = 20 + look
-        rows = (top + 1,) if state == 'down' else (top + 1, top + 2)
+        rows = (top + 1, top + 2)                                          # looking down: the lid lower, the iris whole below it
         for y in rows: s.put(ix, y, c.DB); s.put(ix + 1, y, c.DB); s.put(fx, y, c.DB); s.put(fx + 1, y, c.DB)
-        s.put(ix if look <= 0 else ix + 1, top + 1, c.K); s.put(fx if look <= 0 else fx + 1, top + 1, c.K)
+        py = top + 2 if state == 'down' else top + 1                       # the pupil sits low when she looks down at her work
+        s.put(ix if look <= 0 else ix + 1, py, c.K); s.put(fx if look <= 0 else fx + 1, py, c.K)
 
     @classmethod
     def brows(c, s, kind='neutral'):
