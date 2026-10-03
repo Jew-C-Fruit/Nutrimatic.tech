@@ -255,7 +255,7 @@ const memberFill = { email: "t@example.com", gym_name: "Ironworks", gym_location
     D.setHour(11); D.activity("cole", "solder", 60); started.spark = D.scenario("spark"); D.step(120);
     for (const a of ["type", "solder", "write", "think", "coffee", "phone", "stretch", "wave"]) { D.activity("cole", a, 5); D.activity("ilinca", a, 5); D.step(8); }
     D.react("cole"); D.react("ilinca"); D.converse(); D.step(30);
-    D.catStyle("big"); D.scenario("visit"); D.step(200); D.catStyle("classic");
+    D.scenario("visit"); D.step(200);
     const px = cv.getContext("2d").getImageData(0, 0, cv.width, cv.height).data; let lit = 0; for (let i = 0; i < px.length; i += 4 * 97) { if (px[i] + px[i + 1] + px[i + 2] > 0) lit++; }
     return { state: D.state(), started, catDuringSolder, art: Object.keys(A), size: [cv.getAttribute("width"), cv.getAttribute("height")], lit, frames: Object.keys(A.cole.mouth).length };
   });

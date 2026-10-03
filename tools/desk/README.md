@@ -19,7 +19,7 @@ python3 tools/desk/env_build.py        # writes assets/desk/*.png: the room, the
 | `sources/` | the full-size generated pictures those came from, and `PROVENANCE.md` (model, prompts, seeds) |
 | `characters.py` | the hand finishing of Cole and Ilinca: the face blanked and redrawn feature by feature, the cut into torso and head |
 | `poses.py`, `pose_sprites.py`, `sprites/poses/`, `pose-prompts/` | the body poses: every activity's arms, hands and props, generated, reduced and cut to fit under the head |
-| `maker_build.py` | Maker: her generated pictures reduced to size, five greys with light on her back, blink and kneading frames |
+| `maker_build.py` | Maker: her generated pictures reduced to size (her head the same size in every pose), five greys with light on her back, big stylized eyes, blink and kneading frames |
 | `env_build.py`, `env_guides.py`, `env-prompts/` | the room, the desk, the Midtown skyline (day and night), the anglepoise lamps and the desk props, written as PNGs to `assets/desk/` |
 | `spritekit.py` | load a sprite, change pixels, and render it large with a ruler so coordinates can be read off |
 | `export_js.py`, `extra_sprites.py` | the exporter |

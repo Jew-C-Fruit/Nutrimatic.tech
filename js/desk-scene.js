@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.10.1
+ * Version 0.11.0
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -42,9 +42,11 @@
  * Modified: 2026-10-03 - The stretch keeps their own faces (no frame with a generated head). Maker on a keyboard: the
  *   typing hands stay put behind the screen, a look, then a resigned smile. Her hanging tail ends round (v0.10.1)
  *
+ * Modified: 2026-10-03 - Maker's big stylized eyes are her look now; the comparison switch is gone (v0.11.0)
+ *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(),
- *   .face(who, {mouth, brows, look}), .poses(who), .step(n), .state(), .catStyle("classic" | "big")
+ *   .face(who, {mouth, brows, look}), .poses(who), .step(n), .state()
  */
 
 (function () {
@@ -616,15 +618,13 @@
   // with a ...Blink twin), otherwise as a simple grey cat. (x, y) = feet centre on the desk. She stands on the desk top,
   // in front of their arms (catY), and blinks every second or three.
   function bakeSheet(sheet) { if (!sheet) { return null; } var out = {}; Object.keys(sheet).forEach(function (k) { if (k !== "pal") { out[k] = bake(sheet[k], sheet.pal); } }); return out; }
-  var MAKER = bakeSheet(ART.maker), MAKER_BIG = bakeSheet(ART.makerB);
-  // A second look to compare: Maker with big, round, stylized eyes (ART.makerB). The usual one unless asked for.
-  var catStyle = "classic";
+  var MAKER = bakeSheet(ART.maker);
   // Where her feet go: the front of the desk top (it is drawn higher in the phone layout's room).
   function catY() { return ENV.ready ? L.art.catY : DESK_Y + 2; }
   function drawMaker(x, y, pose, dir, f, blink) {
     var d = dir || 1;
     var key = pose === "walk" ? "walk" + ((f >> 2) % 2) : pose === "knead" ? "knead" + ((f >> 2) % 2) : pose;
-    var set = catStyle === "big" && MAKER_BIG ? MAKER_BIG : MAKER, data = set === MAKER_BIG ? ART.makerB : ART.maker;
+    var set = MAKER, data = ART.maker;
     if (blink && set && set[key + "Blink"]) { key += "Blink"; }
     if (set && set[key]) {
       var s = set[key], ox = x - (s.w / 2 | 0), oy = y - s.h + (data[key].g || 0) + (pose === "walk" && (f >> 1) % 2 ? 1 : 0);
@@ -1140,7 +1140,6 @@
     face: function (n, o) { var p = who(n); faceOf(p, o || {}); if (o && o.look) { p.look = { x: o.look.x, y: o.look.y }; } if (o && o.blink) { p.blink = 2; } p.actUntil = frame + 1e6; render(frame); },
     step: function (n) { for (var i = 0; i < (n || 1); i++) { frame++; update(frame); } render(frame); },
     poses: function (n) { return Object.keys(who(n).poses); },
-    catStyle: function (name) { if (name === "big" || name === "classic") { catStyle = name; render(frame); } return catStyle; },
     state: function () { return { layout: layoutName, size: [W, H], cole: cole.activity, ilinca: ilinca.activity, poses: [cole.drawn ? cole.drawn.name : null, ilinca.drawn ? ilinca.drawn.name : null], set: setIndex, hour: hourNow(), running: running, convo: !!convo, scenario: scenario ? scenario.name : null, lamp: { on: lamp.on, x: Math.round(lamp.hx) }, art: ENV.ready, lamps: [lampIsOn(0, hourNow()), lampIsOn(1, hourNow())], cat: actors.cat ? { x: Math.round(actors.cat.x), state: actors.cat.state } : null }; }
   };
 })();

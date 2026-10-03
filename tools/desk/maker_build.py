@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - maker_build.py
-Version 1.3.1
+Version 1.4.0
 
 Created: 2026-10-02 - Maker the cat: five generated poses on one palette, eyes tidied (v1.0.0)
 Modified: 2026-10-02 - A fifth bigger (reduced again from the generated pictures: 62 px long walking, 45 px tall
@@ -13,6 +13,8 @@ Modified: 2026-10-03 - Darker coat; a yawn with her head thrown back; tails end 
   stylized eyes (sheet(big=True), exported as makerB) to compare (v1.3.0)
 Modified: 2026-10-03 - Round tail tips again, a little longer (pointed was worse); the tail curled along her side when
   lying smoothed away, so the hanging one is her only tail (v1.3.1)
+Modified: 2026-10-03 - The big stylized eyes are her look now (the user: "Big eyes are better"); the exporter asks for
+  sheet(big=True) (v1.4.0)
 
 maker_build.py - Maker the cat: generated sprites (FLUX.2 klein 4B on her photos, see sources/PROVENANCE.md), reduced
 with tools/portraits/pixelize.py to a set size, recoloured to one shared palette close to her real blue-grey, and
@@ -155,8 +157,8 @@ def lift(s, x0, x1, y0, y1, dy=2):
     return out
 
 
-# A second look for her, to compare (the user: "experiment with making Maker's eyes bigger and more stylized"): the
-# eyes redrawn after cute pixel-art animals (CC0 / CC BY sheets on OpenGameArt, see sources/PROVENANCE.md): round, four
+# Her eyes, redrawn bigger and more stylized (first tried as a second look to compare; the user picked it on 2026-10-03)
+# after cute pixel-art animals (CC0 / CC BY sheets on OpenGameArt, see sources/PROVENANCE.md): round, four
 # pixels across, a dark lid line on top, a big round pupil with a white catchlight, and closed as a smiling arc.
 BIG_FRONT = ['kkkk', 'epwe', 'eppe', '.ee.']
 BIG_SIDE = ['kkk', 'epw', 'epp', '.e.']
