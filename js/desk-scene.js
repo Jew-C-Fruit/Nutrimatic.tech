@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.9.0
+ * Version 0.10.0
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -34,9 +34,14 @@
  *   layouts; lying down she lies at its front edge, a paw over it and her tail hanging down the front, swinging (a
  *   jointed chain, the tip trailing) (v0.9.0)
  *
+ * Modified: 2026-10-03 - A click gets a brief look, a nod, a smile and a casual wave from the one clicked (now and then
+ *   they tell the other, who says hello too); the hover hello is just a glance. A nod moves the face down a pixel inside
+ *   the head instead of folding it. A stretch leans right back for a moment (that frame keeps the picture's own head).
+ *   The laptop stays put while they wave. Maker can be shown with big stylized eyes (catStyle) to compare (v0.10.0)
+ *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(),
- *   .face(who, {mouth, brows, look}), .poses(who), .step(n), .state()
+ *   .face(who, {mouth, brows, look}), .poses(who), .step(n), .state(), .catStyle("classic" | "big")
  */
 
 (function () {
@@ -426,21 +431,20 @@
     Object.keys(a.poses || {}).forEach(function (k) {
       var q = a.poses[k], props = {};
       Object.keys(q.p || {}).forEach(function (n) { props[n] = bake(q.p[n], a.pal); });
-      poses[k] = { body: bake(q.b, a.pal), front: q.f ? bake(q.f, a.pal) : null, pts: q.pts || {}, props: props };
+      poses[k] = { body: bake(q.b, a.pal), front: q.f ? bake(q.f, a.pal) : null, pts: q.pts || {}, props: props, ownHead: !!q.oh };
     });
     if (!poses.rest) { poses.rest = { body: bake(a.torso, a.pal), front: null, pts: {} }; }
     return {
-      name: name, art: a, poses: poses, head: bake(a.head, a.pal), x: 0, activities: o.activities, restMouth: o.restMouth, headDy: o.headDy, tiltRow: o.tiltRow, workLook: o.workLook,
+      name: name, art: a, poses: poses, head: bake(a.head, a.pal), x: 0, activities: o.activities, restMouth: o.restMouth, headDy: o.headDy, workLook: o.workLook,
       tilt: 0, exprUntil: 0, nextExprAt: 60 + Math.random() * 120,
       activity: "rest", actUntil: 0, actFrame: 0, look: { x: 0, y: 0 }, lookTarget: { x: 0, y: 0 }, turn: 0, nod: 0, bob: 0, slide: 0, hidden: false,
       mouth: "neutral", brows: null, blink: 0, nextBlink: 20 + Math.random() * 40, talking: false, gesture: false, react: null, reactUntil: 0,
       phoneOnDesk: false, hold: null, drawn: null, laptopOut: false, catLift: null
     };
   }
-  // headDy lowers the head on the body (Ilinca's neck read too long); tiltRow is where the head bends for a nod: rows
-  // above it drop a pixel, so the face shortens as it would tipping forward, instead of the whole head moving down.
-  var cole = makeCharacter("cole", { restMouth: "neutral", headDy: 0, tiltRow: 28, workLook: { type: [0, 1], write: [0, 1], solder: [0, 1] }, activities: ["type", "solder", "solder", "think", "coffee", "stretch", "rest", "type", "write"] });
-  var ilinca = makeCharacter("ilinca", { restMouth: "soft", headDy: 3, tiltRow: 24, workLook: { type: [0, 1], write: [-1, 1], phone: [0, 1] }, activities: ["type", "type", "phone", "coffee", "think", "write", "write", "stretch", "rest"] });
+  // headDy lowers the head on the body (Ilinca's neck read too long).
+  var cole = makeCharacter("cole", { restMouth: "neutral", headDy: 0, workLook: { type: [0, 1], write: [0, 1], solder: [0, 1] }, activities: ["type", "solder", "solder", "think", "coffee", "stretch", "rest", "type", "write"] });
+  var ilinca = makeCharacter("ilinca", { restMouth: "soft", headDy: 3, workLook: { type: [0, 1], write: [-1, 1], phone: [0, 1] }, activities: ["type", "type", "phone", "coffee", "think", "write", "write", "stretch", "rest"] });
   var people = [cole, ilinca];
   function other(p) { return p === cole ? ilinca : cole; }
   function who(n) { return n === "cole" ? cole : ilinca; }
@@ -467,15 +471,14 @@
     else if (p.gesture && (a === "rest" || a === "think")) { name = "talk"; }      // a hand joins in only when it is free
     if (name === "wave" && p.poses.wave2 && ((p.actFrame >> 2) % 2)) { name = "wave2"; }
     if (name === "write" && p.poses.write1) { name = WRITING[(p.actFrame >> 1) % WRITING.length]; }
+    if (name === "stretch" && p.poses.stretchback && p.actFrame >= 5 && p.actFrame < 24) { name = "stretchback"; }   // the middle of it: leaning right back
     return p.poses[name] ? name : "rest";
   }
   function posePoint(p, name) { var d = p.drawn; if (!d || !d.pose.pts[name]) { return null; } var q = d.pose.pts[name]; return { x: d.o.x + q[0], y: d.o.y + q[1] + d.jig }; }
 
-  function drawHead(p, o) {
-    var h = p.head, x = (o.x + h.x) | 0, y = (o.y + h.y + p.headDy) | 0, split = Math.max(0, Math.min(h.h, p.tiltRow - h.y)), t = Math.max(0, p.tilt);
-    if (split > 0) { g.drawImage(h.c, 0, 0, h.w, split, x, y + t, h.w, split); }
-    if (split < h.h) { g.drawImage(h.c, 0, split, h.w, h.h - split, x, y + split, h.w, h.h - split); }
-  }
+  // A nod, or looking down at the work, moves the face (eyes, brows, mouth) a pixel down inside the head, the lids
+  // lowered; the head itself stays whole (folding it a pixel looked like it shrank).
+  function drawHead(p, o) { blit(p.head, o.x, o.y + p.headDy); }
   // A stretch: eyes shut and the face turned up (every feature a pixel higher, as when the head tips back), mouth open.
   function stretching(p) { return p.activity === "stretch" && !p.react && !p.talking; }
   function drawFace(p, o, f) {
@@ -485,7 +488,7 @@
     pixels(a.eyes[key] || a.eyes.open0, o.x, hy + t, a.pal);
     pixels(a.brows[p.brows || (st ? "up" : ly < 0 ? "up" : "neutral")] || a.brows.neutral, o.x, hy + t, a.pal);
     var m = p.mouth; if (m === "talk") { m = (f % 4 < 2) ? "open" : "neutral"; } if (m === "neutral") { m = st ? "o" : p.restMouth; }
-    pixels(a.mouth[m] || a.mouth.neutral, o.x, hy + Math.min(0, t), a.pal);
+    pixels(a.mouth[m] || a.mouth.neutral, o.x, hy + t, a.pal);
   }
 
   function drawCharacter(p, f) {
@@ -494,6 +497,7 @@
     var jig = (p.activity === "shake" && (p.actFrame % 2)) ? 1 : (p.activity === "fistpump" && ((p.actFrame >> 1) % 2)) ? -1 : 0;
     p.drawn = { o: o, pose: pose, name: name, jig: jig };
     blit(pose.body, o.x, o.y + jig);
+    if (pose.ownHead) { return; }                                        // the picture brings its own head (leaning back)
     drawHead(p, o);
     drawFace(p, o, f);
     if (pose.front) { blit(pose.front, o.x, o.y + jig + p.headDy); }
@@ -512,7 +516,8 @@
   // The laptop (or the paper) stays on the desk while the hands are off it: lifted for the cat, or petting her.
   function drawLaptopOut(p) {
     if (p.hidden) { return; }
-    var from = p.laptopOut ? "type" : (p.catLift === "type" || p.catLift === "write") ? p.catLift : null, q = from && p.poses[from];
+    var greetFrom = p.react === "greet" && (p.greetAct === "type" || p.greetAct === "write") ? p.greetAct : null;   // waving hello from the keyboard
+    var from = p.laptopOut ? "type" : (p.catLift === "type" || p.catLift === "write") ? p.catLift : greetFrom, q = from && p.poses[from];
     if (!q || p.activity === from) { return; }
     var o = origin(p); Object.keys(q.props).forEach(function (n) { blit(q.props[n], o.x, o.y); });
   }
@@ -608,16 +613,20 @@
   // Drawn from sprites when the art has them (ART.maker: walk0/1, sit, sitside, yawn, loaf, curl, stand, knead0/1, most
   // with a ...Blink twin), otherwise as a simple grey cat. (x, y) = feet centre on the desk. She stands on the desk top,
   // in front of their arms (catY), and blinks every second or three.
-  var MAKER = ART.maker ? (function () { var out = {}; Object.keys(ART.maker).forEach(function (k) { if (k !== "pal") { out[k] = bake(ART.maker[k], ART.maker.pal); } }); return out; })() : null;
+  function bakeSheet(sheet) { if (!sheet) { return null; } var out = {}; Object.keys(sheet).forEach(function (k) { if (k !== "pal") { out[k] = bake(sheet[k], sheet.pal); } }); return out; }
+  var MAKER = bakeSheet(ART.maker), MAKER_BIG = bakeSheet(ART.makerB);
+  // A second look to compare: Maker with big, round, stylized eyes (ART.makerB). The usual one unless asked for.
+  var catStyle = "classic";
   // Where her feet go: the front of the desk top (it is drawn higher in the phone layout's room).
   function catY() { return ENV.ready ? L.art.catY : DESK_Y + 2; }
   function drawMaker(x, y, pose, dir, f, blink) {
     var d = dir || 1;
     var key = pose === "walk" ? "walk" + ((f >> 2) % 2) : pose === "knead" ? "knead" + ((f >> 2) % 2) : pose;
-    if (blink && MAKER && MAKER[key + "Blink"]) { key += "Blink"; }
-    if (MAKER && MAKER[key]) {
-      var s = MAKER[key], ox = x - (s.w / 2 | 0), oy = y - s.h + (ART.maker[key].g || 0) + (pose === "walk" && (f >> 1) % 2 ? 1 : 0);
-      if (pose === "loaf") { drawHangingTail(d > 0 ? ox + 5 : ox + s.w - 6, oy + s.h - (ART.maker[key].g || 0) - 2, f, d); }   // under her rear
+    var set = catStyle === "big" && MAKER_BIG ? MAKER_BIG : MAKER, data = set === MAKER_BIG ? ART.makerB : ART.maker;
+    if (blink && set && set[key + "Blink"]) { key += "Blink"; }
+    if (set && set[key]) {
+      var s = set[key], ox = x - (s.w / 2 | 0), oy = y - s.h + (data[key].g || 0) + (pose === "walk" && (f >> 1) % 2 ? 1 : 0);
+      if (pose === "loaf") { drawHangingTail(d > 0 ? ox + 5 : ox + s.w - 6, oy + s.h - (data[key].g || 0) - 2, f, d); }   // under her rear
       if (d > 0) { blit(s, ox - s.x, oy - s.y); } else { blitFlip(s, ox - s.x, oy - s.y); }
       return;
     }
@@ -678,7 +687,9 @@
   // Lying at the desk's front edge her tail hangs over it: a chain of short segments from the root, swinging like a
   // pendulum, each segment a little behind the one above it, so the tip trails; it narrows to a point. Drawn in her
   // own greys: outline, coat, and a sheen on the side toward the window.
-  var TAIL_LEN = 24, CAT_LINE = "#262830", CAT_COAT = "#7b808b", CAT_SHEEN = "#8f949f";
+  var TAIL_LEN = 24, CAT_LINE = "#1f2129", CAT_COAT = "#696e79", CAT_SHEEN = "#7d828d";
+  // full most of the way with a slight swell, then gathering to a point over the last quarter, like a paintbrush
+  function brush(t) { return t < 0.72 ? 1 + 0.1 * Math.sin(Math.PI * t / 0.72) : Math.max(0, 1 - Math.pow((t - 0.72) / 0.28, 1.7)); }
   function disc(cx, cy, r, col) {
     for (var y = Math.floor(cy - r); y <= Math.ceil(cy + r); y++) { for (var x = Math.floor(cx - r); x <= Math.ceil(cx + r); x++) { var dx = x + 0.5 - cx, dy = y + 0.5 - cy; if (dx * dx + dy * dy <= r * r) { px(x, y, col); } } }
   }
@@ -692,7 +703,7 @@
     for (var p2 = 0; p2 < passes.length; p2++) {
       for (var j = 0; j < n; j++) {
         for (var s2 = 0; s2 < 4; s2++) {
-          var tt = (j + s2 / 4) / n, r = 1.7 * Math.pow(1 - tt, 1.25) + 0.2 + passes[p2][0];
+          var tt = (j + s2 / 4) / n, r = 1.45 * brush(tt) + 0.2 + passes[p2][0];
           if (r > 0.05) { disc(lerp(pts[j][0], pts[j + 1][0], s2 / 4) + passes[p2][2], lerp(pts[j][1], pts[j + 1][1], s2 / 4), r, passes[p2][1]); }
         }
       }
@@ -939,20 +950,25 @@
   });
   function aimAt(p, x, y) { var dx = x - p.x, dy = y - eyeY(p); return { x: Math.abs(dx) < 14 ? 0 : (dx < 0 ? -1 : 1), y: dy < -22 ? -1 : (dy > 30 ? 1 : 0) }; }
 
-  var REACTIONS = ["wave", "surprise", "laugh", "wave"];
+  // A click on one of them: a brief look at you, a nod, a smile and a casual wave, from that one only, then back to
+  // what they were doing. Now and then the one you clicked turns and tells the other, who then says hello the same way.
   function react(p) {
-    if (scenario) { return; }
-    var now = frame;
-    p.reactCount = (p.reactUntil > now - FPS * 4) ? (p.reactCount || 0) + 1 : 1;
-    var kind = REACTIONS[(Math.random() * REACTIONS.length) | 0];
-    if (p.reactCount >= 4) { kind = "enough"; }
-    p.react = kind; p.reactUntil = now + Math.round((kind === "enough" ? 2.2 : 1.9) * FPS);
-    p.mouth = kind === "laugh" ? "laugh" : kind === "surprise" ? "o" : kind === "enough" ? "flat" : "smile";
-    p.brows = kind === "surprise" ? "up" : kind === "enough" ? "down" : null;
-    p.turn = 0; p.lookTarget = { x: 0, y: 0 };
-    if (kind === "wave") { setActivity(p, "wave", 1.9); }
-    if (kind === "surprise") { p.bob = -2; }
-    var o = other(p); o.lookTarget = { x: p.x < o.x ? -1 : 1, y: 0 }; o.turn = p.x < o.x ? -1 : 1; o.turnUntil = now + 2 * FPS;
+    if (scenario || p.react) { return; }
+    var o = other(p); greet(p, Math.random() < 0.25 && !o.hidden && !o.react);
+  }
+  function greet(p, relay) { p.react = relay ? "relay" : "greet"; p.greetAt = frame; p.greetStep = 0; p.greetAct = p.activity; p.reactUntil = frame + Math.round((relay ? 1.7 : 2.8) * FPS); }
+  function stepGreet(p, f) {
+    if (p.react !== "greet" && p.react !== "relay") { return; }
+    var k = (f - p.greetAt) / FPS, o = other(p);
+    if (p.react === "relay") {
+      if (p.greetStep === 0) { p.greetStep = 1; lookAt(p, o.x, faceLevel(o)); p.mouth = "talk"; p.talking = true; p.gesture = p.greetAct === "rest" || p.greetAct === "think"; }
+      if (k >= 1.2 && p.greetStep === 1) { p.greetStep = 2; p.talking = false; p.gesture = false; p.mouth = "smile"; p.smileUntil = f + 2 * FPS; if (!o.react) { greet(o, false); } }
+      return;
+    }
+    if (p.greetStep === 0) { p.greetStep = 1; p.turn = 0; p.lookTarget = { x: 0, y: 0 }; p.mouth = "smile"; p.brows = null; }
+    if (k >= 0.35 && p.greetStep === 1) { p.greetStep = 2; p.nodAt = f; }
+    if (k >= 1.25 && p.greetStep === 2) { p.greetStep = 3; setActivity(p, "wave", 99); }
+    if (k >= 2.55 && p.greetStep === 3) { p.greetStep = 4; setActivity(p, p.greetAct, 6 + Math.random() * 6); p.smileUntil = f + 2 * FPS; }
   }
 
   /* ---------- light: a sun patch by day, a warm low sun at dusk, blue dark with warm pools at night ---------- */
@@ -1011,13 +1027,15 @@
     var h = hourNow(), pointerActive = (Date.now() - pointer.at) < 2500;
     for (var i = 0; i < people.length; i++) {
       var p = people[i];
-      if (p.react && f >= p.reactUntil) { p.react = null; p.mouth = "neutral"; p.brows = p.activity === "think" ? "down" : null; p.bob = 0; }
+      stepGreet(p, f);
+      if (p.react && f >= p.reactUntil) { p.react = null; p.mouth = p.smileUntil > f ? "smile" : "neutral"; p.brows = p.activity === "think" ? "down" : null; p.bob = 0; }
       if (p.turnUntil && f >= p.turnUntil && !convo && !scenario) { p.turn = 0; p.turnUntil = 0; }
       if (p.smileUntil && f >= p.smileUntil) { if (p.mouth === "smile") { p.mouth = "neutral"; } p.smileUntil = 0; }
       p.actFrame++;
       if (f >= p.actUntil && !p.react && !scenario) { nextActivity(p); }
       if (p.nodAt && f >= p.nodAt) { var k = f - p.nodAt; p.nod = (k < 10) ? [0, 1, 1, 1, 0, 0, 1, 1, 1, 0][k] : 0; if (k >= 10) { p.nodAt = 0; p.nod = 0; } }
-      if (pointerActive && !scenario) { p.lookTarget = aimAt(p, pointer.x, pointer.y); if (!convo && !p.react) { p.turn = p.lookTarget.x; } }
+      if (p.react) { /* greeting: it sets where they look */ }
+      else if (pointerActive && !scenario) { p.lookTarget = aimAt(p, pointer.x, pointer.y); if (!convo) { p.turn = p.lookTarget.x; } }
       else if (!convo && !p.react && !scenario) {
         var a = p.activity; p.turn = 0;
         if (p.workLook[a]) { p.lookTarget = { x: p.workLook[a][0], y: p.workLook[a][1] }; }
@@ -1030,12 +1048,10 @@
       if (!p.react && !(scenario && scenario.name === "spark")) { p.bob = 0; }
       p.tilt = stretching(p) ? -1 : (p.nod > 0 || (p.workLook[p.activity] && !convo && !p.react && !(pointerActive && !scenario))) ? 1 : 0;
       stepExpression(p, f);
-      var o = people[1 - i];
-      if (o.react === "laugh" && !p.react && f % 5 === 0) { p.mouth = "smile"; p.smileUntil = f + 2 * FPS; }
     }
-    if (pointer.inside && pointerActive && !saidHello && !convo && !scenario && f > 4 * FPS) {
-      saidHello = true; startConvo([["cole", 1.2], ["ilinca", 1.4]]);
-      setTimeout(function () { if (!scenario) { setActivity(cole, "wave", 2.4); setActivity(ilinca, "wave", 2.4); } }, 2600);
+    if (pointer.inside && pointerActive && !saidHello && !convo && !scenario && f > 4 * FPS) {          // the nearer one glances over and smiles
+      saidHello = true; var near = Math.abs(pointer.x - cole.x) < Math.abs(pointer.x - ilinca.x) ? cole : ilinca;
+      if (!near.react) { near.mouth = "smile"; near.smileUntil = f + 2 * FPS; }
     }
     if (!scenario && !convo && f >= nextScenarioAt && !pointerActive) { if (!pickScenario()) { nextScenarioAt = f + 15 * FPS; } }
     stepScenario(f);
@@ -1121,6 +1137,7 @@
     face: function (n, o) { var p = who(n); faceOf(p, o || {}); if (o && o.look) { p.look = { x: o.look.x, y: o.look.y }; } if (o && o.blink) { p.blink = 2; } p.actUntil = frame + 1e6; render(frame); },
     step: function (n) { for (var i = 0; i < (n || 1); i++) { frame++; update(frame); } render(frame); },
     poses: function (n) { return Object.keys(who(n).poses); },
+    catStyle: function (name) { if (name === "big" || name === "classic") { catStyle = name; render(frame); } return catStyle; },
     state: function () { return { layout: layoutName, size: [W, H], cole: cole.activity, ilinca: ilinca.activity, poses: [cole.drawn ? cole.drawn.name : null, ilinca.drawn ? ilinca.drawn.name : null], set: setIndex, hour: hourNow(), running: running, convo: !!convo, scenario: scenario ? scenario.name : null, lamp: { on: lamp.on, x: Math.round(lamp.hx) }, art: ENV.ready, lamps: [lampIsOn(0, hourNow()), lampIsOn(1, hourNow())], cat: actors.cat ? { x: Math.round(actors.cat.x), state: actors.cat.state } : null }; }
   };
 })();

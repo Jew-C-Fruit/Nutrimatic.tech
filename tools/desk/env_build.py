@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - env_build.py
-Version 1.1.0
+Version 1.2.0
 
 Created: 2026-10-02 - The room, the skyline and the two anglepoise lamps as generated pictures reduced to the scene's
   pixels, written to assets/desk/ (v1.0.0)
 Modified: 2026-10-02 - Victory Boogie Woogie instead of the poster; the rooms with the poster edited out (v1.1.0)
+Modified: 2026-10-03 - The Nutrimatic "nu" mark on the shaker bottle prop (v1.2.0)
 
 The environment was drawn in code until v0.7 and looked low-fi next to the figures, so it is made the same way as they
 are now: pictures generated on the GPU machine (FLUX.2 klein 4B, see sources/PROVENANCE.md) and reduced with
@@ -195,6 +196,12 @@ def props():
         m2 = np.asarray(Image.fromarray(mask.astype(np.uint8) * 255).resize((rgb2.shape[1], rgb2.shape[0]), Image.NEAREST)) > 127
         spr, alpha, centers, _ = PX.pixelize(rgb2, 10, colors=10, line_colors=2, mask=m2)
         sp = Sprite(np.where(alpha, spr, -1).astype(np.int16), [rgb2hex(c) for c in PX.oklab_to_srgb(centers)])
+        if name == 'bottle':                                                    # the "nu" monogram on its white body
+            whites = [i for i, c in enumerate(sp.pal) if sum(hex2rgb(c)) > 690]; ys, xs = np.where(np.isin(sp.idx, whites))
+            mx, my = int(np.median(xs)) - 2, int(ys.min() + (ys.max() - ys.min()) * 0.45) - 2; ink = sp.color('#111111')
+            for r, row in enumerate(['kkk..', 'k.k..', 'k.k.k', 'k.k.k', '..kkk']):
+                for c, ch in enumerate(row):
+                    if ch == 'k': sp.idx[my + r, mx + c] = ink
         sp.save(os.path.join(OUT, 'prop-%s.png' % name)); out[name] = [sp.w, sp.h]
     return out
 
