@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - poses.py
-Version 1.4.3
+Version 1.4.4
 
 Created: 2026-10-02 - The figures' body poses, from generated pictures, as layers under the base head; the neck, and
   Ilinca's top, taken from the base so every pose joins the same head; front boxes by eye (v1.0.0)
@@ -32,6 +32,8 @@ Modified: 2026-10-03 - Note 5: a new chin-on-fist picture for Ilinca; her forear
   boxes may be several) (v1.4.2)
 Modified: 2026-10-03 - Note 6: the neck patch follows the portrait's round neckline (it had squared Cole's T-shirt off); a
   new rest pose for Cole with his hands flat on the desk, apart (v1.4.3)
+Modified: 2026-10-03 - Note 7: a hole in Ilinca's top (the cut-out took its grey shadow for the wall) filled; tiny gaps
+  enclosed in any pose are filled automatically (pinholes) (v1.4.4)
 
 Every activity in the scene is drawn with a body pose: the whole torso with arms, hands and whatever they hold, made
 by the image model from the figure's own portrait (pose_sprites.py says how) and reduced to a sprite on the base
@@ -126,7 +128,8 @@ MANUAL = {
         'write': dict(props={'paper': (PAPER, (-14, 74, 40, 96))}, frames={'write1': ((-6, 60, 16, 90), 1, 0), 'write2': ((-6, 60, 16, 90), 2, -1)}),
         # note 5 (suit breaking, doubled hands, clipping hair): chin on her fist, the forearm crossing in front of her left
         # hair strand: in a box round the fist and the crossing, all the pose drew except its own hair goes in front
-        'think': dict(keep_neck=True, front=[(14, 31, 25, 47), (8, 48, 25, 62)], front_mode='nothair'),
+        'think': dict(keep_neck=True, front=[(14, 31, 25, 47), (8, 48, 25, 62)], front_mode='nothair',
+                      fix=[('holes', 17, 63, 27, 75, '#ddd6cf')]),          # her white top in shadow, which the cut-out had taken for the grey wall
         # her phone and both hands are in front of her hair (they were drawn under it), and the phone is blue again (the
         # reduction had snapped the picture's blue phone to grey)
         'phone': dict(keep_chest=True, front=(4, 44, 44, 72), front_mode='limb', base_box=(12, 68, 34, 86),
@@ -282,6 +285,26 @@ def close_holes(body, ox, oy, head, desk, hair=None):
     return out
 
 
+def pinholes(body, ox, oy, head, front=None, most=8):
+    """tiny gaps that show the wall from inside the figure (a few pixels, closed in by the body, the head or the front
+    layer; left by a moved writing hand or a speck of the cut-out): filled from the nearest body pixel"""
+    h, w = body.idx.shape; fig = body.idx >= 0
+    hy, hx = np.where(head.idx >= 0); py, px = hy - oy, hx - ox; ok = (py >= 0) & (py < h) & (px >= 0) & (px < w)
+    allfig = fig.copy(); allfig[py[ok], px[ok]] = True
+    if front is not None:
+        fs, fx, fy = front; fy_, fx_ = np.where(fs.idx >= 0); py, px = fy_ + fy - oy, fx_ + fx - ox
+        ok = (py >= 0) & (py < h) & (px >= 0) & (px < w); allfig[py[ok], px[ok]] = True
+    lab, n = _nd.label(~allfig); border = set(np.unique(np.concatenate([lab[0], lab[-1], lab[:, 0], lab[:, -1]])).tolist())
+    holes = np.zeros((h, w), bool)
+    for i in range(1, n + 1):
+        if i in border: continue
+        m = lab == i
+        if m.sum() <= most: holes |= m
+    if not holes.any(): return body
+    out = body.copy(); _, (iy, ix) = _nd.distance_transform_edt(~fig, return_indices=True); out.idx[holes] = out.idx[iy[holes], ix[holes]]
+    return out
+
+
 def fix(spr, ox, oy, edits, pal_key):
     """per-pose pixel fixes in base coordinates: ('rows', x, y, [..]) maps of palette letters ('.' keep, '_' clear),
     ('clear', x0, y0, x1, y1) and ('recolour', x0, y0, x1, y1, {from: to})"""
@@ -304,6 +327,10 @@ def fix(spr, ox, oy, edits, pal_key):
             sub = s.idx[max(0, y0 - oy):max(0, y1 + 1 - oy), max(0, x0 - ox):max(0, x1 + 1 - ox)]
             ownix = [i for i, cc in enumerate(s.pal) if cc in own]; ci = s.color(col)
             sub[~np.isin(sub, ownix)] = ci
+            continue
+        if e[0] == 'holes':                                              # empty pixels in a box filled with one colour (a light shirt the cut-out took for wall)
+            _, x0, y0, x1, y1, col = e
+            sub = s.idx[max(0, y0 - oy):max(0, y1 + 1 - oy), max(0, x0 - ox):max(0, x1 + 1 - ox)]; sub[sub < 0] = s.color(col)
             continue
         if e[0] == 'under':                                              # a pixel map drawn behind whatever is in the keep colours (hands in front of a prop)
             _, x, y, rows, keepc = e
@@ -428,7 +455,9 @@ def build(c):
                 closed = close_holes(body, meta['x'], meta['y'], head, c.desk, hair)
                 if np.array_equal(closed.idx, body.idx): break
                 body = closed
-        entry = dict(body=(body, meta['x'], meta['y']), front=(front, meta['x'], meta['y']) if front is not None and (front.idx >= 0).any() else None, pts=man.get('pts', {}), props={})
+        fr_ = (front, meta['x'], meta['y']) if front is not None and (front.idx >= 0).any() else None
+        body = pinholes(body, meta['x'], meta['y'], head, fr_)
+        entry = dict(body=(body, meta['x'], meta['y']), front=fr_, pts=man.get('pts', {}), props={})
         masks = {}
         for name, (cols, box) in man.get('props', {}).items():
             prop, mask = lift_prop(body, meta['x'], meta['y'], cols, box); entry['props'][name] = (prop, meta['x'], meta['y']); masks[name] = mask
@@ -444,5 +473,6 @@ def build(c):
         for variant, (box, dx, dy) in man.get('frames', {}).items():
             moved = shifted(body, meta['x'], meta['y'], box, dx, dy)
             vfront = (hair_front(moved, meta['x'], meta['y'], HAIR_FRONT_ROW[who], who, None), meta['x'], meta['y']) if who in HAIR_FRONT_ROW else entry['front']   # the front moves with the hand
+            moved = pinholes(moved, meta['x'], meta['y'], head, vfront)
             out[variant] = dict(body=(moved, meta['x'], meta['y']), front=vfront, pts=entry['pts'], props=entry['props'])
     return out
