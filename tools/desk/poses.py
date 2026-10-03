@@ -12,8 +12,9 @@ Modified: 2026-10-02 - Hands and forearms: black lines inside skin (finger gaps,
   writing frames made by moving the writing hand (write1, write2) (v1.1.0)
 Modified: 2026-10-02 - New talk, pethead (Cole) and type (Ilinca) pictures: the old ones had a third arm or hands
   through each other; the old talk pose's pixel fix went with it (v1.1.1)
-Modified: 2026-10-03 - Poses may keep their own head (stretchback: leaning back, head back, eyes shut); the "nu" mark on
-  the shaker bottles; Ilinca's wave, surprise, think and yawn redone with cleaner hands; her wave rocks a pixel (v1.2.0)
+Modified: 2026-10-03 - Poses may keep their own head (a stretch frame tried it; dropped: Cole's face shape drifted);
+  the "nu" mark on the shaker bottles; Ilinca's wave, surprise, think and yawn redone with cleaner hands; her wave rocks
+  a pixel (v1.2.0)
 
 Every activity in the scene is drawn with a body pose: the whole torso with arms, hands and whatever they hold, made
 by the image model from the figure's own portrait (pose_sprites.py says how) and reduced to a sprite on the base
@@ -53,7 +54,6 @@ MANUAL = {
         'drink': dict(front=(40, 28, 61, 58), front_mode='props'),
         'solder': dict(pts={'tip': (35, 82)}),
         'think': dict(neck_fill=False),                                  # the hand at his chin: the gap there is real
-        'stretchback': dict(own_head=True, fix=[('clear', -6, 53, 3, 88)]),   # the middle of a stretch: leaning back, head back, eyes shut (a chair's edge cleared)
         # props the scene also draws on their own: the laptop (the cat sits on it), the paper, the bottle being handed over
         'type': dict(props={'laptop': (LAPTOP, (20, 56, 100, 100))}),
         'write': dict(props={'paper': (PAPER, (10, 80, 90, 100))}, frames={'write1': ((14, 64, 36, 92), 1, 0), 'write2': ((14, 64, 36, 92), 2, -1)}),
@@ -70,7 +70,6 @@ MANUAL = {
     'ilinca': {
         'sip': dict(front=(3, 20, 24, 42), front_mode='props'),
         'type': dict(props={'laptop': (LAPTOP, (-30, 50, 40, 96))}),
-        'stretchback': dict(own_head=True, fix=[('clear', 63, 38, 75, 82)]),
         'wave': dict(frames={'wave2': ((-12, 12, 12, 38), 1, 0)}),          # a casual wave: the hand rocks a pixel
         'write': dict(props={'paper': (PAPER, (-14, 74, 40, 96))}, frames={'write1': ((-6, 60, 16, 90), 1, 0), 'write2': ((-6, 60, 16, 90), 2, -1)}),
         'think': dict(front=(8, 28, 34, 48), front_mode='diff', keep_neck=True),

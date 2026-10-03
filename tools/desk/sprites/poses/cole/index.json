@@ -169,16 +169,6 @@
   "x": -4,
   "y": -1
  },
- "stretchback": {
-  "align": [
-   0,
-   0
-  ],
-  "fit": 0.709,
-  "src": "cole-stretchfree/cand-002-seed5041.png",
-  "x": -6,
-  "y": -2
- },
  "surprise": {
   "align": [
    0,

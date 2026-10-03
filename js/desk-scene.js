@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.10.0
+ * Version 0.10.1
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -38,6 +38,9 @@
  *   they tell the other, who says hello too); the hover hello is just a glance. A nod moves the face down a pixel inside
  *   the head instead of folding it. A stretch leans right back for a moment (that frame keeps the picture's own head).
  *   The laptop stays put while they wave. Maker can be shown with big stylized eyes (catStyle) to compare (v0.10.0)
+ *
+ * Modified: 2026-10-03 - The stretch keeps their own faces (no frame with a generated head). Maker on a keyboard: the
+ *   typing hands stay put behind the screen, a look, then a resigned smile. Her hanging tail ends round (v0.10.1)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(),
@@ -471,7 +474,6 @@
     else if (p.gesture && (a === "rest" || a === "think")) { name = "talk"; }      // a hand joins in only when it is free
     if (name === "wave" && p.poses.wave2 && ((p.actFrame >> 2) % 2)) { name = "wave2"; }
     if (name === "write" && p.poses.write1) { name = WRITING[(p.actFrame >> 1) % WRITING.length]; }
-    if (name === "stretch" && p.poses.stretchback && p.actFrame >= 5 && p.actFrame < 24) { name = "stretchback"; }   // the middle of it: leaning right back
     return p.poses[name] ? name : "rest";
   }
   function posePoint(p, name) { var d = p.drawn; if (!d || !d.pose.pts[name]) { return null; } var q = d.pose.pts[name]; return { x: d.o.x + q[0], y: d.o.y + q[1] + d.jig }; }
@@ -479,7 +481,7 @@
   // A nod, or looking down at the work, moves the face (eyes, brows, mouth) a pixel down inside the head, the lids
   // lowered; the head itself stays whole (folding it a pixel looked like it shrank).
   function drawHead(p, o) { blit(p.head, o.x, o.y + p.headDy); }
-  // A stretch: eyes shut and the face turned up (every feature a pixel higher, as when the head tips back), mouth open.
+  // A stretch: eyes shut, mouth open (the face keeps its own proportions: moving the features read as a different face).
   function stretching(p) { return p.activity === "stretch" && !p.react && !p.talking; }
   function drawFace(p, o, f) {
     var a = p.art, hy = o.y + p.headDy, t = p.tilt, st = stretching(p), closed = st || p.blink > 0 || p.mouth === "laugh" || p.mouth === "yawn";
@@ -518,7 +520,7 @@
     if (p.hidden) { return; }
     var greetFrom = p.react === "greet" && (p.greetAct === "type" || p.greetAct === "write") ? p.greetAct : null;   // waving hello from the keyboard
     var from = p.laptopOut ? "type" : (p.catLift === "type" || p.catLift === "write") ? p.catLift : greetFrom, q = from && p.poses[from];
-    if (!q || p.activity === from) { return; }
+    if (!q || (p.activity === from && !p.laptopOut)) { return; }
     var o = origin(p); Object.keys(q.props).forEach(function (n) { blit(q.props[n], o.x, o.y); });
   }
   // A hand petting the cat lies on her: that part of the pose (a box in the figure's coordinates) goes on again after her.
@@ -685,11 +687,11 @@
     });
   }
   // Lying at the desk's front edge her tail hangs over it: a chain of short segments from the root, swinging like a
-  // pendulum, each segment a little behind the one above it, so the tip trails; it narrows to a point. Drawn in her
-  // own greys: outline, coat, and a sheen on the side toward the window.
-  var TAIL_LEN = 24, CAT_LINE = "#1f2129", CAT_COAT = "#696e79", CAT_SHEEN = "#7d828d";
-  // full most of the way with a slight swell, then gathering to a point over the last quarter, like a paintbrush
-  function brush(t) { return t < 0.72 ? 1 + 0.1 * Math.sin(Math.PI * t / 0.72) : Math.max(0, 1 - Math.pow((t - 0.72) / 0.28, 1.7)); }
+  // pendulum, each segment a little behind the one above it, so the tip trails; the end is round. Drawn in her own
+  // greys: outline, coat, and a sheen on the side toward the window.
+  var TAIL_LEN = 26, CAT_LINE = "#1f2129", CAT_COAT = "#696e79", CAT_SHEEN = "#7d828d";
+  // full most of the way, narrowing a little toward the end, which is round (a pointed tip read worse)
+  function tailWidth(t) { return t < 0.7 ? 1 : 1 - 0.22 * (t - 0.7) / 0.3; }
   function disc(cx, cy, r, col) {
     for (var y = Math.floor(cy - r); y <= Math.ceil(cy + r); y++) { for (var x = Math.floor(cx - r); x <= Math.ceil(cx + r); x++) { var dx = x + 0.5 - cx, dy = y + 0.5 - cy; if (dx * dx + dy * dy <= r * r) { px(x, y, col); } } }
   }
@@ -703,7 +705,7 @@
     for (var p2 = 0; p2 < passes.length; p2++) {
       for (var j = 0; j < n; j++) {
         for (var s2 = 0; s2 < 4; s2++) {
-          var tt = (j + s2 / 4) / n, r = 1.45 * brush(tt) + 0.2 + passes[p2][0];
+          var tt = (j + s2 / 4) / n, r = 1.45 * tailWidth(tt) + 0.2 + passes[p2][0];
           if (r > 0.05) { disc(lerp(pts[j][0], pts[j + 1][0], s2 / 4) + passes[p2][2], lerp(pts[j][1], pts[j + 1][1], s2 / 4), r, passes[p2][1]); }
         }
       }
@@ -829,14 +831,15 @@
           c.x += 3 * c.dir; lookAt(v, c.x, catY() - 14);
           if ((c.dir > 0 && c.x >= c.spot) || (c.dir < 0 && c.x <= c.spot)) {
             c.x = c.spot; c.state = "sit"; c.since = f; c.dir = v.x < c.x ? -1 : 1;
-            setActivity(v, "lift", 99); v.laptopOut = c.onLaptop; faceOf(v, { brows: "down", mouth: "flat" }); lookAt(v, c.x, DESK_Y - 34);
+            if (c.onLaptop) { v.laptopOut = true; } else { setActivity(v, "lift", 99); }   // on the keyboard the hands just stay put, hidden behind the screen
+            faceOf(v, { brows: "down", mouth: "flat" }); lookAt(v, c.x, DESK_Y - 34);
             lookAt(o, c.x, DESK_Y - 34); o.mouth = "laugh";
           }
         } else if (c.state === "sit") {
           var k = f - c.since;
           if (k === 18) { o.mouth = "smile"; }
-          if (k === 36) { setActivity(v, v.poses.pethead ? "pethead" : "petfront", 99); faceOf(v, { brows: null, mouth: "smile" }); c.shut = true; }
-          if (k === 84) { c.shut = false; c.state = "walk"; c.phase = "leave"; c.dir = c.home < c.x ? -1 : 1; c.left = f; setActivity(v, actors.act, 99); v.laptopOut = false; faceOf(v, { mouth: "neutral" }); v.lookTarget = { x: 0, y: 1 }; }
+          if (k === 36) { if (!c.onLaptop) { setActivity(v, v.poses.pethead ? "pethead" : "petfront", 99); } faceOf(v, { brows: null, mouth: "smile" }); c.shut = true; }
+          if (k === 84) { c.shut = false; c.state = "walk"; c.phase = "leave"; c.dir = c.home < c.x ? -1 : 1; c.left = f; if (v.activity !== actors.act) { setActivity(v, actors.act, 99); } v.laptopOut = false; faceOf(v, { mouth: "neutral" }); v.lookTarget = { x: 0, y: 1 }; }
         } else if (c.phase === "leave") {
           c.x += 3 * c.dir;
           if (!c.again && f - c.left === 9) { c.again = true; c.dir = -c.dir; c.phase = "in"; faceOf(v, { brows: "up" }); }
@@ -1046,7 +1049,7 @@
       p.look.x += (p.lookTarget.x - p.look.x) * 0.6; p.look.y += (p.lookTarget.y - p.look.y) * 0.6;
       if (p.blink > 0) { p.blink--; } else if (--p.nextBlink <= 0) { p.blink = 2; p.nextBlink = 24 + Math.random() * 48; }
       if (!p.react && !(scenario && scenario.name === "spark")) { p.bob = 0; }
-      p.tilt = stretching(p) ? -1 : (p.nod > 0 || (p.workLook[p.activity] && !convo && !p.react && !(pointerActive && !scenario))) ? 1 : 0;
+      p.tilt = stretching(p) ? 0 : (p.nod > 0 || (p.workLook[p.activity] && !convo && !p.react && !(pointerActive && !scenario))) ? 1 : 0;
       stepExpression(p, f);
     }
     if (pointer.inside && pointerActive && !saidHello && !convo && !scenario && f > 4 * FPS) {          // the nearer one glances over and smiles

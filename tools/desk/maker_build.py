@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - maker_build.py
-Version 1.3.0
+Version 1.3.1
 
 Created: 2026-10-02 - Maker the cat: five generated poses on one palette, eyes tidied (v1.0.0)
 Modified: 2026-10-02 - A fifth bigger (reduced again from the generated pictures: 62 px long walking, 45 px tall
@@ -11,6 +11,8 @@ Modified: 2026-10-02 - Every pose sized so her head is the same size; raised tai
   point; lying down she lies with a front paw over the desk edge (the scene adds the hanging tail) (v1.2.0)
 Modified: 2026-10-03 - Darker coat; a yawn with her head thrown back; tails end like a paintbrush; a second look with big
   stylized eyes (sheet(big=True), exported as makerB) to compare (v1.3.0)
+Modified: 2026-10-03 - Round tail tips again, a little longer (pointed was worse); the tail curled along her side when
+  lying smoothed away, so the hanging one is her only tail (v1.3.1)
 
 maker_build.py - Maker the cat: generated sprites (FLUX.2 klein 4B on her photos, see sources/PROVENANCE.md), reduced
 with tools/portraits/pixelize.py to a set size, recoloured to one shared palette close to her real blue-grey, and
@@ -97,42 +99,37 @@ def shut(s, x, y, w=2, below=FILL):
 # eyes the reduction lost (x, y, width, pupil column), found by looking at the zoomed sprites
 EYES = {'walk1': [(54, 15, 3, 1)], 'loaf': [(40, 12, 3, 1)], 'stand': [(52, 16, 3, 1)]}
 
-# Tails held up end in a soft point now, a few pixels longer than the generated ones' round ends: the round end is
-# cleared above a row and the tail is drawn on from there along a short curve, full width until near the end and then
-# gathering to a point like a paintbrush.
-# pose: (row to cut at, x where the tail is at that row, its width there, the curve on from it, rows to add on top)
-TAILS = {'walk0': (8, 4.5, 6, [(4.8, 4), (5.8, 0), (7.5, -3), (9, -4.5)], 5),
-         'walk1': (9, 3.5, 5, [(3.8, 5), (4.8, 1), (6.5, -2), (8, -3.5)], 4),
-         'stand': (8, 4.0, 5, [(4.3, 4), (5.5, 0.5), (7.5, -2), (9.5, -3.5)], 4)}
+# Tails held up keep their round generated tips, a few pixels longer (the user preferred round to pointed): the round
+# end is lifted `add` rows and the tail below it repeated to fill the gap.
+# pose: (first row below the round end, columns the tail is in, rows to add)
+TAILS = {'walk0': (4, 14, 3), 'walk1': (4, 14, 3), 'stand': (7, 14, 2)}
 
 
-def brush(t):
-    """a cat's tail along its length (0 root .. 1 tip), as a share of its width: full most of the way with a slight
-    swell, then gathering to a point over the last quarter, like a paintbrush (not a long even taper)"""
-    if t < 0.72: return 1.0 + 0.10 * np.sin(np.pi * t / 0.72)
-    return max(0.0, 1.0 - ((t - 0.72) / 0.28) ** 1.7)
-
-
-def taper(s, cut, x0, w0, pts, add):
-    """the tail above row `cut` redrawn as a tapering stroke from (x0, cut) through pts to a point"""
-    s = s.pad(top=add); cut += add; pts = [(x, y + add) for x, y in pts]
-    tail = np.zeros(s.idx.shape, bool); tail[:cut, :max(1, int(x0 + w0 + 3))] = True
-    s.idx[tail & (s.idx >= 0)] = -1                                        # the old round end goes
-    path = [(x0, cut + 0.5)] + pts; samples = []
-    seg = [np.hypot(bx - ax, by - ay) for (ax, ay), (bx, by) in zip(path, path[1:])]; total = sum(seg)
-    for (ax, ay), (bx, by), L in zip(path, path[1:], seg):
-        for k in range(int(L * 4) + 1):
-            t = k / max(1, int(L * 4)); samples.append((ax + (bx - ax) * t, ay + (by - ay) * t))
-    h, w = s.idx.shape; yy, xx = np.mgrid[0:h, 0:w]; outline = np.zeros((h, w), bool); fill = np.zeros((h, w), bool); light = np.zeros((h, w), bool)
-    for i, (cx, cy) in enumerate(samples):
-        t = i / max(1, len(samples) - 1); r = brush(t) * (w0 / 2 - 0.5) + 0.2
-        d = np.hypot(xx + 0.5 - cx, yy + 0.5 - cy)
-        outline |= d <= r + 0.85; fill |= d <= r; light |= np.hypot(xx + 0.5 - (cx + 0.9), yy + 0.5 - cy) <= r - 0.8
-    region = outline & ~(s.idx >= 0) | (outline & (yy < cut))
-    s.idx[region & ~fill] = s.color(LINE); s.idx[region & fill] = s.color(FILL); s.idx[region & fill & light] = s.color(LIGHT)
+def elongate(s, cut, xr, add):
+    """the round end of a raised tail (rows above `cut`, columns below xr) lifted `add` rows, the tail stretched to meet it"""
+    old = s.idx.copy(); s = s.pad(top=add); s.idx[:cut + add, :xr] = -1
+    s.idx[:cut, :xr] = old[:cut, :xr]
+    for r in range(cut, cut + add): s.idx[r, :xr] = old[cut, :xr]
     return s
+
+
+def smooth_lines(s, box, passes=2):
+    """dark lines inside the body in a box (x0, y0, x1, y1) become the coat around them (a tail curled along her
+    side read as a second tail next to the hanging one)"""
+    out = s.copy(); dark = [i for i, c in enumerate(s.pal) if c in (LINE, DEEP)]
+    for _ in range(passes):
+        idx = out.idx.copy(); x0, y0, x1, y1 = box
+        for y in range(max(1, y0), min(out.h - 1, y1 + 1)):
+            for x in range(max(1, x0), min(out.w - 1, x1 + 1)):
+                if idx[y, x] not in dark: continue
+                if min(idx[y - 1, x], idx[y + 1, x], idx[y, x - 1], idx[y, x + 1]) < 0: continue          # the outline stays
+                nb = [idx[yy, xx] for yy in (y - 1, y, y + 1) for xx in (x - 1, x, x + 1) if (yy, xx) != (y, x) and idx[yy, xx] >= 0 and idx[yy, xx] not in dark]
+                if len(nb) >= 3: out.idx[y, x] = max(set(nb), key=nb.count)
+    return out
+
+
 # kneading: the front paw lifted two pixels, near paw then far paw (columns, rows of the leg)
-PAWS = {'knead0': (36, 46, 44, 55), 'knead1': (47, 56, 46, 55)}   # (rows counted after the tail's 4 added on top)
+PAWS = {'knead0': (36, 46, 42, 53), 'knead1': (47, 56, 44, 53)}   # (rows counted after the tail's 2 added on top)
 
 
 def blink(s):
@@ -202,7 +199,8 @@ def sprites(big=False):
     out = {k: recolour(reduce(*job)) for k, job in JOBS.items()}
     for k, eyes in EYES.items():
         for e in eyes: eye(out[k], *e)
-    for k, (cut, x0, w0, pts, add) in TAILS.items(): out[k] = taper(out[k], cut, x0, w0, pts, add)
+    for k, (cut, xr, add) in TAILS.items(): out[k] = elongate(out[k], cut, xr, add)
+    out['loaf'] = smooth_lines(out['loaf'], (2, 12, 20, 27))           # lying: only the tail the scene hangs over the edge
     for k, box in PAWS.items(): out[k] = lift(out['stand'], *box)
     if big:
         base = dict(out); out = {}

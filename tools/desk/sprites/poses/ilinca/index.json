@@ -129,16 +129,6 @@
   "x": -10,
   "y": 0
  },
- "stretchback": {
-  "align": [
-   0,
-   0
-  ],
-  "fit": 0.659,
-  "src": "ilinca-stretchfree/cand-002-seed3429.png",
-  "x": -10,
-  "y": 0
- },
  "surprise": {
   "align": [
    0,
