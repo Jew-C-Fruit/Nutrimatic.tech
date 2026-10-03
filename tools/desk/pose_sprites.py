@@ -32,7 +32,8 @@ import pixelize as PX
 CELL, PAD_X, PAD_TOP, DESK_H = 12, 192, 384, 200
 DESK = (72, 120, 200)
 # colours a pose may use besides the figure's own: what the props are made of
-PROPS = ['#e4002b', '#a3001f', '#ff5a72', '#fbfaf5', '#d9d5c8', '#cfd2d4', '#9a9ea2', '#5f6368', '#2f6b3a', '#1f4a28', '#d9a650', '#dfe9f5', '#7fb2e0']
+PROPS = ['#e4002b', '#a3001f', '#ff5a72', '#fbfaf5', '#d9d5c8', '#cfd2d4', '#9a9ea2', '#5f6368', '#2f6b3a', '#1f4a28', '#d9a650', '#dfe9f5', '#7fb2e0',
+         '#3d5f99', '#2b4572', '#6f93cf']                              # the last three: Ilinca's blue phone
 
 
 def make_stage(src, grid, desk_row, out):

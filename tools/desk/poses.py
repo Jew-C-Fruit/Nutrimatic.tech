@@ -92,7 +92,10 @@ MANUAL = {
         'rest': dict(fix=[('recolour', 56, 55, 64, 66, {'#5f6368': '#191718', '#9a9ea2': '#292423'})]),   # a grey chair corner by her shoulder
         'write': dict(props={'paper': (PAPER, (-14, 74, 40, 96))}, frames={'write1': ((-6, 60, 16, 90), 1, 0), 'write2': ((-6, 60, 16, 90), 2, -1)}),
         'think': dict(front=(8, 28, 34, 48), front_mode='diff', keep_neck=True, fix=[('clear', 3, 41, 16, 58)]),   # dashes of a lost shoulder outline cleared
-        'phone': dict(keep_chest=True),
+        # her phone and both hands are in front of her hair (they were drawn under it), and the phone is blue again (the
+        # reduction had snapped the picture's blue phone to grey)
+        'phone': dict(keep_chest=True, front=(4, 44, 44, 72), front_mode='limb', base_box=(12, 68, 34, 86),
+                      fix=[('recolour', 12, 44, 36, 70, {'#5f6368': '#3d5f99', '#9a9ea2': '#6f93cf'})]),
         'carry': dict(keep_chest=True),
         'drink': dict(front=(-6, 16, 24, 50), front_mode='limb'),
         'yawn': dict(front=(12, 24, 36, 42), front_mode='diff', keep_neck=True),
@@ -313,6 +316,14 @@ def build(c):
                                base_head=head, chest=None if man.get('keep_chest') else chest,
                                limb=set().union(*[cols for cols, _ in SOFTEN[who]]) | set(PS.PROPS))
         if not man.get('keep_neck') and man.get('neck_fill', True): body = neck_fill(c, torso, head, body, meta['x'], meta['y'])
+        if man.get('base_box'):                                          # clothes from the base portrait in a box (a white top that read as a cup)
+            bx0, by0, bx1, by1 = man['base_box']; skin = set(SOFTEN[who][0][0])
+            for y in range(by0, by1 + 1):
+                for x in range(bx0, bx1 + 1):
+                    sx, sy = x - meta['x'], y - meta['y']
+                    if not (0 <= sx < body.w and 0 <= sy < body.h and 0 <= y < torso.h and 0 <= x < torso.w): continue
+                    if torso.idx[y, x] < 0 or (body.idx[sy, sx] >= 0 and body.pal[body.idx[sy, sx]] in skin): continue
+                    body.idx[sy, sx] = body.color(torso.pal[torso.idx[y, x]])
         if who in HAIR_FRONT_ROW:                                        # long hair: hands and things held below the collar go in front of it
             front = hair_front(body, meta['x'], meta['y'], HAIR_FRONT_ROW[who], who, front)
         entry = dict(body=(body, meta['x'], meta['y']), front=(front, meta['x'], meta['y']) if front is not None and (front.idx >= 0).any() else None, pts=man.get('pts', {}), props={})
