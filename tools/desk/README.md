@@ -1,6 +1,6 @@
 # Desk scene art
 
-Version 1.3.0 · Created 2026-10-02 · Modified 2026-10-02 (the room, skyline, lamps and props are generated too; hands softened; Maker bigger, with new poses; the Mondrian)
+Version 1.4.0 · Created 2026-10-02 · Modified 2026-10-03 (motion frames for every activity, hands under the desk for Maker, everything on the desk edge-on)
 
 Everything the co-founders' scene draws that is not simple geometry lives here as sprites, and reaches the site as
 data in `js/desk-sprites.js`. That file is **generated**: change the sources here and run the exporter.
@@ -48,9 +48,17 @@ drawn, the part of the pose below the desk line goes on again, so hands lie over
   becomes the darkest skin tone, and black stays only on a hand's outside edge; the same for stray black strokes inside
   the clothes. That is what makes the hands read as hands at this size. What is still wrong in one pose is fixed pixel
   by pixel in `MANUAL[who][pose]['fix']`, after looking at the hand zoomed next to its generated picture.
-- **Props and frames** (`MANUAL`): `props` lifts a prop out of a pose so the scene can draw it alone (the laptop stays
-  on the desk while the hands are up for the cat; the shaker bottle), `empty` makes the pose without it (`offerEmpty`),
-  and `frames` makes extra frames by moving a box (the writing hand: `write1`, `write2`).
+- **Props and frames** (`MANUAL`): `props` lifts a prop out of a pose so the scene can draw it alone (the laptop or
+  the paper stays on the desk while the hands are under it for the cat; the soldering board while Cole waves smoke
+  away; the shaker bottle), `empty` makes the pose without it (`offerEmpty`), and `frames` makes extra frames by moving
+  a box and/or editing pixels (the writing hand: `write1`, `write2`).
+- **Motion** (Cole's note 9: something always moves): every activity has small motion frames that the scene steps
+  through (`MOTION` in `js/desk-scene.js`): typing forearms `type1`/`type2` and a hand to the trackpad `typetrack`,
+  thumbs on the console `ds1`/`ds2`, a fidgeting hand `rest1`, a scrolled phone `phone1`, `solder1`, and a second way
+  of holding the iron (`solder2`, its own picture). A frame moves a pixel or two, never more.
+- **Hands under the desk** (`hide`): when Maker walks past, hands go down out of her way instead of up in the air.
+- **Flat desk**: the desk is seen straight from the front, so anything lying on it is drawn edge-on (the paper, the
+  soldering boards, the papers by the plant), never from above.
 - **Fronts**: `front_mode='limb'` draws a hand or sleeve, not the pose's own hair, over Ilinca's long hair.
 
 ## The room (env_build.py)
