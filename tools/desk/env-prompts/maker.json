@@ -1,0 +1,6 @@
+{
+ "knead":  [3, "Pixel art sprite of MAKER, seen exactly from the side facing right, standing on all four legs and kneading the surface under her with her front paws: one front paw lifted and about to press down, back slightly arched, tail held up, eyes half closed and content."],
+ "sitside": [3, "Pixel art sprite of MAKER, sitting upright on her haunches, seen exactly from the side facing right, head tilted up, looking up at someone above her to the right, tail curled around her feet."],
+ "curl":   [3, "Pixel art sprite of MAKER, lying down in a loaf seen from the side with her head at the right, eyes closed, relaxed and content, being stroked, tail wrapped around her body."],
+ "flop":   [3, "Pixel art sprite of MAKER, flopped over and lying on her side seen from the side with her head at the right, legs stretched out in front of her, relaxed, eyes half closed."]
+}

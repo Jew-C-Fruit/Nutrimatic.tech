@@ -1,0 +1,1 @@
+The whole object is in the picture with empty space all around it. Plain flat light grey background, no shadow, no table, nothing else in the picture, no text. Crisp low-resolution 16-bit pixel art game sprite: big square pixels, simple bold shapes, hard stair-stepped edges with no anti-aliasing and no blur, flat cel shading with two or three tones per colour, dark outlines.

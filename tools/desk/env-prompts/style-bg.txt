@@ -1,0 +1,1 @@
+Crisp 16-bit pixel art like a Game Boy Advance game background: small square pixels, hard stair-stepped edges with no anti-aliasing and no blur, flat cel shading with two or three tones per colour, dark outlines around objects, a limited palette. No people, no text, no writing, no lamps.
