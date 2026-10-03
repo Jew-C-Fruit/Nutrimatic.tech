@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - poses.py
-Version 1.4.0
+Version 1.4.1
 
 Created: 2026-10-02 - The figures' body poses, from generated pictures, as layers under the base head; the neck, and
   Ilinca's top, taken from the base so every pose joins the same head; front boxes by eye (v1.0.0)
@@ -25,6 +25,8 @@ Modified: 2026-10-03 - Cole's note 1 ("major hand and arm distortion", chin on h
 Modified: 2026-10-03 - Notes 2 and 3: gaps and one-pixel cracks inside a figure are closed (close_holes); objects in
   front of Ilinca's hair are taken from the uncut pose (a laptop reaching into her hair was cut where it lies); her
   phone pose with a blue phone and hands over her hair; a larger laptop for her, its panel made whole (v1.4.0)
+Modified: 2026-10-03 - Note 4: Cole's console redrawn after his reference (the back of a red New 3DS XL), behind his
+  hands (fix op 'under') (v1.4.1)
 
 Every activity in the scene is drawn with a body pose: the whole torso with arms, hands and whatever they hold, made
 by the image model from the figure's own portrait (pose_sprites.py says how) and reduced to a sprite on the base
@@ -67,6 +69,26 @@ MANUAL = {
         'sip': dict(front=(30, 26, 58, 48), front_mode='limb'),            # the fingers round the mug are in front of it, and of the chin
         'drink': dict(front=(40, 28, 61, 58), front_mode='limb'),
         'solder': dict(pts={'tip': (35, 82)}),
+        # note 4, "supposed to be a nintendo DS" (his reference: the back of a red New 3DS XL): the console redrawn as seen
+        # from across the desk, behind his hands: the lid's red back with its two camera lenses, the hinge with its
+        # knuckles, the underside of the bottom half with its label
+        'ds': dict(fix=[('under', 26, 55, [
+            '.kkkkkkkkkkkkkkkkkkkkkkkk.',
+            'kpppprrrrrrrrrrrrrrrrrrrrk',
+            'kprrrrrrrrrkrrkrrrrrrrrrRk',
+            'kprrrrrrrrrrrrrrrrrrrrrrRk',
+            'krrrrrrrrrrrrrrrrrrrrrrrRk',
+            'krrrrrrrrrrrrrrrrrrrrrrrRk',
+            'krrrrrrrrrrrrrrrrrrrrrrrRk',
+            'krrrrrrrrrrrrrrrrrrrrrrrRk',
+            'krrrrrrrrrrrrrrrrrrrrrrRRk',
+            'kRRrrrrrrrrrrrrrrrrrrrRRRk',
+            'kRRRRRRRRRRRRRRRRRRRRRRRRk',
+            'kkRRkkkkkkkkkkkkkkkkkkRRkk',
+            'kRRRRRRRRRRRRRRRRRRRRRRRRk',
+            'kRRRRRRRRRwwwwwwRRRRRRRRRk',
+            'kRRRRRRRRRRRRRRRRRRRRRRRRk',
+            '.kkkkkkkkkkkkkkkkkkkkkkkk.'], {'#f8cda6', '#f6af8d', '#ee947c', '#dc7f6d', '#f9eee0'})]),
         'think': dict(neck_fill=False, keep_neck=True, front=(30, 32, 58, 50), front_mode='arm'),   # the fist under his chin, in front of the jaw
         # petting Maker lying beside him: the picture had a grey cat under his hand; it goes, and the scene lays Maker in
         # its place (RIG below), so the hand lies exactly on her back; the hand moves a little as it strokes
@@ -162,7 +184,7 @@ SOFT_MAX = 6                                                         # the longe
 # letters for the pixel maps in FIX edits ('.' leaves a pixel alone, '_' clears it)
 KEYS = {
     'cole': dict(k='#010101', b='#623e32', d='#dc7f6d', a='#ee947c', m='#f6af8d', s='#f8cda6', h='#f9eee0', t='#211f1f', u='#100f13',
-                 w='#fbfaf5', r='#e4002b', R='#a3001f', g='#cfd2d4', G='#9a9ea2'),
+                 w='#fbfaf5', r='#e4002b', R='#a3001f', g='#cfd2d4', G='#9a9ea2', p='#ff5a72'),
     'ilinca': dict(k='#010100', D='#b5705f', d='#d18881', a='#f1a49b', e='#e0b3a2', x='#e1cec4', s='#f9e2d2', h='#faebe1', j='#292423', J='#191718',
                    w='#fbfbf9', W='#fbfaf5', N='#5f4030', n='#6f4b3a', o='#9a6f50', O='#bd8e5d', y='#d9ae71', r='#e4002b', R='#a3001f', g='#cfd2d4', G='#9a9ea2'),
 }
@@ -275,6 +297,15 @@ def fix(spr, ox, oy, edits, pal_key):
             sub = s.idx[max(0, y0 - oy):max(0, y1 + 1 - oy), max(0, x0 - ox):max(0, x1 + 1 - ox)]
             ownix = [i for i, cc in enumerate(s.pal) if cc in own]; ci = s.color(col)
             sub[~np.isin(sub, ownix)] = ci
+            continue
+        if e[0] == 'under':                                              # a pixel map drawn behind whatever is in the keep colours (hands in front of a prop)
+            _, x, y, rows, keepc = e
+            keepix = set(i for i, cc in enumerate(s.pal) if cc in keepc)
+            for r_, row in enumerate(rows):
+                for i_, ch in enumerate(row):
+                    sx, sy = x + i_ - ox, y + r_ - oy
+                    if ch == '.' or not (0 <= sx < s.w and 0 <= sy < s.h) or int(s.idx[sy, sx]) in keepix: continue
+                    s.idx[sy, sx] = -1 if ch == '_' else s.color(pal_key[ch])
             continue
         if e[0] == 'rows':
             _, x, y, rows = e; s.rows(x - ox, y - oy, rows, pal_key)
