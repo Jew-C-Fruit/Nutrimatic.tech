@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.7.0
+ * Version 0.8.0
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -18,6 +18,16 @@
  * Modified: 2026-10-02 - No arm is drawn in code any more ("arms and hands look dreadful"). Every activity has a body pose
  *   generated as one picture (torso, arms, hands and what they hold) and drawn under the same head; the hands' part of a
  *   pose lies over the desk; a few poses have a front part over the face (v0.7.0)
+ *
+ * Modified: 2026-10-02 - Bodies no longer bob (a laptop moved with the breath); a nod is a forward tilt (the face
+ *   shortens a pixel) rather than the head moving down; both tilt toward their work and look at it; Ilinca's head
+ *   sits lower (her neck read too long); small expression changes for both, Ilinca at rest no longer smiling. The room
+ *   is generated art now, like the figures (assets/desk/*.png): painted brick, a steel factory window onto Midtown
+ *   (Empire State, Chrysler, One Vanderbilt; lit at night after the real skyline), shelves, a walnut desk, and an
+ *   anglepoise lamp each, Cole's red and Ilinca's white. Writing moves the hand; the bottle is handed across with
+ *   both arms out. Maker is a fifth bigger and shaded; she kneads her spot, lies on the desk for a while, gets
+ *   petted, blinks, looks at them, sits on a laptop or the paper (and is petted anyway), keeps clear of the
+ *   soldering, and they lift their hands when she walks past (v0.8.0)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(),
@@ -39,10 +49,27 @@
   var g = off.getContext("2d");
 
   /* ---------- layouts: a wide desk on desktop, the two of them closer on phones (240x160) ---------- */
+  // With the generated room (assets/desk) the poster, clock and window are where that picture has them; `art` holds
+  // those places, `win` etc. are the drawn room's (the fallback when the pictures do not load).
   var LAYOUTS = {
-    wide:   { W: 360, H: 160, cole: 124, ilinca: 226, poster: { x: 14, y: 20, w: 58, h: 62 }, clock: { x: 88, y: 34 }, win: { x: 280, y: 22, w: 66, h: 74 }, lamp: 177, pendant: 177, slots: [36, 272, 338, 12, 306] },
-    narrow: { W: 240, H: 160, cole: 60, ilinca: 162, poster: { x: 1, y: 20, w: 51, h: 50 }, clock: { x: 98, y: 30 }, win: { x: 190, y: 22, w: 46, h: 66 }, lamp: 112, pendant: 126, slots: [226, 10] }
+    wide:   { W: 360, H: 160, cole: 124, ilinca: 226, poster: { x: 14, y: 20, w: 58, h: 62 }, clock: { x: 88, y: 34 }, win: { x: 280, y: 22, w: 66, h: 74 }, lamp: 177, pendant: 177, slots: [36, 272, 338, 12, 306],
+              art: { poster: { x: 13, y: 20, w: 51, h: 62 }, clock: { x: 88, y: 34, r: 7 }, win: { x: 262, y: 18, w: 88, h: 84 }, sky: { x: 254, y: 15 }, lamps: [67, 290], slots: [34, 318, 344] } },
+    narrow: { W: 240, H: 160, cole: 60, ilinca: 162, poster: { x: 1, y: 20, w: 51, h: 50 }, clock: { x: 98, y: 30 }, win: { x: 190, y: 22, w: 46, h: 66 }, lamp: 112, pendant: 126, slots: [226, 10],
+              art: { poster: { x: 4, y: 20, w: 38, h: 50, mark: true }, clock: { x: 99, y: 31, r: 7 }, win: { x: 192, y: 20, w: 44, h: 70 }, sky: { x: 130, y: 3 }, lamps: [0, 226], slots: [] } }
   };
+  // The environment pictures. Until they have loaded (or if they never do) the room is drawn in code as before.
+  var ENV = { ready: false, img: {} };
+  (function () {
+    var base = "assets/desk/", names = ["room-wide", "desk-wide", "room-narrow", "desk-narrow", "sky-day", "sky-night", "lamp-red", "lamp-white", "prop-bottle", "prop-mug", "prop-papers", "prop-vase", "prop-plant"], left = names.length;
+    var inline = window.NutrimaticDeskAssets || {};                      // a self-contained preview hands the pictures over as data
+    try { if (document.currentScript && document.currentScript.src) { base = new URL("../assets/desk/", document.currentScript.src).href; } } catch (e) { /* relative path */ }
+    names.forEach(function (n) {
+      var im = new Image();
+      im.onload = function () { if (--left === 0) { ENV.ready = true; applyArt(); if (typeof render === "function") { render(frame); } } };
+      im.onerror = function () { left = -1; };
+      im.src = inline[n] || (base + n + ".png"); ENV.img[n] = im;
+    });
+  })();
   var L = LAYOUTS.wide, W = L.W, H = L.H, WIN = L.win, layoutName = "";
 
   /* ---------- palette (room and props; the figures carry their own) ---------- */
@@ -183,6 +210,62 @@
     px(x - 7, 22, C.ink3); px(x - 6, 23, C.ink3);
   }
 
+  /* ---------- the generated room (assets/desk): the poster's mark and the clock's hands are drawn on it ---------- */
+  function applyArt() { if (layoutName) { WIN = ENV.ready ? L.art.win : L.win; makeStars(); } }
+  function drawPosterArt() {
+    var P = L.art.poster, mx = P.x + ((P.w - 22) / 2 | 0), my = P.y + (P.h > 55 ? 13 : 9);
+    for (var r = 0; r < NU.length; r++) { for (var i = 0; i < NU[r].length; i++) { if (NU[r][i] === "w") { rect(mx + i * 2, my + r * 2, 2, 2, C.ink); } } }
+    if (P.mark) { hline(mx, my + 16, 22, C.ink); return; }                // on the phone his hair would cut the word: the mark alone
+    hline(P.x + 8, my + 16, P.w - 16, C.ink);
+    drawText("NUTRIMATIC", P.x + ((P.w - 39) / 2 | 0), my + 22, C.ink);
+    hline(P.x + ((P.w - 18) / 2 | 0), my + 31, 18, C.greyLight);
+  }
+  function drawClockArt(h) {
+    var K = L.art.clock, cx = K.x, cy = K.y, r = K.r - 1;
+    for (var dy = -r; dy <= r; dy++) { var half = Math.floor(Math.sqrt(r * r - dy * dy)); hline(cx - half, cy + dy, half * 2 + 1, "#f6f4ee"); }
+    px(cx, cy - r + 1, C.ink); px(cx, cy + r - 1, C.ink); px(cx - r + 1, cy, C.ink); px(cx + r - 1, cy, C.ink);
+    var hr = (h % 12) / 12 * Math.PI * 2, mn = (h % 1) * Math.PI * 2;
+    for (var i = 1; i <= 3; i++) { px(cx + Math.round(Math.sin(hr) * i), cy - Math.round(Math.cos(hr) * i), C.ink); }
+    for (var j = 1; j <= r - 1; j++) { px(cx + Math.round(Math.sin(mn) * j), cy - Math.round(Math.cos(mn) * j), C.red); }
+    px(cx, cy, C.ink);
+  }
+  // Midtown through the window: the generated skyline by day, its lit-up twin by night (crossfaded at dusk), and the
+  // red aircraft lights on the tallest tops, blinking (Empire State, Chrysler, One Vanderbilt and two more; in the
+  // skyline picture's own pixels).
+  var AIRCRAFT = [[16, 36], [80, 33], [94, 24], [123, 38], [110, 47]];
+  function drawSkylineArt(h, f) {
+    var A = L.art, n = clamp(nightAmount(h) * 1.25, 0, 1);
+    g.save(); g.beginPath(); g.rect(WIN.x, WIN.y, WIN.w, WIN.h); g.clip();
+    if (n < 1) { g.drawImage(ENV.img["sky-day"], A.sky.x, A.sky.y); }
+    if (n > 0) { g.globalAlpha = n; g.drawImage(ENV.img["sky-night"], A.sky.x, A.sky.y); g.globalAlpha = 1; }
+    if (n > 0.4 && (f % 18) < 9) { for (var i = 0; i < AIRCRAFT.length; i++) { px(A.sky.x + AIRCRAFT[i][0], A.sky.y + AIRCRAFT[i][1], C.beacon); } }
+    g.restore();
+  }
+  // The anglepoise lamps stand on the desk at the outer sides, heads over each one's work: Cole's red on his left,
+  // Ilinca's white (the same lamp, mirrored) on her right. On when it is dark, or when the owner solders or writes.
+  // The picture is 43x47: base centred at x 9.5, the inside of the shade at (34..36, 10..13), its mouth at (39, 14).
+  var BULB = [[36, 10], [35, 11], [36, 11], [35, 12], [36, 12], [34, 13], [35, 13], [36, 13]];
+  function lampGeom(i) { var bx = L.art.lamps[i], flip = i === 1; return { x: flip ? bx - 33 : bx - 9, y: DESK_Y - 43, mx: flip ? bx - 30 : bx + 30, my: DESK_Y - 29, flip: flip }; }
+  function lampIsOn(i, h) { var p = people[i]; return !p.hidden && (isDark(h) || p.activity === "solder" || p.activity === "write"); }
+  function slantCone(q, strength, overlay, w1) {
+    var y0 = q.my, y1 = DESK_Y + 6, x1 = q.mx + (q.flip ? -24 : 24);
+    if (overlay) { g.save(); g.globalCompositeOperation = "overlay"; }
+    for (var y = y0; y < y1; y++) {
+      var t = (y - y0) / (y1 - y0), cx = Math.round(lerp(q.mx, x1, t)), half = Math.round(lerp(2, w1 || 24, t));
+      rect(cx - half, y, half * 2, 1, "rgba(255,214,150," + ((overlay ? 0.9 - t * 0.25 : 1) * strength).toFixed(3) + ")");
+    }
+    if (overlay) { g.restore(); }
+  }
+  function drawLampsArt(h) {
+    for (var i = 0; i < 2; i++) {
+      var q = lampGeom(i), im = ENV.img[i === 0 ? "lamp-red" : "lamp-white"], on = lampIsOn(i, h);
+      if (on && !isDark(h)) { slantCone(q, 0.10, false, 20); }                 // by day a working lamp shows only faintly
+      if (q.flip) { g.save(); g.translate(q.x + im.width, q.y); g.scale(-1, 1); g.drawImage(im, 0, 0); g.restore(); } else { g.drawImage(im, q.x, q.y); }
+      if (on) { drawBulb(q); }
+    }
+  }
+  function drawBulb(q) { for (var k = 0; k < BULB.length; k++) { px(q.flip ? q.x + 42 - BULB[k][0] : q.x + BULB[k][0], q.y + BULB[k][1], C.bulb); } }
+
   /* ---------- window with a New York skyline ---------- */
   var stars = [], clouds = [{ x: 0, y: 14, w: 14 }, { x: 30, y: 26, w: 9 }, { x: 52, y: 8, w: 11 }];
   function makeStars() {
@@ -232,6 +315,7 @@
       rect(sx, sy, 6, 6, C.sun); px(sx, sy, sky[0]); px(sx + 5, sy, sky[0]); px(sx, sy + 5, sky[0]); px(sx + 5, sy + 5, sky[0]);
       for (var c = 0; c < clouds.length; c++) { var cl = clouds[c]; var cx = WIN.x + ((cl.x + f / 20) % (WIN.w + cl.w)) - cl.w, cw = cl.w; if (cx < WIN.x) { cw -= WIN.x - cx; cx = WIN.x; } if (cx + cw > WIN.x + WIN.w) { cw = WIN.x + WIN.w - cx; } if (cw > 2) { hline(cx + 1, WIN.y + cl.y, cw - 2, C.cloud); hline(cx, WIN.y + cl.y + 1, cw, C.cloud); hline(cx, WIN.y + cl.y + 2, cw, C.cloudS); } }
     }
+    if (ENV.ready) { drawSkylineArt(h, f); return; }
     var by = WIN.y + WIN.h - 4;
     for (var a = 0; a < FAR.length; a++) { drawBuilding(FAR[a], WIN.x, by - 2, dark, f, true); }
     for (var b = 0; b < NEAR.length; b++) { drawBuilding(NEAR[b], WIN.x, by, dark, f, false); }
@@ -324,6 +408,7 @@
     rect(x + 5, y - 9, 2, 6, C.mug); px(x + 7, y - 8, C.mug); px(x + 7, y - 5, C.mug); vline(x + 7, y - 8, 4, C.mugS);
     if (steam) { var k = (f >> 2) % 3; px(x - 2 + k, y - 14, C.smoke2); px(x + 1 - k, y - 17, C.smoke2); px(x - 1 + k, y - 20, C.smoke2); }
   }
+  function steam(x, y, f) { var k = (f >> 2) % 3; px(x - 1 + k, y, C.smoke2); px(x + 2 - k, y - 3, C.smoke2); px(x + k, y - 6, C.smoke2); }
   function propSolderStation(x) {
     rect(x - 10, DESK_Y - 8, 20, 8, C.ink3); outline(x - 10, DESK_Y - 8, 20, 8, C.ink); px(x - 7, DESK_Y - 5, C.red); px(x - 4, DESK_Y - 5, C.greenL); rect(x, DESK_Y - 6, 6, 3, C.greyLight);
     rect(x + 6, DESK_Y - 20, 2, 12, C.grey); hline(x + 3, DESK_Y - 20, 8, C.grey);
@@ -341,17 +426,24 @@
   // face (a mug at the mouth). Nothing about the arms is drawn in code.
   function makeCharacter(name, o) {
     var a = ART[name], poses = {};
-    Object.keys(a.poses || {}).forEach(function (k) { var q = a.poses[k]; poses[k] = { body: bake(q.b, a.pal), front: q.f ? bake(q.f, a.pal) : null, pts: q.pts || {} }; });
+    Object.keys(a.poses || {}).forEach(function (k) {
+      var q = a.poses[k], props = {};
+      Object.keys(q.p || {}).forEach(function (n) { props[n] = bake(q.p[n], a.pal); });
+      poses[k] = { body: bake(q.b, a.pal), front: q.f ? bake(q.f, a.pal) : null, pts: q.pts || {}, props: props };
+    });
     if (!poses.rest) { poses.rest = { body: bake(a.torso, a.pal), front: null, pts: {} }; }
     return {
-      name: name, art: a, poses: poses, head: bake(a.head, a.pal), x: 0, activities: o.activities, restMouth: o.restMouth,
+      name: name, art: a, poses: poses, head: bake(a.head, a.pal), x: 0, activities: o.activities, restMouth: o.restMouth, headDy: o.headDy, tiltRow: o.tiltRow, workLook: o.workLook,
+      tilt: 0, exprUntil: 0, nextExprAt: 60 + Math.random() * 120,
       activity: "rest", actUntil: 0, actFrame: 0, look: { x: 0, y: 0 }, lookTarget: { x: 0, y: 0 }, turn: 0, nod: 0, bob: 0, slide: 0, hidden: false,
       mouth: "neutral", brows: null, blink: 0, nextBlink: 20 + Math.random() * 40, talking: false, gesture: false, react: null, reactUntil: 0,
-      phoneOnDesk: false, hold: null, drawn: null
+      phoneOnDesk: false, hold: null, drawn: null, laptopOut: false, catLift: null
     };
   }
-  var cole = makeCharacter("cole", { restMouth: "neutral", activities: ["type", "solder", "solder", "think", "coffee", "stretch", "rest", "type", "write"] });
-  var ilinca = makeCharacter("ilinca", { restMouth: "smile", activities: ["type", "type", "phone", "coffee", "think", "write", "write", "stretch", "rest"] });
+  // headDy lowers the head on the body (Ilinca's neck read too long); tiltRow is where the head bends for a nod: rows
+  // above it drop a pixel, so the face shortens as it would tipping forward, instead of the whole head moving down.
+  var cole = makeCharacter("cole", { restMouth: "neutral", headDy: 0, tiltRow: 28, workLook: { type: [0, 1], write: [0, 1], solder: [0, 1] }, activities: ["type", "solder", "solder", "think", "coffee", "stretch", "rest", "type", "write"] });
+  var ilinca = makeCharacter("ilinca", { restMouth: "soft", headDy: 3, tiltRow: 24, workLook: { type: [-1, 1], write: [-1, 1], phone: [0, 1] }, activities: ["type", "type", "phone", "coffee", "think", "write", "write", "stretch", "rest"] });
   var people = [cole, ilinca];
   function other(p) { return p === cole ? ilinca : cole; }
   function who(n) { return n === "cole" ? cole : ilinca; }
@@ -359,7 +451,7 @@
 
   // Where the figure's sprite sits: its centre column on the character's x, its desk row on the desk top.
   function origin(p) { var a = p.art; return { x: p.x - a.centre + Math.round(p.slide), y: DESK_Y - a.desk + p.bob }; }
-  function point(p, name, o) { o = o || origin(p); var q = p.art.points[name]; return { x: o.x + q[0], y: o.y + q[1] + p.nod }; }
+  function point(p, name, o) { o = o || origin(p); var q = p.art.points[name]; return { x: o.x + q[0], y: o.y + q[1] + p.headDy }; }
   function eyeY(p) { return point(p, "eye").y; }
 
   // Which pose an activity is drawn with. A pose the art does not have falls back to resting.
@@ -368,22 +460,31 @@
     stretch: "stretch", wave: "wave", highfive: "highfive", fold: "fold", "throw": "throw", shake: "shake", drink: "drink", offer: "offer",
     take: "take", rubEye: "yawn", yawn: "yawn", pet: "pet", fan: "wave", fistpump: "fist", carry: "carry", release: "highfive"
   };
+  // Writing: the hand moves along the line in small steps and comes back (write1 and write2 are the write pose with
+  // the hand moved one and two pixels on).
+  var WRITING = ["write", "write", "write1", "write1", "write2", "write2", "write2", "write1", "write", "write", "write", "write1", "write2", "write", "write", "write"];
   function poseOf(p, f) {
-    var a = p.activity, name = POSE_OF[a] || "rest";
+    var a = p.activity, name = POSE_OF[a] || (p.poses[a] ? a : "rest");
     if (a === "coffee") { name = ((p.actFrame % 40) >= 12 && (p.actFrame % 40) < 26) ? "sip" : "mug"; }
     if (p.react === "surprise") { name = "surprise"; }
     else if (p.gesture && (a === "rest" || a === "think")) { name = "talk"; }      // a hand joins in only when it is free
     if (name === "wave" && p.poses.wave2 && ((p.actFrame >> 2) % 2)) { name = "wave2"; }
+    if (name === "write" && p.poses.write1) { name = WRITING[(p.actFrame >> 1) % WRITING.length]; }
     return p.poses[name] ? name : "rest";
   }
   function posePoint(p, name) { var d = p.drawn; if (!d || !d.pose.pts[name]) { return null; } var q = d.pose.pts[name]; return { x: d.o.x + q[0], y: d.o.y + q[1] + d.jig }; }
 
+  function drawHead(p, o) {
+    var h = p.head, x = (o.x + h.x) | 0, y = (o.y + h.y + p.headDy) | 0, split = Math.max(0, Math.min(h.h, p.tiltRow - h.y)), t = p.tilt;
+    if (split > 0) { g.drawImage(h.c, 0, 0, h.w, split, x, y + t, h.w, split); }
+    if (split < h.h) { g.drawImage(h.c, 0, split, h.w, h.h - split, x, y + split, h.w, h.h - split); }
+  }
   function drawFace(p, o, f) {
-    var a = p.art, hy = o.y + p.nod, closed = p.blink > 0 || p.mouth === "laugh" || p.mouth === "yawn";
+    var a = p.art, hy = o.y + p.headDy, t = p.tilt, closed = p.blink > 0 || p.mouth === "laugh" || p.mouth === "yawn";
     var lx = Math.round(p.look.x), ly = Math.round(p.look.y);
-    var key = closed ? "closed" : ((ly > 0 ? "down" : "open") + (lx < 0 ? -1 : lx > 0 ? 1 : 0));
-    pixels(a.eyes[key] || a.eyes.open0, o.x, hy, a.pal);
-    pixels(a.brows[p.brows || (ly < 0 ? "up" : "neutral")] || a.brows.neutral, o.x, hy, a.pal);
+    var key = closed ? "closed" : ((ly > 0 || t > 0 ? "down" : "open") + (lx < 0 ? -1 : lx > 0 ? 1 : 0));
+    pixels(a.eyes[key] || a.eyes.open0, o.x, hy + t, a.pal);
+    pixels(a.brows[p.brows || (ly < 0 ? "up" : "neutral")] || a.brows.neutral, o.x, hy + t, a.pal);
     var m = p.mouth; if (m === "talk") { m = (f % 4 < 2) ? "open" : "neutral"; } if (m === "neutral") { m = p.restMouth; }
     pixels(a.mouth[m] || a.mouth.neutral, o.x, hy, a.pal);
   }
@@ -394,9 +495,9 @@
     var jig = (p.activity === "shake" && (p.actFrame % 2)) ? 1 : (p.activity === "fistpump" && ((p.actFrame >> 1) % 2)) ? -1 : 0;
     p.drawn = { o: o, pose: pose, name: name, jig: jig };
     blit(pose.body, o.x, o.y + jig);
-    blit(p.head, o.x, o.y + p.nod);
+    drawHead(p, o);
     drawFace(p, o, f);
-    if (pose.front) { blit(pose.front, o.x, o.y + jig); }
+    if (pose.front) { blit(pose.front, o.x, o.y + jig + p.headDy); }
     if (p.activity === "solder") {                                       // the iron's tip: a glow, a wisp of smoke, now and then a spark
       var tip = posePoint(p, "tip");
       if (tip) { px(tip.x, tip.y, (f % 6 < 3) ? C.ironHot : C.iron); var sm = (f >> 1) % 10; px(tip.x + (sm % 2), tip.y - 2 - sm, sm < 5 ? C.smoke : C.smoke2); if (f % 23 === 0) { px(tip.x - 1, tip.y - 1, C.sun); px(tip.x + 1, tip.y - 2, C.sun); } }
@@ -406,8 +507,22 @@
   function drawOnDesk(p) {
     var d = p.drawn; if (p.hidden || !d) { return; }
     g.save(); g.beginPath(); g.rect(0, DESK_Y, W, H - DESK_Y); g.clip();
-    blit(d.pose.body, d.o.x, d.o.y + d.jig); if (d.pose.front) { blit(d.pose.front, d.o.x, d.o.y + d.jig); }
+    blit(d.pose.body, d.o.x, d.o.y + d.jig); if (d.pose.front) { blit(d.pose.front, d.o.x, d.o.y + d.jig + p.headDy); }
     g.restore();
+  }
+  // The laptop (or the paper) stays on the desk while the hands are off it: lifted for the cat, or petting her.
+  function drawLaptopOut(p) {
+    if (p.hidden) { return; }
+    var from = p.laptopOut ? "type" : (p.catLift === "type" || p.catLift === "write") ? p.catLift : null, q = from && p.poses[from];
+    if (!q || p.activity === from) { return; }
+    var o = origin(p); Object.keys(q.props).forEach(function (n) { blit(q.props[n], o.x, o.y); });
+  }
+  // A hand petting the cat lies on her: that part of the pose (a box in the figure's coordinates) goes on again after her.
+  var PET_HAND = { cole: { pet: [60, 72, 86, 100], pethead: [26, 54, 54, 74] }, ilinca: { pet: [-20, 66, 2, 88], pethead: [12, 54, 40, 70] } };
+  function drawPetHand(p) {
+    var d = p.drawn, box = d && PET_HAND[p.name][d.name]; if (!box || p.hidden || !actors.cat) { return; }
+    g.save(); g.beginPath(); g.rect(d.o.x + box[0], d.o.y + box[1], box[2] - box[0], box[3] - box[1]); g.clip();
+    blit(d.pose.body, d.o.x, d.o.y + d.jig); g.restore();
   }
 
   /* ---------- desk set per visit ---------- */
@@ -420,8 +535,23 @@
     catch (e) { return Math.floor(Math.random() * SETS.length); }
   })();
   var extras = [];   // things left on the desk by scenarios: {kind, x}
+  function propArt(name, x, y) { var im = ENV.img["prop-" + name]; g.drawImage(im, Math.round(x - im.width / 2), y - im.height); }
   function drawProps(f) {
     var set = SETS[setIndex];
+    if (ENV.ready) {
+      for (var j = 0; j < L.art.slots.length && j < set.length; j++) {
+        var kind = set[j].indexOf("vase") === 0 ? "vase" : set[j] === "cartridge" ? "papers" : set[j];
+        propArt(kind, L.art.slots[j], DESK_Y + 2); if (kind === "mug") { steam(L.art.slots[j] - 1, DESK_Y - 10, f); }
+      }
+      if (cole.activity === "solder" && !cole.hidden) { propSolderStation(cole.x - 32); }
+      if (ilinca.phoneOnDesk && !ilinca.hidden) { propPhoneOnDesk(ilinca.x - 28); }
+      for (var m = 0; m < extras.length; m++) {
+        var e2 = extras[m];
+        if (e2.kind === "plane") { propPlane(e2.x, DESK_Y - 2, e2.dir); } else if (e2.kind === "bottle") { propArt("bottle", e2.x, DESK_Y + 2); }
+        else if (e2.kind === "mug") { propArt("mug", e2.x, DESK_Y + 2); if (e2.steam) { steam(e2.x - 1, DESK_Y - 10, f); } }
+      }
+      return;
+    }
     for (var i = 0; i < L.slots.length && i < set.length; i++) {
       var k = set[i], x = L.slots[i];
       if (k === "plant") { propPlant(x); } else if (k === "papers") { propPapers(x); } else if (k === "bottle") { propBottle(x, DESK_Y); }
@@ -475,11 +605,15 @@
   function faceLevel(p) { return eyeY(p); }
 
   /* ---------- Maker, the cat ---------- */
-  // Drawn from sprites when the art has them (ART.maker), otherwise as a simple grey cat. (x, y) = feet centre on the desk.
+  // Drawn from sprites when the art has them (ART.maker: walk0/1, sit, sitside, yawn, loaf, curl, stand, knead0/1, most
+  // with a ...Blink twin), otherwise as a simple grey cat. (x, y) = feet centre on the desk. She stands on the desk top,
+  // in front of their arms (CAT_Y), and blinks every second or three.
   var MAKER = ART.maker ? (function () { var out = {}; Object.keys(ART.maker).forEach(function (k) { if (k !== "pal") { out[k] = bake(ART.maker[k], ART.maker.pal); } }); return out; })() : null;
-  function drawMaker(x, y, pose, dir, f) {
+  var CAT_Y = DESK_Y + 2;
+  function drawMaker(x, y, pose, dir, f, blink) {
     var d = dir || 1;
-    var key = pose === "walk" ? "walk" + ((f >> 2) % 2) : pose;
+    var key = pose === "walk" ? "walk" + ((f >> 2) % 2) : pose === "knead" ? "knead" + ((f >> 2) % 2) : pose;
+    if (blink && MAKER && MAKER[key + "Blink"]) { key += "Blink"; }
     if (MAKER && MAKER[key]) {
       var s = MAKER[key], ox = x - (s.w / 2 | 0), oy = y - s.h + (ART.maker[key].g || 0) + (pose === "walk" && (f >> 1) % 2 ? 1 : 0);
       if (d > 0) { blit(s, ox - s.x, oy - s.y); } else { blitFlip(s, ox - s.x, oy - s.y); }
@@ -512,7 +646,8 @@
   var scenario = null, nextScenarioAt = 22 * FPS, actors = {};
   function startScenario(name) {
     var sc = SCENARIOS[name]; if (!sc || (sc.when && !sc.when())) { return false; }
-    scenario = { name: name, t0: frame, steps: sc.steps.map(function (s) { return { at: s[0], fn: s[1], done: false }; }), dur: sc.dur, update: sc.update, drawBack: sc.drawBack, drawFront: sc.drawFront, end: sc.end };
+    if (scenario && scenario.end) { scenario.end(); }                    // (only the test hooks start one over another)
+    scenario = { name: name, t0: frame, steps: sc.steps.map(function (s) { return { at: s[0], fn: s[1], done: false }; }), dur: sc.dur, update: sc.update, drawBack: sc.drawBack, drawMid: sc.drawMid, drawFront: sc.drawFront, end: sc.end };
     actors = {}; if (sc.setup) { sc.setup(); }
     people.forEach(function (p) { p.actUntil = frame + 1e6; p.gesture = false; }); convo = null;
     return true;
@@ -522,9 +657,23 @@
     var t = (f - scenario.t0) / FPS;
     scenario.steps.forEach(function (s) { if (!s.done && t >= s.at) { s.done = true; s.fn(t); } });
     if (scenario.update) { scenario.update(t, f); }
-    if (t >= scenario.dur) { if (scenario.end) { scenario.end(); } scenario = null; people.forEach(function (p) { p.turn = 0; p.brows = p.activity === "think" ? "down" : null; p.mouth = "neutral"; p.hold = null; nextActivity(p); }); nextScenarioAt = f + (45 + Math.random() * 35) * FPS; }
+    if (t >= scenario.dur) { if (scenario.end) { scenario.end(); } scenario = null; actors = {}; people.forEach(function (p) { p.turn = 0; p.brows = p.activity === "think" ? "down" : null; p.mouth = "neutral"; p.hold = null; nextActivity(p); }); nextScenarioAt = f + (45 + Math.random() * 35) * FPS; }
   }
   function neutral(p) { p.mouth = "neutral"; p.brows = null; p.turn = 0; p.lookTarget = { x: 0, y: 1 }; }
+  // Maker in a scenario: her blinks, and hands that come up off the desk while she walks past them.
+  var HANDS_DOWN = { rest: 1, type: 1, write: 1, think: 1, coffee: 1 };
+  function catTick(c, f) {
+    if (!c.nextBlink) { c.nextBlink = f + 12 + Math.random() * 24; }
+    if (f >= c.nextBlink) { c.blinkUntil = f + 2; c.nextBlink = f + 14 + Math.random() * 26; }
+    c.blink = c.shut || f < (c.blinkUntil || 0);
+    people.forEach(function (p) {
+      if (p.hidden || p.held) { return; }
+      var near = c.state === "walk" && Math.abs(c.x - p.x) < 36;
+      if (near && !p.catLift && HANDS_DOWN[p.activity]) { p.catLift = p.activity; setActivity(p, "lift", 99); }
+      else if (!near && p.catLift && Math.abs(c.x - p.x) > 42) { setActivity(p, p.catLift, 99); p.catLift = null; }
+    });
+  }
+  function catEnd() { people.forEach(function (p) { if (p.catLift) { setActivity(p, p.catLift, 99); } p.catLift = null; p.held = false; p.laptopOut = false; }); }
 
   var SCENARIOS = {
     // Cole sneaks a game on a red DS; Ilinca notices; he puts it away.
@@ -596,39 +745,70 @@
         if (b.state === "walk") { px(x - 1, y + 5, C.sun); px(x + 2, y + 5, C.sun); }
       }
     },
-    // Maker walks the length of the desk, sits for a scratch from Ilinca, yawns, and moves on.
-    cat: {
-      dur: 20,
-      setup: function () { actors.cat = { x: -34, state: "walk", dir: 1 }; },
-      steps: [
-        [2.0, function () { people.forEach(function (p) { p.mouth = "smile"; }); }],
-        [9.5, function () { setActivity(ilinca, "pet", 99); }],
-        [13.0, function () { setActivity(ilinca, "rest", 99); actors.cat.state = "yawn"; }],
-        [14.6, function () { actors.cat.state = "walk"; }],
-        [17.5, function () { people.forEach(function (p) { neutral(p); }); }]
-      ],
-      update: function (t, f) {
-        var c = actors.cat, sitX = ilinca.x - 42;
-        if (c.state === "walk") { c.x += 3; if (c.x >= sitX && t < 9.5) { c.state = "sit"; c.x = sitX; } }
-        if (t >= 2 && t < 17) { people.forEach(function (p) { p.lookTarget = aimAt(p, c.x, DESK_Y - 14); }); }
+    // Maker comes along the desk (hands come up as she passes), kneads a spot between them, lies down for a good
+    // while and blinks at them; one of them pets her (eyes shut, content); she sits up, looks at each in turn (they
+    // look back), and goes. Never while Cole is soldering.
+    visit: {
+      dur: 34, when: function () { return cole.activity !== "solder"; },
+      setup: function () {
+        var fromLeft = Math.random() < 0.5;
+        actors.cat = { x: fromLeft ? -36 : W + 36, state: "walk", dir: fromLeft ? 1 : -1, spot: midX() + (fromLeft ? 3 : -3), phase: "in" };
+        actors.petter = Math.random() < 0.5 ? cole : ilinca;
       },
-      drawFront: function (t, f) { var c = actors.cat; drawMaker(Math.round(c.x), DESK_Y, c.state, c.dir, f); }
-    },
-    // Maker settles on the desk between them for a while, one paw over the edge.
-    loaf: {
-      dur: 16,
-      setup: function () { actors.cat = { x: -34, state: "walk", dir: 1 }; },
       steps: [
         [1.5, function () { people.forEach(function (p) { p.mouth = "smile"; }); }],
-        [7.0, function () { people.forEach(function (p) { neutral(p); p.mouth = "smile"; }); }],
-        [12.5, function () { actors.cat.state = "walk"; }]
+        [13.0, function () { var p = actors.petter; if (p.catLift) { p.catLift = null; } p.held = true; setActivity(p, "pet", 99); p.mouth = "smile"; actors.cat.shut = true; }],
+        [19.0, function () { var p = actors.petter; setActivity(p, "rest", 99); p.held = false; actors.cat.shut = false; }],
+        [20.5, function () { var c = actors.cat; c.state = "sitside"; c.dir = cole.x < c.x ? -1 : 1; lookAt(cole, c.x, CAT_Y - 30); cole.mouth = "smile"; }],
+        [23.0, function () { var c = actors.cat; c.dir = -c.dir; lookAt(ilinca, c.x, CAT_Y - 30); ilinca.mouth = "smile"; }],
+        [25.5, function () { var c = actors.cat; c.state = "walk"; c.phase = "out"; c.dir = c.x < W / 2 ? -1 : 1; }],
+        [31.0, function () { people.forEach(function (p) { neutral(p); }); }]
       ],
       update: function (t, f) {
-        var c = actors.cat, restX = midX() + (layoutName === "wide" ? 4 : 2);
-        if (c.state === "walk") { c.x += 3; if (c.x >= restX && t < 12) { c.state = "loaf"; c.x = restX; } }
-        if (t >= 1.5 && t < 7) { people.forEach(function (p) { p.lookTarget = aimAt(p, c.x, DESK_Y - 14); }); }
+        var c = actors.cat; catTick(c, f);
+        if (c.phase === "in" && c.state === "walk") { c.x += 3 * c.dir; if ((c.dir > 0 && c.x >= c.spot) || (c.dir < 0 && c.x <= c.spot)) { c.x = c.spot; c.state = "knead"; c.kneadUntil = f + 3 * FPS; } }
+        else if (c.state === "knead" && f >= c.kneadUntil) { c.state = "curl"; }
+        else if (c.phase === "out") { c.x += 3 * c.dir; }
+        if (t >= 1.5 && t < 30 && c.state !== "sitside") { people.forEach(function (p) { if (!p.held) { p.lookTarget = aimAt(p, c.x, CAT_Y - 14); } }); }
       },
-      drawFront: function (t, f) { var c = actors.cat; drawMaker(Math.round(c.x), DESK_Y, c.state, c.dir, f); }
+      drawFront: function (t, f) { var c = actors.cat; drawMaker(Math.round(c.x), CAT_Y, c.state, c.dir, f, c.blink); },
+      end: catEnd
+    },
+    // Maker picks whoever is typing or writing and sits on the laptop (on the keyboard, ears over the screen) or on
+    // the paper. Hands up, a look; the other one laughs; then a scratch on the head anyway. She leaves, thinks better
+    // of it, and comes back once more.
+    laptop: {
+      dur: 30, when: function () { return cole.activity !== "solder" && people.some(function (p) { return p.activity === "type" || p.activity === "write"; }); },
+      setup: function () {
+        var cands = people.filter(function (p) { return p.activity === "type" || p.activity === "write"; }), v = cands[(Math.random() * cands.length) | 0];
+        var onLaptop = v.activity === "type", o = origin(v), box = onLaptop ? v.poses.type.props.laptop : v.poses.write && v.poses.write.props.paper;
+        var sx = box ? o.x + box.x + (box.w / 2 | 0) : v.x, fromLeft = v === cole;
+        actors.cat = { x: fromLeft ? -36 : W + 36, state: "walk", dir: fromLeft ? 1 : -1, spot: sx, phase: "in", onLaptop: onLaptop && !!box, home: fromLeft ? -40 : W + 40 };
+        actors.victim = v; actors.act = v.activity; v.held = true;
+      },
+      steps: [],
+      update: function (t, f) {
+        var c = actors.cat, v = actors.victim, o = other(v); catTick(c, f);
+        if (c.phase === "in" && c.state === "walk") {
+          c.x += 3 * c.dir; lookAt(v, c.x, CAT_Y - 14);
+          if ((c.dir > 0 && c.x >= c.spot) || (c.dir < 0 && c.x <= c.spot)) {
+            c.x = c.spot; c.state = "sit"; c.since = f; c.dir = v.x < c.x ? -1 : 1;
+            setActivity(v, "lift", 99); v.laptopOut = c.onLaptop; faceOf(v, { brows: "down", mouth: "flat" }); lookAt(v, c.x, DESK_Y - 34);
+            lookAt(o, c.x, DESK_Y - 34); o.mouth = "laugh";
+          }
+        } else if (c.state === "sit") {
+          var k = f - c.since;
+          if (k === 18) { o.mouth = "smile"; }
+          if (k === 36) { setActivity(v, v.poses.pethead ? "pethead" : "petfront", 99); faceOf(v, { brows: null, mouth: "smile" }); c.shut = true; }
+          if (k === 84) { c.shut = false; c.state = "walk"; c.phase = "leave"; c.dir = c.home < c.x ? -1 : 1; c.left = f; setActivity(v, actors.act, 99); v.laptopOut = false; faceOf(v, { mouth: "neutral" }); v.lookTarget = { x: 0, y: 1 }; }
+        } else if (c.phase === "leave") {
+          c.x += 3 * c.dir;
+          if (!c.again && f - c.left === 9) { c.again = true; c.dir = -c.dir; c.phase = "in"; faceOf(v, { brows: "up" }); }
+        }
+      },
+      drawMid: function (t, f) { var c = actors.cat; if (c.onLaptop && c.state === "sit") { drawMaker(Math.round(c.x), DESK_Y - 3, "sit", 1, f, c.blink); } },
+      drawFront: function (t, f) { var c = actors.cat; if (!(c.onLaptop && c.state === "sit")) { drawMaker(Math.round(c.x), CAT_Y, c.state, c.dir, f, c.blink); } },
+      end: catEnd
     },
     // Ilinca rolls off for coffee and comes back with two mugs.
     coffee: {
@@ -655,9 +835,11 @@
       steps: [
         [0, function () { setActivity(cole, "shake", 99); faceOf(cole, { mouth: "smile", look: { x: 0, y: 0 }, turn: 0 }); }],
         [2.6, function () { setActivity(cole, "drink", 99); cole.mouth = "o"; cole.lookTarget = { x: 0, y: -1 }; }],
-        [4.6, function () { lookAt(ilinca, cole.x, faceLevel(cole)); ilinca.mouth = "smile"; setActivity(ilinca, "take", 99); }],
-        [5.2, function () { setActivity(cole, "offer", 99); lookAt(cole, ilinca.x, faceLevel(ilinca)); cole.mouth = "smile"; }],
-        [6.6, function () { setActivity(cole, "rest", 99); setActivity(ilinca, "drink", 99); ilinca.mouth = "o"; ilinca.turn = 0; ilinca.lookTarget = { x: 0, y: -1 }; }],
+        // he holds it out across the gap; she reaches over and takes it while his arm is still out; then she drinks
+        [4.4, function () { setActivity(cole, "offer", 99); lookAt(cole, ilinca.x, faceLevel(ilinca)); cole.mouth = "smile"; lookAt(ilinca, cole.x, faceLevel(cole)); faceOf(ilinca, { brows: "up", mouth: "smile" }); }],
+        [5.5, function () { setActivity(ilinca, "take", 99); setActivity(cole, "offerEmpty", 99); ilinca.brows = null; }],
+        [6.3, function () { setActivity(cole, "rest", 99); }],
+        [6.9, function () { setActivity(ilinca, "drink", 99); ilinca.mouth = "o"; ilinca.turn = 0; ilinca.lookTarget = { x: 0, y: -1 }; }],
         [9.6, function () { setActivity(ilinca, "rest", 99); ilinca.mouth = "smile"; ilinca.nodAt = frame + 1; ilinca.hold = null; extras.push({ kind: "bottle", x: midX() + 22 }); }]
       ],
       end: function () { extras = extras.filter(function (e) { return e.kind !== "bottle"; }); }
@@ -763,6 +945,7 @@
   }
   function drawNight(h, f) {
     var n = nightAmount(h), d = duskAmount(h) * (1 - n);
+    if (ENV.ready) { drawNightArt(h, f, n, d); return; }
     if (d > 0.02) { rect(0, CEIL, W, H - CEIL, "rgba(255,150,80," + (0.10 * d).toFixed(3) + ")"); }
     if (n <= 0.02) { return; }
     rect(0, CEIL, W, DESK_Y - CEIL, "rgba(14,18,46," + (0.40 * n).toFixed(3) + ")"); rect(0, DESK_Y, W, H - DESK_Y, "rgba(14,18,46," + (0.38 * n).toFixed(3) + ")");
@@ -772,6 +955,23 @@
     pool(L.pendant, 30, DESK_Y + 10, 10, 52, n * 0.26);
     if (lamp.on) { pool(Math.round(lamp.hx), Math.round(lamp.hy) + 9, DESK_Y + 6, 10, 28, n * 0.4); }
     rect(0, DESK_Y, W, 2, "rgba(255,224,160," + (0.07 * n).toFixed(3) + ")");
+  }
+
+  // The generated room at night: everything but the window dims to blue (the city stays bright behind the glass);
+  // each lamp that is on throws a warm slanting pool on the desk and whoever sits under it.
+  function drawNightArt(h, f, n, d) {
+    var tint = function (a) { return "rgba(14,18,46," + a.toFixed(3) + ")"; };
+    if (d > 0.02) { rect(0, 0, W, H, "rgba(255,150,80," + (0.10 * d).toFixed(3) + ")"); }
+    if (n <= 0.02) { return; }
+    var a = 0.46 * n, wx = WIN.x, wy = WIN.y, ww = WIN.w, wh = WIN.h;
+    rect(0, 0, W, wy, tint(a)); rect(0, wy + wh, W, H - wy - wh, tint(a)); rect(0, wy, wx, wh, tint(a)); rect(wx + ww, wy, W - wx - ww, wh, tint(a));
+    rect(wx, wy, ww, wh, tint(0.12 * n));
+    for (var i = 0; i < 2; i++) {
+      if (!lampIsOn(i, h)) { continue; }
+      var q = lampGeom(i);
+      slantCone(q, n * 0.34, true, 34); slantCone(q, n * 0.30, true, 22); slantCone(q, n * 0.26, true, 12);
+      slantCone(q, n * 0.05, false, 30);
+    }
   }
 
   /* ---------- the frame loop ---------- */
@@ -791,18 +991,20 @@
       if (p.smileUntil && f >= p.smileUntil) { if (p.mouth === "smile") { p.mouth = "neutral"; } p.smileUntil = 0; }
       p.actFrame++;
       if (f >= p.actUntil && !p.react && !scenario) { nextActivity(p); }
-      if (p.nodAt && f >= p.nodAt) { var k = f - p.nodAt; p.nod = (k < 10) ? [0, 1, 2, 2, 1, 0, 1, 2, 2, 1][k] : 0; if (k >= 10) { p.nodAt = 0; p.nod = 0; } }
+      if (p.nodAt && f >= p.nodAt) { var k = f - p.nodAt; p.nod = (k < 10) ? [0, 1, 1, 1, 0, 0, 1, 1, 1, 0][k] : 0; if (k >= 10) { p.nodAt = 0; p.nod = 0; } }
       if (pointerActive && !scenario) { p.lookTarget = aimAt(p, pointer.x, pointer.y); if (!convo && !p.react) { p.turn = p.lookTarget.x; } }
       else if (!convo && !p.react && !scenario) {
         var a = p.activity; p.turn = 0;
-        if (a === "type" || a === "write" || a === "solder" || a === "phone") { p.lookTarget = { x: 0, y: 1 }; }
+        if (p.workLook[a]) { p.lookTarget = { x: p.workLook[a][0], y: p.workLook[a][1] }; }
         else if (a === "think") { p.lookTarget = { x: (f >> 5) % 2 ? -1 : 1, y: -1 }; }
         else if (a === "coffee") { p.lookTarget = { x: 0, y: 0 }; }
         else { p.lookTarget = { x: ((f >> 4) + i) % 3 - 1, y: 0 }; }
       }
       p.look.x += (p.lookTarget.x - p.look.x) * 0.6; p.look.y += (p.lookTarget.y - p.look.y) * 0.6;
       if (p.blink > 0) { p.blink--; } else if (--p.nextBlink <= 0) { p.blink = 2; p.nextBlink = 24 + Math.random() * 48; }
-      if (!p.react && !(scenario && scenario.name === "spark")) { p.bob = ((f + i * 7) % 48) < 24 ? 0 : 1; }
+      if (!p.react && !(scenario && scenario.name === "spark")) { p.bob = 0; }
+      p.tilt = (p.nod > 0 || (p.workLook[p.activity] && !convo && !p.react && !(pointerActive && !scenario))) ? 1 : 0;
+      stepExpression(p, f);
       var o = people[1 - i];
       if (o.react === "laugh" && !p.react && f % 5 === 0) { p.mouth = "smile"; p.smileUntil = f + 2 * FPS; }
     }
@@ -816,19 +1018,40 @@
     updateLamp(h);
   }
 
+  // Small changes of expression between everything else, so neither of them wears one face all the time.
+  var EXPRESSIONS = {
+    cole: [["smile", null, 2.5, 3], ["smirk", null, 2, 2], [null, "up", 1.2, 1], ["grin", null, 1.6, 1], ["flat", "down", 1.8, 1]],
+    ilinca: [["smile", null, 2.5, 3], ["smirk", null, 2, 2], ["purse", "down", 1.8, 2], [null, "up", 1.2, 1], ["grin", null, 1.6, 1], ["neutral", "sad", 1.4, 1]]
+  };
+  function stepExpression(p, f) {
+    if (scenario || convo || p.react || p.talking) { return; }
+    if (p.exprUntil && f >= p.exprUntil) { p.exprUntil = 0; p.mouth = "neutral"; p.brows = p.activity === "think" ? "down" : null; p.nextExprAt = f + (5 + Math.random() * 9) * FPS; return; }
+    if (!p.exprUntil && f >= p.nextExprAt) {
+      var list = EXPRESSIONS[p.name], total = 0, r, e = list[0];
+      list.forEach(function (x) { total += x[3]; }); r = Math.random() * total;
+      for (var i = 0; i < list.length; i++) { r -= list[i][3]; if (r <= 0) { e = list[i]; break; } }
+      if (e[0]) { p.mouth = e[0]; } if (e[1]) { p.brows = e[1]; }
+      p.exprUntil = f + Math.round(e[2] * FPS);
+    }
+  }
+
   function render(f) {
-    var h = hourNow(), t = scenario ? (f - scenario.t0) / FPS : 0, dark = isDark(h);
-    drawRoom(h); drawWindow(h, f); drawSunPatch(h); drawPendant(dark);
-    drawLampArm();
+    var h = hourNow(), t = scenario ? (f - scenario.t0) / FPS : 0, dark = isDark(h), art = ENV.ready;
+    if (art) { drawWindowView(h, f); g.drawImage(ENV.img["room-" + layoutName], 0, 0); drawPosterArt(); drawClockArt(h); drawSunPatch(h); }
+    else { drawRoom(h); drawWindow(h, f); drawSunPatch(h); drawPendant(dark); drawLampArm(); }
     if (scenario && scenario.drawBack) { scenario.drawBack(t, f); }
     for (var i = 0; i < people.length; i++) { drawCharacter(people[i], f); }
-    drawDesk(); people.forEach(drawOnDesk); drawLampBase();
+    if (scenario && scenario.drawMid) { scenario.drawMid(t, f); }        // between them and the desk: a cat on a keyboard
+    if (art) { g.drawImage(ENV.img["desk-" + layoutName], 0, 0); } else { drawDesk(); }
+    people.forEach(drawOnDesk); people.forEach(drawLaptopOut);
+    if (art) { drawLampsArt(h); } else { drawLampBase(); }
     drawProps(f);
-    drawLampCone(); drawLamp();
+    if (!art) { drawLampCone(); drawLamp(); }
     people.forEach(drawNamePlate);
     if (scenario && scenario.drawFront) { scenario.drawFront(t, f); }
+    people.forEach(drawPetHand);
     drawNight(h, f);
-    if (dark) { drawPendant(true); drawLamp(); }                         // the shades glow through the dark
+    if (dark) { if (art) { for (var k = 0; k < 2; k++) { if (lampIsOn(k, h)) { drawBulb(lampGeom(k)); } } } else { drawPendant(true); drawLamp(); } }   // the bulbs glow through the dark
     blit2();
   }
   function blit2() { ctx.imageSmoothingEnabled = false; ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.drawImage(off, 0, 0, canvas.width, canvas.height); }
@@ -836,7 +1059,7 @@
   /* ---------- layout + sizing ---------- */
   function applyLayout(name) {
     if (name === layoutName) { return; }
-    layoutName = name; L = LAYOUTS[name]; W = L.W; H = L.H; WIN = L.win; off.width = W; off.height = H;
+    layoutName = name; L = LAYOUTS[name]; W = L.W; H = L.H; WIN = ENV.ready ? L.art.win : L.win; off.width = W; off.height = H;
     cole.x = L.cole; ilinca.x = L.ilinca; lamp.base = L.lamp; var idle = lampIdle(); lamp.hx = lamp.tx = idle.x; lamp.hy = lamp.ty = idle.y;
     makeStars(); extras = [];
     canvas.setAttribute("width", W); canvas.setAttribute("height", H);
@@ -873,6 +1096,6 @@
     face: function (n, o) { var p = who(n); faceOf(p, o || {}); if (o && o.look) { p.look = { x: o.look.x, y: o.look.y }; } if (o && o.blink) { p.blink = 2; } p.actUntil = frame + 1e6; render(frame); },
     step: function (n) { for (var i = 0; i < (n || 1); i++) { frame++; update(frame); } render(frame); },
     poses: function (n) { return Object.keys(who(n).poses); },
-    state: function () { return { layout: layoutName, size: [W, H], cole: cole.activity, ilinca: ilinca.activity, poses: [cole.drawn ? cole.drawn.name : null, ilinca.drawn ? ilinca.drawn.name : null], set: setIndex, hour: hourNow(), running: running, convo: !!convo, scenario: scenario ? scenario.name : null, lamp: { on: lamp.on, x: Math.round(lamp.hx) } }; }
+    state: function () { return { layout: layoutName, size: [W, H], cole: cole.activity, ilinca: ilinca.activity, poses: [cole.drawn ? cole.drawn.name : null, ilinca.drawn ? ilinca.drawn.name : null], set: setIndex, hour: hourNow(), running: running, convo: !!convo, scenario: scenario ? scenario.name : null, lamp: { on: lamp.on, x: Math.round(lamp.hx) }, art: ENV.ready, lamps: [lampIsOn(0, hourNow()), lampIsOn(1, hourNow())], cat: actors.cat ? { x: Math.round(actors.cat.x), state: actors.cat.state } : null }; }
   };
 })();

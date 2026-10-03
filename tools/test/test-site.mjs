@@ -247,21 +247,24 @@ const memberFill = { email: "t@example.com", gym_name: "Ironworks", gym_location
   const info = await page.evaluate(() => {
     const D = window.NutrimaticDesk, A = window.NutrimaticDeskArt; if (!D || !A) return { missing: true };
     const started = {}, cv = document.querySelector("[data-desk-scene] canvas");
-    for (const name of ["ds", "highfive", "airplane", "pigeon", "cat", "loaf", "coffee", "shake", "call"]) {
-      D.activity("cole", "rest", 60); D.activity("ilinca", "rest", 60); started[name] = D.scenario(name); D.step(400);   // long enough for any of them to finish
+    for (const name of ["ds", "highfive", "airplane", "pigeon", "visit", "laptop", "coffee", "shake", "call"]) {
+      D.activity("cole", name === "laptop" ? "type" : "rest", 60); D.activity("ilinca", "rest", 60); started[name] = D.scenario(name); D.step(400);   // long enough for any of them to finish
     }
+    const catDuringSolder = (D.activity("cole", "solder", 60), D.scenario("visit"));
     D.setHour(23); D.activity("cole", "rest", 60); started.latenight = D.scenario("latenight"); D.step(120);
     D.setHour(11); D.activity("cole", "solder", 60); started.spark = D.scenario("spark"); D.step(120);
     for (const a of ["type", "solder", "write", "think", "coffee", "phone", "stretch", "wave"]) { D.activity("cole", a, 5); D.activity("ilinca", a, 5); D.step(8); }
     D.react("cole"); D.react("ilinca"); D.converse(); D.step(30);
     const px = cv.getContext("2d").getImageData(0, 0, cv.width, cv.height).data; let lit = 0; for (let i = 0; i < px.length; i += 4 * 97) { if (px[i] + px[i + 1] + px[i + 2] > 0) lit++; }
-    return { state: D.state(), started, art: Object.keys(A), size: [cv.getAttribute("width"), cv.getAttribute("height")], lit, frames: Object.keys(A.cole.mouth).length };
+    return { state: D.state(), started, catDuringSolder, art: Object.keys(A), size: [cv.getAttribute("width"), cv.getAttribute("height")], lit, frames: Object.keys(A.cole.mouth).length };
   });
   if (info.missing) problems.push("desk scene | NutrimaticDesk or NutrimaticDeskArt missing");
   else {
     if (info.state.layout !== "wide" || info.state.size.join("x") !== "360x160") problems.push("desk scene | wide layout: " + JSON.stringify(info.state));
     const failed = Object.keys(info.started).filter(k => !info.started[k]); if (failed.length) problems.push("desk scene | scenarios did not start: " + failed.join(", "));
     if (["cole", "ilinca", "maker"].some(k => !info.art.includes(k))) problems.push("desk scene | art missing: " + info.art.join(", "));
+    if (!info.state.art) problems.push("desk scene | the room pictures (assets/desk) did not load");
+    if (info.catDuringSolder) problems.push("desk scene | Maker came by while Cole was soldering");
     if (info.lit < 100) problems.push("desk scene | canvas looks empty");
   }
   await page.locator("[data-desk-scene] canvas").screenshot({ path: out + "desk-scene-canvas.png" });

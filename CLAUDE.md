@@ -1,6 +1,6 @@
 # nutrimatic.tech — notes for Claude Code sessions
 
-Version 1.2.0 · Created 2026-10-02 · Modified 2026-10-02 (desk scene v0.7: arms and hands are generated poses too)
+Version 1.3.0 · Created 2026-10-02 · Modified 2026-10-02 (desk scene v0.8: the room is generated art in assets/desk)
 
 This repo **is** the public website. Every push to `main` deploys to https://nutrimatic.tech within a minute via
 `.github/workflows/deploy-website.yml` (GitHub Pages). `README.md`, `GO-LIVE.md`, `CLAUDE.md`, `squarespace/` and
@@ -17,15 +17,18 @@ The full project handover (history, decisions, feedback, open items) lives in th
 
 ## The desk scene (on `desk-scene`)
 
-- `js/desk-scene.js` is the scene: room, light, behaviour, scenarios, jointed arms. `js/desk-sprites.js` is its art
-  (Cole, Ilinca, Maker the cat) and is **generated**: edit the sources in `tools/desk/` and run
-  `python3 tools/desk/export_js.py`. Never edit `desk-sprites.js` by hand.
+- `js/desk-scene.js` is the scene: light, behaviour, scenarios. `js/desk-sprites.js` is the figures' and Maker's art
+  and `assets/desk/*.png` the room's (wall, desk, skyline, lamps, props); both are **generated**: edit the sources in
+  `tools/desk/` and run `python3 tools/desk/export_js.py` / `python3 tools/desk/env_build.py`. Never edit them by hand.
+  If the room pictures do not load, the scene falls back to the room drawn in code.
 - The figures come from portraits generated on the GPU machine and reduced to sprites (`tools/portraits/`), then finished
   by hand in the face only (`tools/desk/characters.py`). Every activity's arms and hands are generated poses as well
   (`tools/desk/poses.py`). Drawing figures or arms in code was tried and rejected each time; don't go back to it.
 - **Model licences**: only models whose licence allows commercial use may make art for the site. FLUX.2 klein 4B and
   Qwen-Image-Edit 2511 are Apache 2.0. Qwen-Image 2.1 is research-only: not for site art.
 - Reference photos of the founders and the cat are private. They are not in this repo and must not be added.
+- The skyline follows two CC BY photographs (credited in `tools/desk/sources/PROVENANCE.md`). Before the scene goes to
+  `main`, settle with Cole whether the page also shows a credit line.
 - Look before you ship: `npm run shots:desk` in `tools/test` writes screenshots of every activity and scenario.
 
 ## Conventions (keep these)

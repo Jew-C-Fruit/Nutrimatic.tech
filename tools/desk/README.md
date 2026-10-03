@@ -1,12 +1,13 @@
 # Desk scene art
 
-Version 1.1.0 · Created 2026-10-02 · Modified 2026-10-02 (body poses: arms and hands are generated, not drawn)
+Version 1.2.0 · Created 2026-10-02 · Modified 2026-10-02 (the room, skyline, lamps and props are generated too; hands softened; Maker bigger, with new poses)
 
 Everything the co-founders' scene draws that is not simple geometry lives here as sprites, and reaches the site as
 data in `js/desk-sprites.js`. That file is **generated**: change the sources here and run the exporter.
 
 ```bash
-python3 tools/desk/export_js.py        # writes js/desk-sprites.js (needs numpy, scipy, pillow)
+python3 tools/desk/export_js.py        # writes js/desk-sprites.js: the figures, their poses, Maker (needs numpy, scipy, pillow)
+python3 tools/desk/env_build.py        # writes assets/desk/*.png: the room, the desk, the skyline, the lamps, the props
 ```
 
 ## What is here
@@ -14,11 +15,12 @@ python3 tools/desk/export_js.py        # writes js/desk-sprites.js (needs numpy,
 | File | What |
 | --- | --- |
 | `sprites/cole-301-1x.png`, `sprites/ilinca-407-1x.png` | the figures as they came out of `tools/portraits/pixelize.py` |
-| `sprites/maker/*.png` | Maker the cat: two walking frames, sitting, yawning, lying with a paw out |
+| `sprites/maker/*.png` | Maker as first reduced (v1.0; `maker_build.py` now reduces her again from `sources/` at a fifth bigger) |
 | `sources/` | the full-size generated pictures those came from, and `PROVENANCE.md` (model, prompts, seeds) |
 | `characters.py` | the hand finishing of Cole and Ilinca: the face blanked and redrawn feature by feature, the cut into torso and head |
 | `poses.py`, `pose_sprites.py`, `sprites/poses/`, `pose-prompts/` | the body poses: every activity's arms, hands and props, generated, reduced and cut to fit under the head |
-| `maker_build.py` | Maker's five poses put on one palette, eyes tidied |
+| `maker_build.py` | Maker: her generated pictures reduced to size, five greys with light on her back, blink and kneading frames |
+| `env_build.py`, `env_guides.py`, `env-prompts/` | the room, the desk, the Midtown skyline (day and night), the anglepoise lamps and the desk props, written as PNGs to `assets/desk/` |
 | `spritekit.py` | load a sprite, change pixels, and render it large with a ruler so coordinates can be read off |
 | `export_js.py`, `extra_sprites.py` | the exporter |
 
@@ -41,6 +43,24 @@ drawn, the part of the pose below the desk line goes on again, so hands lie over
   `poses.py` holds, per pose, the box that goes in front of the face and named points (the soldering iron's tip, the
   high-five hand).
 - `centre` is the sprite column that sits on the character's x; `desk` is the sprite row that meets the desk top.
+
+- **Hands** (`poses.soften`): inside skin, a black line between skin and skin (finger gaps, knuckles, forearm creases)
+  becomes the darkest skin tone, and black stays only on a hand's outside edge; the same for stray black strokes inside
+  the clothes. That is what makes the hands read as hands at this size. What is still wrong in one pose is fixed pixel
+  by pixel in `MANUAL[who][pose]['fix']`, after looking at the hand zoomed next to its generated picture.
+- **Props and frames** (`MANUAL`): `props` lifts a prop out of a pose so the scene can draw it alone (the laptop stays
+  on the desk while the hands are up for the cat; the shaker bottle), `empty` makes the pose without it (`offerEmpty`),
+  and `frames` makes extra frames by moving a box (the writing hand: `write1`, `write2`).
+- **Fronts**: `front_mode='limb'` draws a hand or sleeve, not the pose's own hair, over Ilinca's long hair.
+
+## The room (env_build.py)
+
+Generated like the figures (FLUX.2 klein 4B on bigbaby, `env-prompts/`), from flat layout guides (`env_guides.py`) so
+the window, poster, clock and shelves land where the scene needs them, then reduced at cell 4 to 360x160 (240x160 for
+the phone). The window glass is cut out: the scene paints the sky by the hour behind it, then the skyline picture (day,
+and the night one faded in at dusk). The poster's mark and the clock's hands are drawn by the scene on the generated
+board and face. The lamps are one generated lamp, recoloured white for Ilinca and mirrored. `sources/PROVENANCE.md`
+lists every picture, prompt and seed, and the photographs the skyline follows (CC BY, credited there).
 
 ## Making or replacing a pose
 
