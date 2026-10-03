@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.11.0
+ * Version 0.12.0
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -44,6 +44,12 @@
  *
  * Modified: 2026-10-03 - Maker's big stylized eyes are her look now; the comparison switch is gone (v0.11.0)
  *
+ * Modified: 2026-10-03 - After a full audit of hands, objects and layering against reference photos: the room is drawn
+ *   on its own layer so night shades whatever stands in front of the window; Maker walks in a four-frame cycle, her
+ *   hanging tail is thicker and moves in steps with a flick; she steps up behind the laptop screen onto the keyboard;
+ *   petting is rigged (she lies where the cat was in the petting picture, the hand strokes along her back), on the
+ *   paper too; petting starts when she settles; shaking moves only the arms; Ilinca looks straight at her laptop (v0.12.0)
+ *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(),
  *   .face(who, {mouth, brows, look}), .poses(who), .step(n), .state()
@@ -62,6 +68,10 @@
   var ctx = canvas.getContext("2d");
   var off = document.createElement("canvas");
   var g = off.getContext("2d");
+  // With the generated room the scene is drawn in two layers: the view through the window on `off`, everything in the
+  // room on `fg` (left clear where the glass shows). The night darkens `fg` only, so whatever stands in front of the
+  // window is in shadow too, while the city behind the glass stays lit.
+  var fg = document.createElement("canvas"), fgx = fg.getContext("2d"), fgCopy = document.createElement("canvas"), fgCopyX = fgCopy.getContext("2d");
 
   /* ---------- layouts: a wide desk on desktop, the two of them closer on phones (240x160) ---------- */
   // With the generated room (assets/desk) the poster, clock and window are where that picture has them; `art` holds
@@ -476,6 +486,8 @@
     else if (p.gesture && (a === "rest" || a === "think")) { name = "talk"; }      // a hand joins in only when it is free
     if (name === "wave" && p.poses.wave2 && ((p.actFrame >> 2) % 2)) { name = "wave2"; }
     if (name === "write" && p.poses.write1) { name = WRITING[(p.actFrame >> 1) % WRITING.length]; }
+    if (name === "shake" && p.poses.shake2 && (p.actFrame % 2)) { name = "shake2"; }
+    if (name === "petcat" && p.poses.petcat2 && ((p.actFrame / 6 | 0) % 2)) { name = "petcat2"; }   // a slow stroke along her back
     return p.poses[name] ? name : "rest";
   }
   function posePoint(p, name) { var d = p.drawn; if (!d || !d.pose.pts[name]) { return null; } var q = d.pose.pts[name]; return { x: d.o.x + q[0], y: d.o.y + q[1] + d.jig }; }
@@ -498,7 +510,7 @@
   function drawCharacter(p, f) {
     if (p.hidden) { p.drawn = null; return; }
     var o = origin(p), name = poseOf(p, f), pose = p.poses[name];
-    var jig = (p.activity === "shake" && (p.actFrame % 2)) ? 1 : (p.activity === "fistpump" && ((p.actFrame >> 1) % 2)) ? -1 : 0;
+    var jig = 0;                                                         // the body never jumps under the head (shaking moves only the arms: shake2)
     p.drawn = { o: o, pose: pose, name: name, jig: jig };
     blit(pose.body, o.x, o.y + jig);
     if (pose.ownHead) { return; }                                        // the picture brings its own head (leaning back)
@@ -521,12 +533,18 @@
   function drawLaptopOut(p) {
     if (p.hidden) { return; }
     var greetFrom = p.react === "greet" && (p.greetAct === "type" || p.greetAct === "write") ? p.greetAct : null;   // waving hello from the keyboard
-    var from = p.laptopOut ? "type" : (p.catLift === "type" || p.catLift === "write") ? p.catLift : greetFrom, q = from && p.poses[from];
+    var keep = p.keepProps === "type" || p.keepProps === "write" ? p.keepProps : null;
+    var from = p.laptopOut ? "type" : keep || ((p.catLift === "type" || p.catLift === "write") ? p.catLift : greetFrom), q = from && p.poses[from];
     if (!q || (p.activity === from && !p.laptopOut)) { return; }
     var o = origin(p); Object.keys(q.props).forEach(function (n) { blit(q.props[n], o.x, o.y); });
   }
   // A hand petting the cat lies on her: that part of the pose (a box in the figure's coordinates) goes on again after her.
-  var PET_HAND = { cole: { pet: [60, 72, 86, 100], pethead: [28, 60, 52, 82] }, ilinca: { pet: [-20, 66, 2, 88], pethead: [12, 54, 40, 70] } };
+  var PET_HAND = { cole: { pet: [60, 72, 86, 100], pethead: [28, 60, 52, 82], petcat: [44, 54, 82, 84], petcat2: [44, 54, 82, 84] },
+                   ilinca: { pet: [-20, 66, 2, 88], pethead: [12, 54, 40, 70], petcat: [-20, 52, 16, 78], petcat2: [-20, 52, 16, 78] } };
+  // Where Maker lies to be petted: the petting pictures were made with a cat under the hand (since erased); she lies
+  // where that cat was, facing the same way, so the hand rests exactly on her back. Figure coordinates of her middle.
+  var PET_RIG = { cole: { x: 57, dir: -1 }, ilinca: { x: -3, dir: -1 } };
+  function petSpot(p) { return p.x - p.art.centre + PET_RIG[p.name].x; }
   function drawPetHand(p) {
     var d = p.drawn, box = d && PET_HAND[p.name][d.name]; if (!box || p.hidden || !actors.cat) { return; }
     g.save(); g.beginPath(); g.rect(d.o.x + box[0], d.o.y + box[1], box[2] - box[0], box[3] - box[1]); g.clip();
@@ -623,11 +641,11 @@
   function catY() { return ENV.ready ? L.art.catY : DESK_Y + 2; }
   function drawMaker(x, y, pose, dir, f, blink) {
     var d = dir || 1;
-    var key = pose === "walk" ? "walk" + ((f >> 2) % 2) : pose === "knead" ? "knead" + ((f >> 2) % 2) : pose;
+    var key = pose === "walk" ? "walk" + ((f >> 1) % 4) : pose === "knead" ? "knead" + ((f >> 2) % 2) : pose;   // the walk: four frames, one step per two ticks at three pixels a tick
     var set = MAKER, data = ART.maker;
     if (blink && set && set[key + "Blink"]) { key += "Blink"; }
     if (set && set[key]) {
-      var s = set[key], ox = x - (s.w / 2 | 0), oy = y - s.h + (data[key].g || 0) + (pose === "walk" && (f >> 1) % 2 ? 1 : 0);
+      var s = set[key], ox = x - (s.w / 2 | 0), oy = y - s.h + (data[key].g || 0);
       if (pose === "loaf") { drawHangingTail(d > 0 ? ox + 5 : ox + s.w - 6, oy + s.h - (data[key].g || 0) - 2, f, d); }   // under her rear
       if (d > 0) { blit(s, ox - s.x, oy - s.y); } else { blitFlip(s, ox - s.x, oy - s.y); }
       return;
@@ -683,7 +701,7 @@
       if (p.hidden || p.held) { return; }
       var near = c.state === "walk" && Math.abs(c.x - p.x) < 36;
       if (near && !p.catLift && HANDS_DOWN[p.activity]) { p.catLift = p.activity; setActivity(p, "lift", 99); }
-      else if (!near && p.catLift && Math.abs(c.x - p.x) > 42) { setActivity(p, p.catLift, 99); p.catLift = null; }
+      else if (!near && p.catLift && (Math.abs(c.x - p.x) > 42 || (c.state !== "walk" && p !== actors.petter))) { setActivity(p, p.catLift, 99); p.catLift = null; }   // she has passed, or settled further along
     });
   }
   // Lying at the desk's front edge her tail hangs over it: a chain of short segments from the root, swinging like a
@@ -696,22 +714,29 @@
     for (var y = Math.floor(cy - r); y <= Math.ceil(cy + r); y++) { for (var x = Math.floor(cx - r); x <= Math.ceil(cx + r); x++) { var dx = x + 0.5 - cx, dy = y + 0.5 - cy; if (dx * dx + dy * dy <= r * r) { px(x, y, col); } } }
   }
   function drawHangingTail(rx, ry, f, side) {
-    var n = 12, step = TAIL_LEN / n, pts = [[rx, ry]], t = (reduceMotion ? 0 : f) / FPS;
+    var n = 12, step = TAIL_LEN / n, pts = [[rx, ry]], ff = reduceMotion ? 0 : f, t = Math.floor(ff / 3) * 3 / FPS;   // it moves in small steps, not a smooth sway
+    var fk = ff % 53, flick = fk < 6 ? Math.sin(fk / 6 * Math.PI) * 0.55 : 0;                                          // now and then the tip flicks
     for (var i = 1; i <= n; i++) {
-      var k = i / n, ang = Math.PI / 2 - side * 0.15 + Math.sin(t * 2.4 - k * 2.3) * (0.1 + 0.55 * k), q = pts[i - 1];
+      var k = i / n, ang = Math.PI / 2 - side * 0.12 + Math.sin(t * 1.3 - k * 1.6) * (0.05 + 0.24 * k) + flick * k * k * side, q = pts[i - 1];
       pts.push([q[0] + Math.cos(ang) * step, q[1] + Math.sin(ang) * step]);
     }
     var passes = [[0.85, CAT_LINE, 0], [0, CAT_COAT, 0], [-0.75, CAT_SHEEN, 0.7]];
     for (var p2 = 0; p2 < passes.length; p2++) {
       for (var j = 0; j < n; j++) {
         for (var s2 = 0; s2 < 4; s2++) {
-          var tt = (j + s2 / 4) / n, r = 1.45 * tailWidth(tt) + 0.2 + passes[p2][0];
+          var tt = (j + s2 / 4) / n, r = 2.0 * tailWidth(tt) + 0.2 + passes[p2][0];
           if (r > 0.05) { disc(lerp(pts[j][0], pts[j + 1][0], s2 / 4) + passes[p2][2], lerp(pts[j][1], pts[j + 1][1], s2 / 4), r, passes[p2][1]); }
         }
       }
     }
   }
-  function catEnd() { people.forEach(function (p) { if (p.catLift) { setActivity(p, p.catLift, 99); } p.catLift = null; p.held = false; p.laptopOut = false; }); }
+  function catEnd() {
+    people.forEach(function (p) {
+      if (p.catLift) { setActivity(p, p.catLift, 99); }
+      if (/^pet/.test(p.activity)) { setActivity(p, p.keepProps || "rest", 99); }   // no hand left stroking a cat that has gone
+      p.catLift = null; p.held = false; p.laptopOut = false; p.keepProps = null;
+    });
+  }
 
   var SCENARIOS = {
     // Cole sneaks a game on a red DS; Ilinca notices; he puts it away.
@@ -789,13 +814,12 @@
     visit: {
       dur: 34, when: function () { return cole.activity !== "solder"; },
       setup: function () {
-        var fromLeft = Math.random() < 0.5;
-        actors.cat = { x: fromLeft ? -36 : W + 36, state: "walk", dir: fromLeft ? 1 : -1, spot: midX() + (fromLeft ? 3 : -3), phase: "in" };
-        actors.petter = Math.random() < 0.5 ? cole : ilinca;
+        var petter = Math.random() < 0.5 ? cole : ilinca, spot = petSpot(petter), fromLeft = Math.random() < 0.5;
+        actors.cat = { x: fromLeft ? -36 : W + 36, state: "walk", dir: fromLeft ? 1 : -1, spot: spot, phase: "in", lieDir: PET_RIG[petter.name].dir };
+        actors.petter = petter;
       },
       steps: [
         [1.5, function () { people.forEach(function (p) { p.mouth = "smile"; }); }],
-        [13.0, function () { var p = actors.petter; if (p.catLift) { p.catLift = null; } p.held = true; setActivity(p, "pet", 99); p.mouth = "smile"; actors.cat.shut = true; }],
         [19.0, function () { var p = actors.petter; setActivity(p, "rest", 99); p.held = false; actors.cat.shut = false; }],
         [20.5, function () { var c = actors.cat; c.state = "sitside"; c.dir = cole.x < c.x ? -1 : 1; lookAt(cole, c.x, catY() - 30); cole.mouth = "smile"; }],
         [23.0, function () { var c = actors.cat; c.dir = -c.dir; lookAt(ilinca, c.x, catY() - 30); ilinca.mouth = "smile"; }],
@@ -805,7 +829,10 @@
       update: function (t, f) {
         var c = actors.cat; catTick(c, f);
         if (c.phase === "in" && c.state === "walk") { c.x += 3 * c.dir; if ((c.dir > 0 && c.x >= c.spot) || (c.dir < 0 && c.x <= c.spot)) { c.x = c.spot; c.state = "knead"; c.kneadUntil = f + 3 * FPS; } }
-        else if (c.state === "knead" && f >= c.kneadUntil) { c.state = "loaf"; }
+        else if (c.state === "knead" && f >= c.kneadUntil) { c.state = "loaf"; c.dir = c.lieDir; c.lyingSince = f; }
+        if (c.state === "loaf" && c.lyingSince && f - c.lyingSince === 6 && t < 18) {   // she has settled: the one beside her strokes her
+          var pp = actors.petter; pp.catLift = null; pp.held = true; setActivity(pp, pp.poses.petcat ? "petcat" : "pet", 99); pp.mouth = "smile"; c.shut = true;
+        }
         else if (c.phase === "out") { c.x += 3 * c.dir; }
         if (t >= 1.5 && t < 30 && c.state !== "sitside") { people.forEach(function (p) { if (!p.held) { p.lookTarget = aimAt(p, c.x, catY() - 14); } }); }
       },
@@ -821,32 +848,41 @@
         var cands = people.filter(function (p) { return p.activity === "type" || p.activity === "write"; }), v = cands[(Math.random() * cands.length) | 0];
         var onLaptop = v.activity === "type", o = origin(v), box = onLaptop ? v.poses.type.props.laptop : v.poses.write && v.poses.write.props.paper;
         var sx = box ? o.x + box.x + (box.w / 2 | 0) : v.x, fromLeft = v === cole;
-        actors.cat = { x: fromLeft ? -36 : W + 36, state: "walk", dir: fromLeft ? 1 : -1, spot: sx, phase: "in", onLaptop: onLaptop && !!box, home: fromLeft ? -40 : W + 40 };
+        if (!onLaptop) { sx = petSpot(v); }                              // on the paper she lies where the petting hand lands
+        actors.cat = { x: fromLeft ? -36 : W + 36, y: catY(), state: "walk", dir: fromLeft ? 1 : -1, spot: sx, phase: "in", onLaptop: onLaptop && !!box, home: fromLeft ? -40 : W + 40, half: box ? (box.w / 2 | 0) : 0, lieDir: PET_RIG[v.name].dir };
+        v.keepProps = actors.act;                                        // the laptop or the paper stays on the desk whatever the hands do
         actors.victim = v; actors.act = v.activity; v.held = true;
       },
       steps: [],
       update: function (t, f) {
         var c = actors.cat, v = actors.victim, o = other(v); catTick(c, f);
+        if (c.onLaptop) {                                                // over the keyboard she is behind the screen, a step higher
+          var over = Math.abs(c.x - c.spot) <= c.half + 2;
+          if (over && !c.behind) { c.behind = true; v.laptopOut = true; }
+          if (!over && c.behind) { c.behind = false; v.laptopOut = false; }
+          var ty = c.behind ? DESK_Y - 3 : catY(); c.y += Math.max(-2, Math.min(2, ty - c.y));
+        }
         if (c.phase === "in" && c.state === "walk") {
           c.x += 3 * c.dir; lookAt(v, c.x, catY() - 14);
           if ((c.dir > 0 && c.x >= c.spot) || (c.dir < 0 && c.x <= c.spot)) {
-            c.x = c.spot; c.state = "sit"; c.since = f; c.dir = v.x < c.x ? -1 : 1;
-            if (c.onLaptop) { v.laptopOut = true; } else { setActivity(v, "lift", 99); }   // on the keyboard the hands just stay put, hidden behind the screen
+            c.x = c.spot; c.since = f;
+            if (c.onLaptop) { c.state = "sit"; c.dir = v.x < c.x ? -1 : 1; } else { c.state = "loaf"; c.dir = c.lieDir; }
+            if (!c.onLaptop) { setActivity(v, "lift", 99); }                // on the keyboard the hands just stay put, hidden behind the screen
             faceOf(v, { brows: "down", mouth: "flat" }); lookAt(v, c.x, DESK_Y - 34);
             lookAt(o, c.x, DESK_Y - 34); o.mouth = "laugh";
           }
-        } else if (c.state === "sit") {
+        } else if (c.state === "sit" || (c.state === "loaf" && c.phase === "in")) {
           var k = f - c.since;
           if (k === 18) { o.mouth = "smile"; }
-          if (k === 36) { if (!c.onLaptop) { setActivity(v, v.poses.pethead ? "pethead" : "petfront", 99); } faceOf(v, { brows: null, mouth: "smile" }); c.shut = true; }
-          if (k === 84) { c.shut = false; c.state = "walk"; c.phase = "leave"; c.dir = c.home < c.x ? -1 : 1; c.left = f; if (v.activity !== actors.act) { setActivity(v, actors.act, 99); } v.laptopOut = false; faceOf(v, { mouth: "neutral" }); v.lookTarget = { x: 0, y: 1 }; }
+          if (k === 36) { if (!c.onLaptop) { setActivity(v, v.poses.petcat ? "petcat" : "pet", 99); } faceOf(v, { brows: null, mouth: "smile" }); c.shut = true; }
+          if (k === 84) { c.shut = false; c.state = "walk"; c.phase = "leave"; c.dir = c.home < c.x ? -1 : 1; c.left = f; if (v.activity !== actors.act) { setActivity(v, actors.act, 99); } faceOf(v, { mouth: "neutral" }); v.lookTarget = { x: 0, y: 1 }; }
         } else if (c.phase === "leave") {
           c.x += 3 * c.dir;
           if (!c.again && f - c.left === 9) { c.again = true; c.dir = -c.dir; c.phase = "in"; faceOf(v, { brows: "up" }); }
         }
       },
-      drawMid: function (t, f) { var c = actors.cat; if (c.onLaptop && c.state === "sit") { drawMaker(Math.round(c.x), DESK_Y - 3, "sit", 1, f, c.blink); } },
-      drawFront: function (t, f) { var c = actors.cat; if (!(c.onLaptop && c.state === "sit")) { drawMaker(Math.round(c.x), catY(), c.state, c.dir, f, c.blink); } },
+      drawMid: function (t, f) { var c = actors.cat; if (c.behind) { drawMaker(Math.round(c.x), Math.round(c.y), c.state, c.state === "sit" ? 1 : c.dir, f, c.blink); } },
+      drawFront: function (t, f) { var c = actors.cat; if (!c.behind) { drawMaker(Math.round(c.x), c.onLaptop ? Math.round(c.y) : catY(), c.state, c.dir, f, c.blink); } },
       end: catEnd
     },
     // Ilinca rolls off for coffee and comes back with two mugs.
@@ -1003,19 +1039,20 @@
 
   // The generated room at night: everything but the window dims to blue (the city stays bright behind the glass);
   // each lamp that is on throws a warm slanting pool on the desk and whoever sits under it.
-  function drawNightArt(h, f, n, d) {
-    var tint = function (a) { return "rgba(14,18,46," + a.toFixed(3) + ")"; };
+  function drawNightArt(h, f, n, d) {                                    // on the front layer: only what is drawn there darkens
+    g.save(); g.globalCompositeOperation = "source-atop";
     if (d > 0.02) { rect(0, 0, W, H, "rgba(255,150,80," + (0.10 * d).toFixed(3) + ")"); }
+    if (n > 0.02) { rect(0, 0, W, H, "rgba(14,18,46," + (0.46 * n).toFixed(3) + ")"); }
+    g.restore();
     if (n <= 0.02) { return; }
-    var a = 0.46 * n, wx = WIN.x, wy = WIN.y, ww = WIN.w, wh = WIN.h;
-    rect(0, 0, W, wy, tint(a)); rect(0, wy + wh, W, H - wy - wh, tint(a)); rect(0, wy, wx, wh, tint(a)); rect(wx + ww, wy, W - wx - ww, wh, tint(a));
-    rect(wx, wy, ww, wh, tint(0.12 * n));
+    fgCopyX.clearRect(0, 0, W, H); fgCopyX.drawImage(fg, 0, 0);          // what the layer covers, before the light
     for (var i = 0; i < 2; i++) {
       if (!lampIsOn(i, h)) { continue; }
       var q = lampGeom(i);
       slantCone(q, n * 0.34, true, 34); slantCone(q, n * 0.30, true, 22); slantCone(q, n * 0.26, true, 12);
       slantCone(q, n * 0.05, false, 30);
     }
+    g.save(); g.globalCompositeOperation = "destination-in"; g.drawImage(fgCopy, 0, 0); g.restore();   // light falls on things, not into the window
   }
 
   /* ---------- the frame loop ---------- */
@@ -1080,8 +1117,12 @@
   }
 
   function render(f) {
-    var h = hourNow(), t = scenario ? (f - scenario.t0) / FPS : 0, dark = isDark(h), art = ENV.ready;
-    if (art) { drawWindowView(h, f); g.drawImage(ENV.img["room-" + layoutName], 0, 0); g.drawImage(ENV.img["painting-" + layoutName], L.art.painting.x, L.art.painting.y); drawClockArt(h); drawSunPatch(h); }
+    var h = hourNow(), t = scenario ? (f - scenario.t0) / FPS : 0, dark = isDark(h), art = ENV.ready, back = g;
+    if (art) {
+      drawWindowView(h, f);                                              // behind the glass, on the back layer
+      g = fgx; g.clearRect(0, 0, W, H);                                  // the room and everyone in it, on the front layer
+      g.drawImage(ENV.img["room-" + layoutName], 0, 0); g.drawImage(ENV.img["painting-" + layoutName], L.art.painting.x, L.art.painting.y); drawClockArt(h); drawSunPatch(h);
+    }
     else { drawRoom(h); drawWindow(h, f); drawSunPatch(h); drawPendant(dark); drawLampArm(); }
     if (scenario && scenario.drawBack) { scenario.drawBack(t, f); }
     for (var i = 0; i < people.length; i++) { drawCharacter(people[i], f); }
@@ -1095,6 +1136,7 @@
     if (scenario && scenario.drawFront) { scenario.drawFront(t, f); }
     people.forEach(drawPetHand);
     drawNight(h, f);
+    if (art) { g = back; g.drawImage(fg, 0, 0); }
     if (dark) { if (art) { for (var k = 0; k < 2; k++) { if (lampIsOn(k, h)) { drawBulb(lampGeom(k)); } } } else { drawPendant(true); drawLamp(); } }   // the bulbs glow through the dark
     blit2();
   }
@@ -1104,6 +1146,7 @@
   function applyLayout(name) {
     if (name === layoutName) { return; }
     layoutName = name; L = LAYOUTS[name]; W = L.W; H = L.H; WIN = ENV.ready ? L.art.win : L.win; off.width = W; off.height = H;
+    fg.width = fgCopy.width = W; fg.height = fgCopy.height = H;
     cole.x = L.cole; ilinca.x = L.ilinca; lamp.base = L.lamp; var idle = lampIdle(); lamp.hx = lamp.tx = idle.x; lamp.hy = lamp.ty = idle.y;
     makeStars(); extras = [];
     canvas.setAttribute("width", W); canvas.setAttribute("height", H);
