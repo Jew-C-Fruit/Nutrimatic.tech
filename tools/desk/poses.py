@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - poses.py
-Version 1.4.5
+Version 1.5.0
 
 Created: 2026-10-02 - The figures' body poses, from generated pictures, as layers under the base head; the neck, and
   Ilinca's top, taken from the base so every pose joins the same head; front boxes by eye (v1.0.0)
@@ -37,6 +37,11 @@ Modified: 2026-10-03 - Note 7: a hole in Ilinca's top (the cut-out took its grey
 Modified: 2026-10-03 - Note 8: Ilinca's laptop squared off with an outline all round and her hands at its sides redrawn
   clean; props are lifted from the pose before its head area is cut (the cat showed through a gap at the top of her
   laptop when it was drawn over her) (v1.4.5)
+Modified: 2026-10-03 - Note 9: small motion frames for every activity (typing forearms, a hand to the trackpad, thumbs on
+  the console, a fidgeting hand, a phone scrolled, a second soldering position); a frame may edit pixels as well as
+  shift a box; Cole types from the front with his hands hidden behind the screen; the writing paper and the soldering
+  boards edge-on, as the flat front view of the desk needs, and Cole's laptop standing on the desk line; hands under
+  the desk ('hide') for both, for when Maker walks by (v1.5.0)
 
 Every activity in the scene is drawn with a body pose: the whole torso with arms, hands and whatever they hold, made
 by the image model from the figure's own portrait (pose_sprites.py says how) and reduced to a sprite on the base
@@ -65,6 +70,10 @@ GRIDS = {'cole': os.path.join(HERE, 'sprites', 'cole-301.json'), 'ilinca': os.pa
 # the Nutrimatic "nu" monogram (assets/nu-mark.svg reduced to five pixels) for the shaker bottles; '.' keeps a pixel
 NU_MARK = ['kkk..', 'k.k..', 'k.k.k', 'k.k.k', '..kkk']
 
+SKIN_COLE = {'#dc7f6d', '#ee947c', '#f6af8d', '#f8cda6', '#f9eee0'}
+SKIN_ILINCA = {'#f9e2d2', '#faebe1', '#e1cec4', '#e0b3a2', '#f1a49b', '#d18881', '#b5705f'}
+SLEEVE_ILINCA = {'#292423', '#191718'}
+
 # the stand-in cat's greys in the petting pictures
 CAT_GREYS = {'#9a9ea2', '#cfd2d4', '#5f6368', '#a19c9c', '#ddd6cf', '#d9a650'}
 
@@ -78,11 +87,24 @@ MANUAL = {
     'cole': {
         'sip': dict(front=(30, 26, 58, 48), front_mode='limb'),            # the fingers round the mug are in front of it, and of the chin
         'drink': dict(front=(40, 28, 61, 58), front_mode='limb'),
-        'solder': dict(pts={'tip': (35, 82)}),
+        # note 9d: the boards lie edge-on on the desk line (they were drawn in perspective over the desk's front); the
+        # irons reach down to them
+        'solder': dict(fix=[('recolour', 24, 83, 50, 86, {'#d9a650': '#211f1f', '#5f6368': '#211f1f', '#d9d5c8': '#211f1f', '#0f0503': '#211f1f', '#cfd2d4': '#211f1f'}),
+                            ('clear', 22, 89, 52, 93),
+                            ('under', 25, 85, ['..kk...k....kk.....k..kk.', '.kkkk.kkk..kkkk...kkk.kkkk'.replace('kkkk', 'kiik'), 'k' + 'c' * 24 + 'k', 'k' + 'C' * 24 + 'k', 'k' * 26], SKIN_COLE),
+                            ('rows', 37, 83, ['k', '.k', '.k'])],
+                       pts={'tip': (38, 86)}, frames={'solder1': ((48, 68, 68, 88), 0, -1)}),
+        'solder2': dict(fix=[('recolour', 28, 81, 48, 86, {'#2f6b3a': '#211f1f', '#1f4a28': '#211f1f', '#3d5f99': '#211f1f', '#090507': '#211f1f', '#d9a650': '#211f1f'}),
+                             ('clear', 26, 89, 52, 96),
+                             ('under', 29, 85, ['...k..kk....kk...k..', '..kik.kBBk..kiik.kck.', 'k' + 'v' * 18 + 'k', 'k' + 'V' * 18 + 'k', 'k' * 20], SKIN_COLE),
+                             ('rows', 37, 84, ['k', 'k'])],
+                        pts={'tip': (37, 86)}),
         # note 4, "supposed to be a nintendo DS" (his reference: the back of a red New 3DS XL): the console redrawn as seen
         # from across the desk, behind his hands: the lid's red back with its two camera lenses, the hinge with its
         # knuckles, the underside of the bottom half with its label
-        'ds': dict(fix=[('under', 26, 55, [
+        'ds': dict(frames={'ds1': {'edits': [('rows', 28, 56, ['pppr']), ('rows', 28, 57, ['ssss'])]},
+                           'ds2': {'edits': [('rows', 49, 56, ['rR']), ('rows', 49, 58, ['ss'])]}},
+                   fix=[('under', 26, 55, [
             '.kkkkkkkkkkkkkkkkkkkkkkkk.',
             'kpppprrrrrrrrrrrrrrrrrrrrk',
             'kprrrrrrrrrkrrkrrrrrrrrrRk',
@@ -100,13 +122,24 @@ MANUAL = {
             'kRRRRRRRRRRRRRRRRRRRRRRRRk',
             '.kkkkkkkkkkkkkkkkkkkkkkkk.'], {'#f8cda6', '#f6af8d', '#ee947c', '#dc7f6d', '#f9eee0'})]),
         'think': dict(neck_fill=False, keep_neck=True, front=(30, 32, 58, 50), front_mode='arm'),   # the fist under his chin, in front of the jaw
+        'hide': dict(fix=[('clear', -24, 89, 110, 104)]),                # hands in his lap: nothing of them below the desk line (note 9b)
+        # note 9a, motion in every activity: frames the scene cycles through (a forearm typing behind the screen, a hand to
+        # the trackpad, thumbs on the console, a fidgeting hand)
+        'rest': dict(frames={'rest1': ((4, 84, 30, 99), 0, -1)}),
         # petting Maker lying beside him: the picture had a grey cat under his hand; it goes, and the scene lays Maker in
         # its place (RIG below), so the hand lies exactly on her back; the hand moves a little as it strokes
         'petcat': dict(fix=[('erase', 28, 60, 86, 93, CAT_GREYS)], frames={'petcat2': ((46, 56, 80, 82), -2, 0)}),
         'stretch': dict(fix=[('clear', -8, 54, 7, 92), ('clear', 8, 53, 8, 53)]),   # a chair's edge behind him in the generated picture
         # props the scene also draws on their own: the laptop (the cat sits on it), the paper, the bottle being handed over
-        'type': dict(props={'laptop': (LAPTOP, (20, 56, 100, 100))}),
-        'write': dict(props={'paper': (PAPER, (10, 80, 90, 100))}, frames={'write1': ((14, 64, 36, 92), 1, 0), 'write2': ((14, 64, 36, 92), 2, -1)}),
+        'type': dict(fix=[('clear', 14, 91, 64, 96), ('fill', 15, 90, 61, 90, '#010101', set())],   # the laptop stands on the desk line (note 9d)
+                     props={'laptop': (LAPTOP, (20, 56, 100, 100))},
+                     frames={'type1': ((-2, 72, 17, 90), 0, -1), 'type2': ((63, 70, 82, 90), 0, -1), 'typetrack': ((63, 70, 82, 90), -1, 0)}),
+        # note 9d: the desk is seen flat from the front, so the paper lies edge-on: a thin white strip on the desk line,
+        # not a sheet in perspective hanging over the desk's front (what the paper covered above the desk is his shirt)
+        'write': dict(fix=[('recolour', 20, 82, 64, 87, {'#fbfaf5': '#211f1f', '#d9d5c8': '#211f1f'}), ('clear', 14, 91, 72, 98),
+                           ('recolour', 14, 88, 72, 90, {'#fbfaf5': None, '#d9d5c8': None, '#cfd2d4': None}),
+                           ('under', 22, 88, ['k' + 'w' * 40 + 'k', 'k' + 'g' * 40 + 'k', 'k' * 42], SKIN_COLE)],
+                      props={'paper': (PAPER, (10, 80, 90, 100))}, frames={'write1': ((14, 64, 36, 92), 1, 0), 'write2': ((14, 64, 36, 92), 2, -1)}),
         'offer': dict(fix=[('recolour', 74, 19, 87, 49, {'#f9eee0': '#fbfaf5'}), ('rows', 78, 28, NU_MARK)], props={'bottle': (BOTTLE, (58, 0, 100, 50))}, empty={'offerEmpty': 'bottle'}),
         'shake': dict(fix=[('rows', 38, 78, NU_MARK)], frames={'shake2': ((24, 44, 58, 86), 0, -2)}),   # shaking: only the arms and the bottle move
         'highfive': dict(pts={'hand': (67, 24)}),
@@ -123,7 +156,8 @@ MANUAL = {
         # filled solid and the whole laptop goes in front of her hair
         # note 8 (messy hands): the laptop squared off (straight edges, outline all round), and the two hands at its sides
         # redrawn clean: a white cuff, the hand going behind the screen
-        'type': dict(fix=[('fill', -2, 57, 60, 84, '#cfd2d4', {'#cfd2d4', '#9a9ea2'}),
+        'type': dict(frames={'type1': ((-10, 70, -4, 80), 0, 1), 'type2': ((62, 70, 68, 80), 0, 1), 'typetrack': ((62, 70, 68, 80), 1, 0)},
+                     fix=[('fill', -2, 57, 60, 84, '#cfd2d4', {'#cfd2d4', '#9a9ea2'}),
                           ('fill', -3, 56, 61, 56, '#010100', set()), ('fill', -3, 85, 61, 85, '#010100', set()),
                           ('fill', -3, 57, -3, 84, '#010100', set()), ('fill', 61, 57, 61, 84, '#010100', set()),
                           ('fill', -2, 57, 60, 57, '#5f6368', set()),
@@ -135,8 +169,11 @@ MANUAL = {
         # her reaching sleeve ended in a spike up into her hair: its top is cut level at the shoulder, under the hair
         'petcat': dict(fix=[('erase', -38, 60, 32, 94, CAT_GREYS), ('clear', 0, 30, 16, 45), ('rows', 4, 46, ['kkkkkk'])], frames={'petcat2': ((-18, 54, 14, 76), 2, 0)}),
         'stretch': dict(fix=[('clear', 63, 38, 67, 84)]),                # a chair's edge behind her
-        'rest': dict(fix=[('recolour', 56, 55, 64, 66, {'#5f6368': '#191718', '#9a9ea2': '#292423'})]),   # a grey chair corner by her shoulder
-        'write': dict(props={'paper': (PAPER, (-14, 74, 40, 96))}, frames={'write1': ((-6, 60, 16, 90), 1, 0), 'write2': ((-6, 60, 16, 90), 2, -1)}),
+        'rest': dict(fix=[('recolour', 56, 55, 64, 66, {'#5f6368': '#191718', '#9a9ea2': '#292423'})],   # a grey chair corner by her shoulder
+                     frames={'rest1': ((6, 72, 36, 88), 0, -1)}),
+        'write': dict(fix=[('clear', -8, 87, 36, 92), ('recolour', -8, 85, 36, 86, {'#fbfaf5': None}),
+                           ('under', -4, 85, ['k' + 'W' * 38 + 'k', 'k' * 40], SKIN_ILINCA | SLEEVE_ILINCA)],
+                      props={'paper': (PAPER, (-14, 74, 40, 96))}, frames={'write1': ((-6, 60, 16, 90), 1, 0), 'write2': ((-6, 60, 16, 90), 2, -1)}),
         # note 5 (suit breaking, doubled hands, clipping hair): chin on her fist, the forearm crossing in front of her left
         # hair strand: in a box round the fist and the crossing, all the pose drew except its own hair goes in front
         'think': dict(keep_neck=True, front=[(14, 31, 25, 47), (8, 48, 25, 62)], front_mode='nothair',
@@ -144,6 +181,7 @@ MANUAL = {
         # her phone and both hands are in front of her hair (they were drawn under it), and the phone is blue again (the
         # reduction had snapped the picture's blue phone to grey)
         'phone': dict(keep_chest=True, front=(4, 44, 44, 72), front_mode='limb', base_box=(12, 68, 34, 86),
+                      frames={'phone1': ((10, 44, 40, 68), 0, -1)},
                       fix=[('recolour', 12, 44, 36, 70, {'#5f6368': '#3d5f99', '#9a9ea2': '#6f93cf'})]),
         'carry': dict(keep_chest=True),
         'drink': dict(front=(-6, 16, 24, 50), front_mode='limb'),
@@ -154,6 +192,10 @@ MANUAL = {
         'surprise': dict(keep_chest=True, front=(48, 24, 68, 58), front_mode='limb'),
         # the bottle came out in her skin colours
         'take': dict(fix=[('clear', -30, 78, 13, 84), ('rows', -6, 30, NU_MARK)]),   # her fingers wrap the bottle; a stray grey bar cleared
+        # note 9b: hands in her lap under the desk (when Maker walks by): her rest picture with the forearms and hands
+        # taken out and the blazer and top carried straight down to the desk line (the model would not hide her hands)
+        'hide': dict(keep_chest=True, fix=[('handsunder', 71, 84, 15, 25, ('#292423', '#191718', '#010100', '#fbfaf5', '#0b0503')),
+                                           ('recolour', 56, 55, 66, 70, {'#5f6368': '#191718', '#9a9ea2': '#292423'})]),
     },
 }
 
@@ -205,7 +247,8 @@ SOFT_MAX = 6                                                         # the longe
 # letters for the pixel maps in FIX edits ('.' leaves a pixel alone, '_' clears it)
 KEYS = {
     'cole': dict(k='#010101', b='#623e32', d='#dc7f6d', a='#ee947c', m='#f6af8d', s='#f8cda6', h='#f9eee0', t='#211f1f', u='#100f13',
-                 w='#fbfaf5', r='#e4002b', R='#a3001f', g='#cfd2d4', G='#9a9ea2', p='#ff5a72'),
+                 w='#fbfaf5', r='#e4002b', R='#a3001f', g='#cfd2d4', G='#9a9ea2', p='#ff5a72', c='#d9a650', C='#7d6230',
+                 v='#2f6b3a', V='#1f4a28', B='#3d5f99', i='#5f6368'),
     'ilinca': dict(k='#010100', D='#b5705f', d='#d18881', a='#f1a49b', e='#e0b3a2', x='#e1cec4', s='#f9e2d2', h='#faebe1', j='#292423', J='#191718',
                    w='#fbfbf9', W='#fbfaf5', N='#5f4030', n='#6f4b3a', o='#9a6f50', O='#bd8e5d', y='#d9ae71', r='#e4002b', R='#a3001f', g='#cfd2d4', G='#9a9ea2'),
 }
@@ -338,6 +381,17 @@ def fix(spr, ox, oy, edits, pal_key):
             sub = s.idx[max(0, y0 - oy):max(0, y1 + 1 - oy), max(0, x0 - ox):max(0, x1 + 1 - ox)]
             ownix = [i for i, cc in enumerate(s.pal) if cc in own]; ci = s.color(col)
             sub[~np.isin(sub, ownix)] = ci
+            continue
+        if e[0] == 'handsunder':                                         # hands down in the lap, under the desk: the torso goes straight down to the desk line
+            _, top, desk, bx0, bx1, cols = e                             # cols: jacket, jacket shade, outline, blouse, blouse edge
+            jacket, shade, line, blouse, bline = (s.color(c_) for c_ in cols)
+            row = s.idx[top - oy]; xs = np.where(row >= 0)[0]; left, right = xs.min(), xs.max()
+            for y in range(top - oy + 1, desk - oy + 1):
+                if not (0 <= y < s.h): continue
+                s.idx[y, :] = -1; s.idx[y, left:right + 1] = jacket; s.idx[y, left] = line; s.idx[y, right] = line
+                for x in (left + 9, right - 9): s.idx[y, x] = shade        # where the arms hang beside the body
+                s.idx[y, bx0 - ox:bx1 - ox + 1] = blouse; s.idx[y, bx0 - ox - 1] = bline; s.idx[y, bx1 - ox + 1] = bline
+            s.idx[desk - oy + 1:, :] = -1
             continue
         if e[0] == 'holes':                                              # empty pixels in a box filled with one colour (a light shirt the cut-out took for wall)
             _, x0, y0, x1, y1, col = e
@@ -484,9 +538,16 @@ def build(c):
                 sizes = ndimage.sum(b2.idx >= 0, lab, index=np.arange(1, n + 1))
                 b2.idx[np.isin(lab, [i + 1 for i, s in enumerate(sizes) if s < 12])] = -1
             out[variant] = dict(body=(b2, meta['x'], meta['y']), front=None, pts=entry['pts'], props={})
-        for variant, (box, dx, dy) in man.get('frames', {}).items():
-            moved = shifted(body, meta['x'], meta['y'], box, dx, dy)
-            vfront = (hair_front(moved, meta['x'], meta['y'], HAIR_FRONT_ROW[who], who, None), meta['x'], meta['y']) if who in HAIR_FRONT_ROW else entry['front']   # the front moves with the hand
+        for variant, spec in man.get('frames', {}).items():
+            # a frame of motion: a box of the pose moved (dx, dy), and/or pixel edits ('edits': fix ops); the front layer moves
+            # with the body, so a hand that is in front of the hair or the face stays in front
+            if isinstance(spec, dict): box, dx, dy, edits = spec.get('box'), spec.get('dx', 0), spec.get('dy', 0), spec.get('edits', [])
+            else: (box, dx, dy), edits = spec, []
+            moved = shifted(body, meta['x'], meta['y'], box, dx, dy) if box else body.copy()
+            vf = shifted(entry['front'][0], meta['x'], meta['y'], box, dx, dy) if (box and entry['front']) else (entry['front'][0].copy() if entry['front'] else None)
+            if edits: moved = fix(moved, meta['x'], meta['y'], edits, KEYS[who])
+            if who in HAIR_FRONT_ROW: vf = hair_front(moved, meta['x'], meta['y'], HAIR_FRONT_ROW[who], who, vf)
+            vfront = (vf, meta['x'], meta['y']) if vf is not None and (vf.idx >= 0).any() else None
             moved = pinholes(moved, meta['x'], meta['y'], head, vfront)
             out[variant] = dict(body=(moved, meta['x'], meta['y']), front=vfront, pts=entry['pts'], props=entry['props'])
     return out

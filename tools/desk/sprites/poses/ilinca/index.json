@@ -29,6 +29,17 @@
   "x": -9,
   "y": 0
  },
+ "hide": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.947,
+  "note": "rest picture, hands taken out (MANUAL)",
+  "src": "ilinca-rest/cand-002-seed3603.png",
+  "x": -11,
+  "y": 0
+ },
  "highfive": {
   "align": [
    0,

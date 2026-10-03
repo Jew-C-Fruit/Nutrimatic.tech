@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.13.1
+ * Version 0.14.0
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -53,6 +53,11 @@
  * Modified: 2026-10-03 - Maker walks with twelve rigged frames (tools/desk/walk_rig.py), picked by how far she has moved,
  *   so her feet stay planted on the desk (v0.13.0)
  * Modified: 2026-10-03 - The test state reports whether Maker is behind a laptop screen (v0.13.1)
+ * Modified: 2026-10-03 - Every activity moves a little (typing forearms behind the screen, the trackpad, thumbs on the
+ *   console, a fidgeting hand, a scrolled phone, soldering changing position); hands go under the desk, not up in the
+ *   air, as soon as Maker's body would reach them, also when she comes for a laptop or a paper (a mug is lifted to drink
+ *   instead); the laptop or paper stays put meanwhile (it had vanished: kept before it was known); on a laptop she goes
+ *   behind the screen as soon as she touches it and comes out once clear of it (v0.14.0)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(),
@@ -480,8 +485,28 @@
   var POSE_OF = {
     rest: "rest", type: "type", write: "write", solder: "solder", think: "think", phone: "phone", call: "call", ds: "ds", dsAway: "hide",
     stretch: "stretch", wave: "wave", highfive: "highfive", fold: "fold", "throw": "throw", shake: "shake", drink: "drink", offer: "offer",
-    take: "take", rubEye: "yawn", yawn: "yawn", pet: "pet", fan: "wave", fistpump: "fist", carry: "carry", release: "highfive"
+    take: "take", rubEye: "yawn", yawn: "yawn", holdcup: "sip", pet: "pet", fan: "wave", fistpump: "fist", carry: "carry", release: "highfive",
+    underdesk: "hide"                                                    // hands down in the lap, out of Maker's way
   };
+  // Something always moves (Cole's note 9): each activity has frames of small motion the pose steps through, as
+  // [pose, ticks]: forearms typing behind the laptop screen, thumbs on the console, a hand fidgeting, a phone scrolled.
+  // A pose a figure doesn't have is skipped. Now and then a hand goes to the trackpad; soldering changes position.
+  var MOTION = {
+    type: [["type", 4], ["type1", 2], ["type", 3], ["type2", 2], ["type", 2], ["type1", 1], ["type", 2], ["type2", 1], ["type", 1], ["type1", 2]],
+    ds: [["ds", 2], ["ds1", 2], ["ds", 1], ["ds2", 2], ["ds", 2], ["ds2", 1], ["ds1", 1], ["ds", 3], ["ds1", 1]],
+    rest: [["rest", 40], ["rest1", 12], ["rest", 26], ["rest1", 6]],
+    phone: [["phone", 9], ["phone1", 3], ["phone", 5], ["phone1", 2]],
+    solder: [["solder", 16], ["solder1", 3], ["solder", 9], ["solder1", 2]]
+  };
+  function motion(p, name) {
+    if (name === "solder" && p.poses.solder2 && ((p.actFrame / 66 | 0) % 2)) { return "solder2"; }      // another way of holding it, every few seconds
+    var seq = MOTION[name]; if (!seq) { return name; }
+    if (name === "type" && p.poses.typetrack && (p.actFrame % 70) >= 52) { return "typetrack"; }          // a hand on the trackpad
+    var total = 0, i; for (i = 0; i < seq.length; i++) { total += seq[i][1]; }
+    var k = p.actFrame % total;
+    for (i = 0; i < seq.length; i++) { if (k < seq[i][1]) { return p.poses[seq[i][0]] ? seq[i][0] : name; } k -= seq[i][1]; }
+    return name;
+  }
   // Writing: the hand moves along the line in small steps and comes back (write1 and write2 are the write pose with
   // the hand moved one and two pixels on).
   var WRITING = ["write", "write", "write1", "write1", "write2", "write2", "write2", "write1", "write", "write", "write", "write1", "write2", "write", "write", "write"];
@@ -492,6 +517,7 @@
     else if (p.gesture && (a === "rest" || a === "think")) { name = "talk"; }      // a hand joins in only when it is free
     if (name === "wave" && p.poses.wave2 && ((p.actFrame >> 2) % 2)) { name = "wave2"; }
     if (name === "write" && p.poses.write1) { name = WRITING[(p.actFrame >> 1) % WRITING.length]; }
+    if (!p.react && !p.gesture) { name = motion(p, name); }
     if (name === "shake" && p.poses.shake2 && (p.actFrame % 2)) { name = "shake2"; }
     if (name === "petcat" && p.poses.petcat2 && ((p.actFrame / 6 | 0) % 2)) { name = "petcat2"; }   // a slow stroke along her back
     return p.poses[name] ? name : "rest";
@@ -699,16 +725,22 @@
   }
   function neutral(p) { p.mouth = "neutral"; p.brows = null; p.turn = 0; p.lookTarget = { x: 0, y: 1 }; }
   // Maker in a scenario: her blinks, and hands that come up off the desk while she walks past them.
-  var HANDS_DOWN = { rest: 1, type: 1, write: 1, think: 1, coffee: 1 };
+  // Hands go under the desk while she walks past them (note 9: lifting them into the air looked silly), as soon as her
+  // body would reach them: the hands come out to about 44 pixels either side of a figure's middle, and half her
+  // length goes the other way. A mug is lifted to drink instead, so it doesn't vanish.
+  var HANDS_DOWN = { rest: 1, type: 1, write: 1, think: 1, coffee: 1 }, HAND_REACH = 44;
+  function catHalf() { var w = MAKER && MAKER.walk0 ? MAKER.walk0.w : 64; return Math.round(w * 0.45); }   // half her length on the desk, nose to rump
+  function catReach() { return HAND_REACH + catHalf() - 4; }
+  function handsAway(p) { setActivity(p, p.activity === "coffee" && p.poses.sip ? "holdcup" : "underdesk", 99); }
   function catTick(c, f) {
     if (!c.nextBlink) { c.nextBlink = f + 12 + Math.random() * 24; }
     if (f >= c.nextBlink) { c.blinkUntil = f + 2; c.nextBlink = f + 14 + Math.random() * 26; }
     c.blink = c.shut || f < (c.blinkUntil || 0);
     people.forEach(function (p) {
       if (p.hidden || p.held) { return; }
-      var near = c.state === "walk" && Math.abs(c.x - p.x) < 36;
-      if (near && !p.catLift && HANDS_DOWN[p.activity]) { p.catLift = p.activity; setActivity(p, "lift", 99); }
-      else if (!near && p.catLift && (Math.abs(c.x - p.x) > 42 || (c.state !== "walk" && p !== actors.petter))) { setActivity(p, p.catLift, 99); p.catLift = null; }   // she has passed, or settled further along
+      var reach = catReach(), near = c.state === "walk" && Math.abs(c.x - p.x) < reach;
+      if (near && !p.catLift && HANDS_DOWN[p.activity]) { p.catLift = p.activity; handsAway(p); }                     // hands go under the desk as she passes
+      else if (!near && p.catLift && (Math.abs(c.x - p.x) > reach + 6 || (c.state !== "walk" && p !== actors.petter))) { setActivity(p, p.catLift, 99); p.catLift = null; }   // she has passed, or settled further along
     });
   }
   // Lying at the desk's front edge her tail hangs over it: a chain of short segments from the root, swinging like a
@@ -740,7 +772,7 @@
   function catEnd() {
     people.forEach(function (p) {
       if (p.catLift) { setActivity(p, p.catLift, 99); }
-      if (/^pet/.test(p.activity)) { setActivity(p, p.keepProps || "rest", 99); }   // no hand left stroking a cat that has gone
+      if (/^pet/.test(p.activity) || p.activity === "underdesk") { setActivity(p, p.keepProps || "rest", 99); }   // no hand left stroking a cat that has gone, none left under the desk
       p.catLift = null; p.held = false; p.laptopOut = false; p.keepProps = null;
     });
   }
@@ -847,8 +879,8 @@
       end: catEnd
     },
     // Maker picks whoever is typing or writing and sits on the laptop (on the keyboard, ears over the screen) or on
-    // the paper. Hands up, a look; the other one laughs; then a scratch on the head anyway. She leaves, thinks better
-    // of it, and comes back once more.
+    // the paper. Hands under the desk, a look; the other one laughs; then a stroke anyway (on the paper). She leaves,
+    // thinks better of it, and comes back once more; the hands go back to work once she has gone.
     laptop: {
       dur: 30, when: function () { return cole.activity !== "solder" && people.some(function (p) { return p.activity === "type" || p.activity === "write"; }); },
       setup: function () {
@@ -857,24 +889,26 @@
         var sx = box ? o.x + box.x + (box.w / 2 | 0) : v.x, fromLeft = v === cole;
         if (!onLaptop) { sx = petSpot(v); }                              // on the paper she lies where the petting hand lands
         actors.cat = { x: fromLeft ? -36 : W + 36, y: catY(), state: "walk", dir: fromLeft ? 1 : -1, spot: sx, phase: "in", onLaptop: onLaptop && !!box, home: fromLeft ? -40 : W + 40, half: box ? (box.w / 2 | 0) : 0, lieDir: PET_RIG[v.name].dir };
-        v.keepProps = actors.act;                                        // the laptop or the paper stays on the desk whatever the hands do
         actors.victim = v; actors.act = v.activity; v.held = true;
+        v.keepProps = actors.act;                                        // the laptop or the paper stays on the desk whatever the hands do
       },
       steps: [],
       update: function (t, f) {
-        var c = actors.cat, v = actors.victim, o = other(v); catTick(c, f);
+        var c = actors.cat, v = actors.victim, o = other(v), dv = Math.abs(c.x - v.x); catTick(c, f);
+        if (c.state === "walk" && c.phase === "in" && dv < catReach() && v.activity === actors.act) { setActivity(v, "underdesk", 99); }   // her way in crosses the hands
+        if (c.phase === "leave" && dv > catReach() + 6 && v.activity === "underdesk") { setActivity(v, actors.act, 99); }                 // she has gone: back to work
         if (c.onLaptop) {                                                // over the keyboard she is behind the screen, a step higher
-          var over = Math.abs(c.x - c.spot) <= c.half + 2;
-          if (over && !c.behind) { c.behind = true; v.laptopOut = true; }
-          if (!over && c.behind) { c.behind = false; v.laptopOut = false; }
-          var ty = c.behind ? DESK_Y - 3 : catY(); c.y += Math.max(-2, Math.min(2, ty - c.y));
+          var dl = Math.abs(c.x - c.spot), behind = dl <= c.half + catHalf() - 2;   // behind it as soon as her body would touch it, out once clear of it
+          if (behind && !c.behind) { c.behind = true; v.laptopOut = true; }
+          if (!behind && c.behind) { c.behind = false; v.laptopOut = false; }
+          var ty = dl <= c.half + 2 ? DESK_Y - 3 : catY(); c.y += Math.max(-2, Math.min(2, ty - c.y));   // up on the keyboard only when she is over it
         }
         if (c.phase === "in" && c.state === "walk") {
           c.x += 3 * c.dir; lookAt(v, c.x, catY() - 14);
           if ((c.dir > 0 && c.x >= c.spot) || (c.dir < 0 && c.x <= c.spot)) {
             c.x = c.spot; c.since = f;
             if (c.onLaptop) { c.state = "sit"; c.dir = v.x < c.x ? -1 : 1; } else { c.state = "loaf"; c.dir = c.lieDir; }
-            if (!c.onLaptop) { setActivity(v, "lift", 99); }                // on the keyboard the hands just stay put, hidden behind the screen
+            setActivity(v, "underdesk", 99);                                 // on the keyboard or the paper: the hands stay under the desk
             faceOf(v, { brows: "down", mouth: "flat" }); lookAt(v, c.x, DESK_Y - 34);
             lookAt(o, c.x, DESK_Y - 34); o.mouth = "laugh";
           }
@@ -882,7 +916,7 @@
           var k = f - c.since;
           if (k === 18) { o.mouth = "smile"; }
           if (k === 36) { if (!c.onLaptop) { setActivity(v, v.poses.petcat ? "petcat" : "pet", 99); } faceOf(v, { brows: null, mouth: "smile" }); c.shut = true; }
-          if (k === 84) { c.shut = false; c.state = "walk"; c.phase = "leave"; c.dir = c.home < c.x ? -1 : 1; c.left = f; if (v.activity !== actors.act) { setActivity(v, actors.act, 99); } faceOf(v, { mouth: "neutral" }); v.lookTarget = { x: 0, y: 1 }; }
+          if (k === 84) { c.shut = false; c.state = "walk"; c.phase = "leave"; c.dir = c.home < c.x ? -1 : 1; c.left = f; setActivity(v, "underdesk", 99); faceOf(v, { mouth: "neutral" }); v.lookTarget = { x: 0, y: 1 }; }
         } else if (c.phase === "leave") {
           c.x += 3 * c.dir;
           if (!c.again && f - c.left === 9) { c.again = true; c.dir = -c.dir; c.phase = "in"; faceOf(v, { brows: "up" }); }

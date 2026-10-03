@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - env_build.py
-Version 1.2.0
+Version 1.3.0
 
 Created: 2026-10-02 - The room, the skyline and the two anglepoise lamps as generated pictures reduced to the scene's
   pixels, written to assets/desk/ (v1.0.0)
 Modified: 2026-10-02 - Victory Boogie Woogie instead of the poster; the rooms with the poster edited out (v1.1.0)
 Modified: 2026-10-03 - The Nutrimatic "nu" mark on the shaker bottle prop (v1.2.0)
+Modified: 2026-10-03 - The papers prop drawn edge-on, as the flat front view of the desk needs (v1.3.0)
 
 The environment was drawn in code until v0.7 and looked low-fi next to the figures, so it is made the same way as they
 are now: pictures generated on the GPU machine (FLUX.2 klein 4B, see sources/PROVENANCE.md) and reduced with
@@ -202,8 +203,29 @@ def props():
             for r, row in enumerate(['kkk..', 'k.k..', 'k.k.k', 'k.k.k', '..kkk']):
                 for c, ch in enumerate(row):
                     if ch == 'k': sp.idx[my + r, mx + c] = ink
+        if name == 'papers':                                                    # the desk is seen flat from the front: papers lie edge-on
+            sp = edge_on_papers()
         sp.save(os.path.join(OUT, 'prop-%s.png' % name)); out[name] = [sp.w, sp.h]
     return out
+
+
+def edge_on_papers():
+    """a short stack of paper with a red notebook on it, seen exactly from the front at desk height (note 9d: the
+    generated stack was drawn from above, in perspective, against the flat desk)"""
+    rows = ['..kkkkkkkkkkkkk.......',
+            '..krrrrrrrrrrrrk......',
+            '..kRRRRRRRRRRRRk......',
+            'kkkkkkkkkkkkkkkkkkkkk.',
+            'kwwwwwwwwwwwwwwwwwwwk.',
+            'kgggggggggggggggggggk.',
+            'kwwwwwwwwwwwwwwwwwwwk.',
+            'kkkkkkkkkkkkkkkkkkkkkk']
+    key = {'k': '#1d1d1f', 'w': '#fbfaf5', 'g': '#d9d5c8', 'r': '#e4002b', 'R': '#a3001f'}
+    s = Sprite(-np.ones((len(rows), len(rows[0])), dtype=np.int16), [])
+    for y, row in enumerate(rows):
+        for x, ch in enumerate(row):
+            if ch != '.': s.put(x, y, key[ch])
+    return s
 
 
 if __name__ == '__main__':
