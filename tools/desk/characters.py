@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - characters.py
-Version 1.0.1
+Version 1.1.0
 
 Created: 2026-10-02 - Cole and Ilinca as sprites: generated bases finished by hand in the face, cut into layers (v1.0.0)
 Modified: 2026-10-02 - Cole's resting mouth is a half smile, not a straight line (v1.0.1)
+Modified: 2026-10-02 - More mouths: grin and smirk for both, soft and pursed for Ilinca, so she isn't smiling all the time (v1.1.0)
 
 characters.py - Cole and Ilinca for the desk scene.
 
@@ -103,6 +104,8 @@ class Cole:
         'o':       ["............", ".....bbb....", "....bdddb...", ".....bbb...."],
         'laugh':   [".b.........b", "..bbbbbbbbb.", "..bwwwwwwwb.", "...ddddddd..", "....bbbbb..."],
         'yawn':    ["....bbbbb...", "...bwwwwwb..", "...bdddddb..", "...bdddddb..", "...bdddddb..", "....bbbbb..."],
+        'grin':    [".b........b.", "..bwwwwwwb..", "...bhhhhb...", "............"],
+        'smirk':   ["..........b.", "...bbbbbbb..", "............", ".....hh....."],
     }
 
     @classmethod
@@ -207,6 +210,10 @@ class Ilinca:
         'o':       ["..........", "...rrr....", "..rdddr...", "...lll...."],
         'laugh':   [".r......r.", "..rrrrrr..", "..wwwwww..", "...dddd...", "...llll..."],
         'yawn':    ["...rrrr...", "..rwwwwr..", "..rddddr..", "..rddddr..", "...llll..."],
+        'grin':    [".r......r.", "..rwwwwr..", "...llll..."],
+        'smirk':   ["........r.", "..rrrrrr..", "....ll...."],
+        'soft':    ["..........", "...rrrr...", "...llll..."],
+        'purse':   ["..........", "....rr....", "...rllr...", "....ll...."],
     }
 
     @classmethod

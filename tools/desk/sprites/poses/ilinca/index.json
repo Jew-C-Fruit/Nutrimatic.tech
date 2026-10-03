@@ -39,6 +39,16 @@
   "x": -17,
   "y": 0
  },
+ "lift": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.841,
+  "src": "ilinca-lift/cand-000-seed5381.png",
+  "x": -12,
+  "y": 0
+ },
  "mug": {
   "align": [
    0,
@@ -57,6 +67,26 @@
   "fit": 0.846,
   "src": "ilinca-pet/cand-001-seed2726.png",
   "x": -18,
+  "y": 0
+ },
+ "petfront": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.873,
+  "src": "ilinca-petfront/cand-000-seed5846.png",
+  "x": -10,
+  "y": 0
+ },
+ "pethead": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.849,
+  "src": "ilinca-pethead/cand-002-seed3100.png",
+  "x": -10,
   "y": 0
  },
  "phone": {
@@ -94,10 +124,10 @@
    0,
    0
   ],
-  "fit": 0.854,
-  "src": "ilinca-stretch/cand-001-seed6875.png",
-  "x": -2,
-  "y": -35
+  "fit": 0.93,
+  "src": "ilinca-stretch2/cand-001-seed4106.png",
+  "x": -15,
+  "y": 0
  },
  "surprise": {
   "align": [
@@ -114,9 +144,9 @@
    0,
    0
   ],
-  "fit": 0.898,
-  "src": "ilinca-take/cand-000-seed4522.png",
-  "x": -29,
+  "fit": 0.945,
+  "src": "ilinca-take2/cand-002-seed6694.png",
+  "x": -18,
   "y": 0
  },
  "talk": {

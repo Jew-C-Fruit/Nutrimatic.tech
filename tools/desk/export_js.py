@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - export_js.py
-Version 1.1.0
+Version 1.2.0
 
 Created: 2026-10-02 - Writes js/desk-sprites.js from the sprite sources (v1.0.0)
 Modified: 2026-10-02 - Body poses (poses.py); layers run-length encoded, since there are now dozens of them (v1.1.0)
+Modified: 2026-10-02 - Props lifted out of poses (the laptop, the paper, the bottle) exported with them (v1.2.0)
 
 export_js.py - write js/desk-sprites.js for the site from the finished sprites.
 
@@ -18,7 +19,8 @@ plain data so the scene needs no image files and no loading step:
           pal           colours; every number below is an index into it
           torso, head   layers: {x, y, w, h, d}; d has one character per pixel, row after row: 0-9a-z = palette index, "." = clear;
                         a run of the same character is written once followed by its length in capitals (base 26, A = 0)
-          poses         {name: {b: body layer, f: front layer (optional), pts: {name: [x, y]} (optional)}}
+          poses         {name: {b: body layer, f: front layer (optional), pts: {name: [x, y]} (optional),
+                        p: {prop name: layer} (optional: a prop lifted out of the pose, e.g. the laptop)}}
           eyes, brows, mouth   frames as flat [x, y, colour, x, y, colour, ...] lists drawn over the head (-1 clears a pixel)
           joints, arm   where the arms attach and how they are drawn
 """
@@ -66,7 +68,7 @@ def figure(c):
     for spr in (torso, head):
         for i in spr.used(): add(spr.pal[i])
     for q in built.values():
-        for part in (q['body'], q['front']):
+        for part in [q['body'], q['front']] + list(q.get('props', {}).values()):
             if part is not None:
                 for i in part[0].used(): add(part[0].pal[i])
     for group in fr.values():
@@ -87,6 +89,7 @@ def figure(c):
         b, bx, by = q['body']; entry = dict(b=layer(b, pal, bx, by))
         if q['front'] is not None: f, fx, fy = q['front']; entry['f'] = layer(f, pal, fx, fy)
         if q['pts']: entry['pts'] = {k: list(v) for k, v in q['pts'].items()}
+        if q.get('props'): entry['p'] = {k: layer(s, pal, sx, sy) for k, (s, sx, sy) in q['props'].items()}
         out['poses'][name] = entry
     out['joints'] = {k: list(v) for k, v in c.joints.items()}
     out['points'] = {k: list(v) for k, v in c.points.items()}

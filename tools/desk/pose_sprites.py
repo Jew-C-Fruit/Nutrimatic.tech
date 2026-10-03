@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - pose_sprites.py
-Version 1.0.0
+Version 1.1.0
 
 Created: 2026-10-02 - Generated pose pictures -> body sprites that fit under the figure's head (v1.0.0)
+Modified: 2026-10-02 - front mode 'limb': a hand or sleeve drawn over long hair without the pose's own hair (v1.1.0)
 
 The arms are not drawn in code. For every pose the model redraws the whole figure from the "stage" picture (the picked
 portrait on a larger canvas, sitting behind a flat blue desk at the scene's desk line; see make_stage in this file), so
@@ -114,7 +115,7 @@ def align(pose, ox, oy, base, head_mask, reach=5):
     return best[1], best[2], best[0] / max(1, len(ys))
 
 
-def split(pose, ox, oy, head_mask, jaw_rows, front_box=None, hair=None, neck=None, front_mode='all', base_head=None, chest=None):
+def split(pose, ox, oy, head_mask, jaw_rows, front_box=None, hair=None, neck=None, front_mode='all', base_head=None, chest=None, limb=None):
     """body = the pose without its head; front = what must be drawn over the base head (inside front_box, base coordinates).
     The head is removed with a little margin above and beside it (the redrawn hair is never exactly the base's), but not
     below the jaw, where the neck has to meet the base head."""
@@ -137,6 +138,9 @@ def split(pose, ox, oy, head_mask, jaw_rows, front_box=None, hair=None, neck=Non
         if front_mode == 'props':                                    # only what is made of prop colours (a mug, a bottle) and its outline
             prop = np.isin(pose.idx, [i for i, c in enumerate(pose.pal) if c in PROPS])
             fm &= prop | (ndimage.binary_dilation(prop, structure=np.ones((3, 3), bool)) & dark(pose))
+        elif front_mode == 'limb' and limb is not None:                # a hand or sleeve over long hair: skin, cloth and props, with their outline
+            part = np.isin(pose.idx, [i for i, c in enumerate(pose.pal) if c in limb])
+            fm &= part | (ndimage.binary_dilation(part, structure=np.ones((3, 3), bool)) & dark(pose))
         elif front_mode == 'diff' and base_head is not None:         # what the pose draws differently from the base head there (a hand over hair)
             lab_p = PX.srgb_to_oklab(np.array([hex2rgb(c) for c in pose.pal], dtype=np.float64)); lab_b = PX.srgb_to_oklab(np.array([hex2rgb(c) for c in base_head.pal], dtype=np.float64))
             differ = np.zeros_like(H)

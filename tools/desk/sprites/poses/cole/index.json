@@ -24,10 +24,10 @@
    0,
    0
   ],
-  "fit": 0.901,
-  "src": "cole-fist/cand-001-seed2738.png",
-  "x": -8,
-  "y": -13
+  "fit": 0.905,
+  "src": "cole-fist2/cand-001-seed3384.png",
+  "x": -11,
+  "y": 0
  },
  "fold": {
   "align": [
@@ -59,6 +59,16 @@
   "x": -1,
   "y": 0
  },
+ "lift": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.9,
+  "src": "cole-lift/cand-001-seed4282.png",
+  "x": -9,
+  "y": 0
+ },
  "mug": {
   "align": [
    0,
@@ -74,9 +84,39 @@
    0,
    0
   ],
-  "fit": 0.902,
-  "src": "cole-offer/cand-001-seed4948.png",
+  "fit": 0.857,
+  "src": "cole-offer2/cand-002-seed3766.png",
+  "x": -13,
+  "y": 0
+ },
+ "pet": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.903,
+  "src": "cole-pet/cand-002-seed6605.png",
+  "x": -2,
+  "y": 0
+ },
+ "petfront": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.904,
+  "src": "cole-petfront/cand-000-seed7914.png",
   "x": -8,
+  "y": 0
+ },
+ "pethead": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.906,
+  "src": "cole-pethead/cand-002-seed6268.png",
+  "x": -6,
   "y": 0
  },
  "rest": {
@@ -104,9 +144,9 @@
    0,
    0
   ],
-  "fit": 0.733,
-  "src": "cole-sip/cand-002-seed8745.png",
-  "x": -1,
+  "fit": 0.837,
+  "src": "cole-sip2/cand-002-seed3372.png",
+  "x": -3,
   "y": 0
  },
  "solder": {
@@ -124,10 +164,10 @@
    0,
    0
   ],
-  "fit": 0.899,
-  "src": "cole-stretch/cand-001-seed4883.png",
-  "x": 0,
-  "y": -31
+  "fit": 0.907,
+  "src": "cole-stretch2/cand-001-seed3382.png",
+  "x": -13,
+  "y": 0
  },
  "surprise": {
   "align": [
@@ -144,9 +184,9 @@
    0,
    0
   ],
-  "fit": 0.904,
-  "src": "cole-talk/cand-001-seed6495.png",
-  "x": 0,
+  "fit": 0.898,
+  "src": "cole-talk2/cand-001-seed6338.png",
+  "x": -4,
   "y": 0
  },
  "think": {
