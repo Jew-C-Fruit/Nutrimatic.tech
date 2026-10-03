@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - poses.py
-Version 1.4.2
+Version 1.4.3
 
 Created: 2026-10-02 - The figures' body poses, from generated pictures, as layers under the base head; the neck, and
   Ilinca's top, taken from the base so every pose joins the same head; front boxes by eye (v1.0.0)
@@ -30,6 +30,8 @@ Modified: 2026-10-03 - Note 4: Cole's console redrawn after his reference (the b
 Modified: 2026-10-03 - Note 5: a new chin-on-fist picture for Ilinca; her forearm crosses in front of her hair, so in
   boxes round the fist and the crossing all the pose drew except its own hair goes in front (front mode 'nothair', front
   boxes may be several) (v1.4.2)
+Modified: 2026-10-03 - Note 6: the neck patch follows the portrait's round neckline (it had squared Cole's T-shirt off); a
+  new rest pose for Cole with his hands flat on the desk, apart (v1.4.3)
 
 Every activity in the scene is drawn with a body pose: the whole torso with arms, hands and whatever they hold, made
 by the image model from the figure's own portrait (pose_sprites.py says how) and reduced to a sprite on the base
@@ -354,11 +356,17 @@ CLOTH_EDGE = {'cole': ('#010101', '#211f1f')}
 
 
 def neck_patch(c, torso, jaw):
-    """pixels of the base torso just under the jaw: (torso sprite, mask)"""
+    """pixels of the base torso just under the jaw: (torso sprite, mask). Per column it reaches down only as far as the
+    base portrait's neck skin goes, plus the collar's outline under it, so the patch has the portrait's round neckline;
+    a patch cut off at one row made the T-shirt's neckline square (Cole's note 6)"""
     x0, x1, collar = NECK[c.name]; m = np.zeros(torso.idx.shape, dtype=bool)
+    skin = [i for i, col in enumerate(torso.pal) if col in SOFTEN[c.name][0][0]]
     for x in range(x0, x1 + 1):
         top = jaw.get(x, 0) + 1
-        m[top:collar + 1, x] = True
+        col = torso.idx[top:collar + 9, x]; rows = np.where(np.isin(col, skin))[0]
+        if not len(rows): continue                                   # no neck in this column of the portrait: the pose's own shirt stays
+        bottom = top + int(rows.max()) + 1                           # the last neck pixel, and the collar line under it
+        m[top:bottom + 1, x] = True
     return torso, m & (torso.idx >= 0)
 
 

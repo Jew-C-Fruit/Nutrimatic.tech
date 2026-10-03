@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.12.1
+ * Version 0.13.0
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -50,6 +50,8 @@
  *   petting is rigged (she lies where the cat was in the petting picture, the hand strokes along her back), on the
  *   paper too; petting starts when she settles; shaking moves only the arms; Ilinca looks straight at her laptop (v0.12.0)
  * Modified: 2026-10-03 - Ilinca's phone lies on her right, clear of her (now larger) laptop (v0.12.1)
+ * Modified: 2026-10-03 - Maker walks with twelve rigged frames (tools/desk/walk_rig.py), picked by how far she has moved,
+ *   so her feet stay planted on the desk (v0.13.0)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(),
@@ -644,7 +646,8 @@
   function catY() { return ENV.ready ? L.art.catY : DESK_Y + 2; }
   function drawMaker(x, y, pose, dir, f, blink) {
     var d = dir || 1;
-    var key = pose === "walk" ? "walk" + ((f >> 1) % 4) : pose === "knead" ? "knead" + ((f >> 2) % 2) : pose;   // the walk: four frames, one step per two ticks at three pixels a tick
+    // the walk: twelve rigged frames, one per three pixels she moves, so the feet on the desk stay where they are
+    var step = Math.floor(x * d / 3), key = pose === "walk" ? "walk" + (((step % 12) + 12) % 12) : pose === "knead" ? "knead" + ((f >> 2) % 2) : pose;
     var set = MAKER, data = ART.maker;
     if (blink && set && set[key + "Blink"]) { key += "Blink"; }
     if (set && set[key]) {

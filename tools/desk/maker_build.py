@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - maker_build.py
-Version 1.5.0
+Version 1.6.0
 
 Created: 2026-10-02 - Maker the cat: five generated poses on one palette, eyes tidied (v1.0.0)
 Modified: 2026-10-02 - A fifth bigger (reduced again from the generated pictures: 62 px long walking, 45 px tall
@@ -16,6 +16,8 @@ Modified: 2026-10-03 - Round tail tips again, a little longer (pointed was worse
 Modified: 2026-10-03 - The big stylized eyes are her look now (the user: "Big eyes are better"); the exporter asks for
   sheet(big=True) (v1.4.0)
 Modified: 2026-10-03 - A real walk cycle: four frames from one generated sheet, cut and reduced on one grid (v1.5.0)
+Modified: 2026-10-03 - Note 6: the walk is rigged (walk_rig.py): twelve frames, four legs in a cat's lateral-sequence
+  walk with planted feet, on a body the model drew over the rig (v1.6.0)
 
 maker_build.py - Maker the cat: generated sprites (FLUX.2 klein 4B on her photos, see sources/PROVENANCE.md), reduced
 with tools/portraits/pixelize.py to a set size, recoloured to one shared palette close to her real blue-grey, and
@@ -95,6 +97,21 @@ def walk_frames(cell=10, colors=12):
     for o in out: m |= o.idx >= 0
     ys, xs = np.where(m)
     return [Sprite(o.idx[ys.min():ys.max() + 1, xs.min():xs.max() + 1], o.pal) for o in out]
+
+
+# The walk the scene uses: a body the model drew over the walk rig (walk_rig.py; the frame it drew for the rig's frame 5,
+# legs and all), reduced on the rig's grid, its legs cut away and the rig's twelve frames of legs drawn on.
+WALK_BODY = ('maker-walkbody-seed9815.png', (192, 94), (64, 58))   # picture, top-left of the rig's grid in it, grid size
+
+
+def walk_body():
+    from scipy import ndimage
+    path, (x0, y0), (cw, ch) = WALK_BODY; rgb = np.asarray(Image.open(os.path.join(SRC, path)).convert('RGB'))[y0:y0 + ch * 10, x0:x0 + cw * 10]
+    a = rgb.astype(int); bg = np.median(np.concatenate([a[:4].reshape(-1, 3), a[-4:].reshape(-1, 3)]), axis=0)
+    near = np.abs(a - bg).sum(axis=2) < 45; lab, n = ndimage.label(near); edge = np.unique(np.concatenate([lab[0], lab[-1], lab[:, 0], lab[:, -1]]))
+    mask = ndimage.binary_opening(~np.isin(lab, edge[edge != 0]), iterations=2)
+    spr, alpha, centers, _ = PX.pixelize(rgb, 10, colors=12, line_colors=2, mask=mask, origin=(-10, -10), crop=False)
+    return recolour(Sprite(np.where(alpha, spr, -1).astype(np.int16), [rgb2hex(c) for c in PX.oklab_to_srgb(centers)]))
 
 
 def recolour(s):
@@ -254,8 +271,13 @@ def sprites(big=False):
     if big:
         base = dict(out); out = {}
         for k, s in base.items():
+            if k.startswith('walk'): continue                            # the walk is rigged below
             out[k] = big_eyes(s) if k != 'yawn' else s
             if k != 'yawn': out[k + 'Blink'] = big_eyes(s, shut=True)
+        import walk_rig
+        cols = dict(LINE=LINE, DEEP=DEEP, SHADE=SHADE, FILL=FILL, LIGHT=LIGHT); wb = walk_body()
+        for i, fr in enumerate(walk_rig.frames(big_eyes(wb), cols)): out['walk%d' % i] = fr
+        for i, fr in enumerate(walk_rig.frames(big_eyes(wb, shut=True), cols)): out['walk%dBlink' % i] = fr
         return out
     for k in [k for k in out if k not in ('yawn',)]: out[k + 'Blink'] = blink(out[k])
     return out

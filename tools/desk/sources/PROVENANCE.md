@@ -1,6 +1,6 @@
 # Where the pictures in this folder came from
 
-Version 1.4.0 · Created 2026-10-02 · Modified 2026-10-03 (walk cycle; petting with a cat; audit references)
+Version 1.5.0 · Created 2026-10-02 · Modified 2026-10-03 (walk cycle; petting with a cat; audit references; the rigged walk)
 
 ## Credits to show when the scene goes live (not on the page yet, by Cole's choice)
 
@@ -94,6 +94,17 @@ The photographs themselves are not in this repo.
   `run_walk.sh` of the work folder), cut into frames by `maker_build.walk_frames`.
 - The petting poses (`sprites/poses/*/petcat.png`) were generated with a grey cat under the hand; `poses.py` erases
   that cat and the scene puts Maker in its place.
+
+## The rigged walk (2026-10-03, Cole's note 6)
+
+- `walk_rig.py` draws the legs of Maker's walk for twelve frames as a cat walks: a lateral-sequence walk (feet landing
+  left hind, left fore, right hind, right fore), each foot on the ground 60% of the cycle and planted while it is, the
+  wrist and hock flexing in the swing, the body dipping twice a cycle. The gait follows Eadweard Muybridge, *Animal
+  Locomotion* (1887), plate 716, a cat walking (public domain; Boston Public Library scan on Wikimedia Commons,
+  https://commons.wikimedia.org/wiki/File:Animal_locomotion._Plate_716_(Boston_Public_Library).jpg). Looked at, not copied.
+- `maker-walkbody-seed9815.png`: the body. A first version of the rig, drawn on the generated walk, was given back to
+  FLUX.2 klein 4B as a sketch to redraw in her look (work folder `env/gen/run_walkrig.sh`, one picture per frame); its
+  frame 5 had the best body, which `maker_build.walk_body` reduces, and the rig cuts its legs off and draws its own.
 
 ## The painting where the poster was (2026-10-02)
 
