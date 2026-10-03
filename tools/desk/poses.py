@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - poses.py
-Version 1.3.0
+Version 1.3.1
 
 Created: 2026-10-02 - The figures' body poses, from generated pictures, as layers under the base head; the neck, and
   Ilinca's top, taken from the base so every pose joins the same head; front boxes by eye (v1.0.0)
@@ -19,6 +19,9 @@ Modified: 2026-10-03 - Audit fixes: Ilinca's hands and held things in front of h
   where a hand meets the face (the sip); hands in front of mugs and bottles; petting pictures with the stand-in cat
   erased (the scene puts Maker there); a new typing pose for Cole and take pose for Ilinca; shake2; stray chairs and
   specks cleared (v1.3.0)
+Modified: 2026-10-03 - Cole's note 1 ("major hand and arm distortion", chin on hand): the cleanup softens only short line
+  runs (finger gaps), so crossed limbs keep their outline; a new chin-on-hand picture for Cole whose fist goes in front of
+  the jaw (front mode 'arm'); stray dashes cleared from Ilinca's (v1.3.1)
 
 Every activity in the scene is drawn with a body pose: the whole torso with arms, hands and whatever they hold, made
 by the image model from the figure's own portrait (pose_sprites.py says how) and reduced to a sprite on the base
@@ -61,7 +64,7 @@ MANUAL = {
         'sip': dict(front=(30, 26, 58, 48), front_mode='limb'),            # the fingers round the mug are in front of it, and of the chin
         'drink': dict(front=(40, 28, 61, 58), front_mode='limb'),
         'solder': dict(pts={'tip': (35, 82)}),
-        'think': dict(neck_fill=False),                                  # the hand at his chin: the gap there is real
+        'think': dict(neck_fill=False, keep_neck=True, front=(30, 32, 58, 50), front_mode='arm'),   # the fist under his chin, in front of the jaw
         # petting Maker lying beside him: the picture had a grey cat under his hand; it goes, and the scene lays Maker in
         # its place (RIG below), so the hand lies exactly on her back; the hand moves a little as it strokes
         'petcat': dict(fix=[('erase', 28, 60, 86, 93, CAT_GREYS)], frames={'petcat2': ((46, 56, 80, 82), -2, 0)}),
@@ -88,7 +91,7 @@ MANUAL = {
         'stretch': dict(fix=[('clear', 63, 38, 67, 84)]),                # a chair's edge behind her
         'rest': dict(fix=[('recolour', 56, 55, 64, 66, {'#5f6368': '#191718', '#9a9ea2': '#292423'})]),   # a grey chair corner by her shoulder
         'write': dict(props={'paper': (PAPER, (-14, 74, 40, 96))}, frames={'write1': ((-6, 60, 16, 90), 1, 0), 'write2': ((-6, 60, 16, 90), 2, -1)}),
-        'think': dict(front=(8, 28, 34, 48), front_mode='diff', keep_neck=True),
+        'think': dict(front=(8, 28, 34, 48), front_mode='diff', keep_neck=True, fix=[('clear', 3, 41, 16, 58)]),   # dashes of a lost shoulder outline cleared
         'phone': dict(keep_chest=True),
         'carry': dict(keep_chest=True),
         'drink': dict(front=(-6, 16, 24, 50), front_mode='limb'),
@@ -146,6 +149,7 @@ SOFTEN = {
     'ilinca': [({'#f9e2d2', '#faebe1', '#e1cec4', '#e0b3a2', '#f1a49b', '#d18881', '#b5705f'}, '#d18881'), ({'#191718', '#292423'}, '#191718')],
 }
 LINES = {'cole': {'#010101', '#090507', '#0f0503'}, 'ilinca': {'#010100', '#0b0503', '#0e0c0b'}}
+SOFT_MAX = 6                                                         # the longest line run that counts as a finger gap
 # letters for the pixel maps in FIX edits ('.' leaves a pixel alone, '_' clears it)
 KEYS = {
     'cole': dict(k='#010101', b='#623e32', d='#dc7f6d', a='#ee947c', m='#f6af8d', s='#f8cda6', h='#f9eee0', t='#211f1f', u='#100f13',
@@ -173,6 +177,11 @@ def soften(spr, who, reach_n=2, keep=None):
             return out
         inner = line & ((reach(-1, 0) & reach(1, 0)) | (reach(0, -1) & reach(0, 1)) | (reach(-1, -1) & reach(1, 1)) | (reach(-1, 1) & reach(1, -1)))
         if keep is not None: inner &= ~keep
+        # only short runs: a gap between two fingers or a crease is a few pixels; a long line between skin and skin is
+        # where two separate limbs meet (crossed forearms, a fist against an arm) and keeps its outline
+        lab, n = _nd.label(inner, structure=np.ones((3, 3), bool))
+        if n:
+            sizes = _nd.sum(inner, lab, index=np.arange(1, n + 1)); inner &= np.isin(lab, [i + 1 for i, sz in enumerate(sizes) if sz <= SOFT_MAX])
         s.idx[inner] = s.color(tone)
     return s
 

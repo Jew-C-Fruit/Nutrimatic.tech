@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - pose_sprites.py
-Version 1.1.0
+Version 1.2.0
 
 Created: 2026-10-02 - Generated pose pictures -> body sprites that fit under the figure's head (v1.0.0)
 Modified: 2026-10-02 - front mode 'limb': a hand or sleeve drawn over long hair without the pose's own hair (v1.1.0)
+Modified: 2026-10-03 - front mode 'arm' (only skin joined to an arm from below: a fist at the chin); the neck patch no
+  longer paints over a limb reaching the chin (v1.2.0)
 
 The arms are not drawn in code. For every pose the model redraws the whole figure from the "stage" picture (the picked
 portrait on a larger canvas, sitting behind a flat blue desk at the scene's desk line; see make_stage in this file), so
@@ -138,6 +140,16 @@ def split(pose, ox, oy, head_mask, jaw_rows, front_box=None, hair=None, neck=Non
         if front_mode == 'props':                                    # only what is made of prop colours (a mug, a bottle) and its outline
             prop = np.isin(pose.idx, [i for i, c in enumerate(pose.pal) if c in PROPS])
             fm &= prop | (ndimage.binary_dilation(prop, structure=np.ones((3, 3), bool)) & dark(pose))
+        elif front_mode == 'arm':                                      # a hand at the face: only the skin joined to an arm coming up from below the box
+            skin = np.zeros(pose.idx.shape, bool)
+            lab_p = PX.srgb_to_oklab(np.array([hex2rgb(c) for c in pose.pal], dtype=np.float64))
+            for i, (L, a_, b_) in enumerate(lab_p):
+                if L > 0.55 and a_ > 0.02 and b_ > 0.02: skin |= pose.idx == i
+            lab, n = ndimage.label(skin); bottom = max(0, y1 + 1 - oy); arm = np.zeros_like(H)
+            for i in range(1, n + 1):
+                comp = lab == i
+                if (comp & fm).any() and comp[bottom:, :].sum() >= 6: arm |= comp
+            fm &= arm | (ndimage.binary_dilation(arm, structure=np.ones((3, 3), bool)) & dark(pose))
         elif front_mode == 'limb' and limb is not None:                # a hand or sleeve over long hair: skin, cloth and props, with their outline
             part = np.isin(pose.idx, [i for i, c in enumerate(pose.pal) if c in limb])
             fm &= part | (ndimage.binary_dilation(part, structure=np.ones((3, 3), bool)) & dark(pose))
@@ -173,9 +185,31 @@ def split(pose, ox, oy, head_mask, jaw_rows, front_box=None, hair=None, neck=Non
     if neck is not None:                                             # the neck under the jaw comes from the base torso, so the head joins without a seam
         nspr, nmask = neck
         ys, xs = np.where(nmask); py, px = ys - oy, xs - ox; ok = (py >= 0) & (py < body.h) & (px >= 0) & (px < body.w)
+        hand = limb_in_neck(pose, ox, oy, nmask) if limb is not None else np.zeros(pose.idx.shape, bool)
         for y, x, by, bx in zip(py[ok], px[ok], ys[ok], xs[ok]):
+            if hand[y, x]: continue                                  # a hand or forearm reaching the chin stays as drawn
             body.idx[y, x] = body.color(nspr.pal[nspr.idx[by, bx]])
     return body, front
+
+
+def limb_in_neck(pose, ox, oy, nmask):
+    """pixels of the neck area that belong to a limb coming into it from below or the side: skin connected (through skin
+    and its outline) to skin well outside the neck area, below the collar"""
+    skin = np.zeros(pose.idx.shape, bool)
+    lab_p = PX.srgb_to_oklab(np.array([hex2rgb(c) for c in pose.pal], dtype=np.float64))
+    for i, (L, a, b) in enumerate(lab_p):
+        if L > 0.6 and a > 0.02 and b > 0.02: skin |= pose.idx == i      # warm light colours: skin
+    area = np.zeros(pose.idx.shape, bool); ys, xs = np.where(nmask); py, px = ys - oy, xs - ox
+    ok = (py >= 0) & (py < pose.h) & (px >= 0) & (px < pose.w); area[py[ok], px[ok]] = True
+    grown = ndimage.binary_dilation(area, structure=np.ones((3, 3), bool), iterations=3)
+    lab, n = ndimage.label(skin, structure=np.ones((3, 3), bool)); out = np.zeros(pose.idx.shape, bool)
+    bottom = int(py[ok].max()) + 1 if ok.any() else pose.h
+    for i in range(1, n + 1):
+        comp = lab == i
+        if not (comp & area).any(): continue
+        outside = comp & ~grown
+        if outside[bottom:, :].sum() >= 12: out |= comp & area             # it reaches down past the collar: an arm, not a neck
+    return out
 
 
 def compose(body, front, ox, oy, head, base_shape, wall=(233, 223, 204), desk_row=None, zoom=5):
