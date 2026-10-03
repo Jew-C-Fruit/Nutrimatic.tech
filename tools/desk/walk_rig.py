@@ -1,185 +1,215 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - walk_rig.py
-Version 1.0.0
+Version 2.0.0
 
 Created: 2026-10-03 - Maker's walk as a rigged cycle (Cole: "Walking cycle needs more stages and should be based on proper
   animal walk cycle animation techniques"; the generated frames moved only one hind leg) (v1.0.0)
+Modified: 2026-10-03 - Rewritten from scratch after Cole's verdict on the first rig ("completely wrong"), following
+  docs/animal-walk-cycles.md: a cat's lateral-sequence walk in ten frames of 3 px (hind paw, then the fore paw on the
+  same side), duty factor 0.7, the hind paw landing in the fore paw's print, every planted paw fixed to the desk, legs
+  turning about a hip and a shoulder inside the body, the fore paw flicking back as it lifts and the hock folding in the
+  swing, the body sinking a pixel as each fore paw takes her weight and the raised tail following a frame later; drawn
+  on her own standing body (the kneading pose), so walking and kneading share one body (v2.0.0)
 
-The body, head and tail come from a generated walking picture with its legs taken off; the four legs are drawn for each
-frame from a walk-cycle rig, the way a quadruped walk is animated:
+walk_rig.py - Maker's walk cycle: four legs drawn for each frame on her standing body.
 
-  - a lateral-sequence walk, as cats walk (Muybridge, Animal Locomotion, plate 716: a cat walking): the feet land
-    left hind, left fore, right hind, right fore, each a quarter of a cycle after the last
-  - each foot is on the ground for 60% of the cycle (stance) and in the air for 40% (swing), so two or three feet are
-    always down
-  - a foot on the ground stays planted: it slides back under the body exactly as fast as the cat walks forward
-    (3 px a frame, 12 frames a cycle), so nothing skates
-  - in the swing the foot lifts on an arc and eases in; the fore leg's wrist folds the paw back as it leaves the ground,
-    the hind leg's hock flexes; elbows point back, knees forward, hocks back
-  - the body dips a pixel twice a cycle, as each pair of legs passes under it; the raised tail sways a little behind
-  - the near legs (her left side, toward us) are drawn over the body in her coat colours; the far legs behind it, darker
+The gait (see docs/animal-walk-cycles.md for where every number comes from):
+  - N = 10 frames a cycle, 3 px a frame: a 30 px stride, 0.83 s a cycle at the scene's 12 frames a second
+  - lateral sequence: near hind lands in frame 0, near fore in 2, far hind in 5, far fore in 7 (she faces right, so the
+    near legs are her right legs); each fore paw lands 0.2 of a cycle after the hind paw on its side
+  - each paw is on the desk for 7 frames (duty factor 0.7) and in the air for 3: lift, pass, reach
+  - two or three paws are always down; the two-paw moments are both paws of one side (as in cats)
+  - a planted paw is one fixed stamp that moves back exactly 3 px a frame, so it stays put on the desk while she moves
+  - the hip and the shoulder are 24 px apart, 0.8 of a stride, so each hind paw lands where the fore paw was
 
-  frames(body, colours)   -> 12 Sprites (same size); body = a generated walking picture of her, reduced, legs and all
-                             (they are cut here: sources/maker-walkbody-seed9815.png, a frame the model drew over the rig)
+  frames(stand, colours) -> N Sprites the size of `stand` (60 x 54), the paws' bottom on its bottom row; bob=False
+                            leaves out the body's dip and the tail's follow-through
+  contacts(f)            -> {leg: (heel column, on the desk?)} for checking a frame (walk_check.py)
 """
 import math
 import numpy as np
-from scipy import ndimage
 from spritekit import Sprite
 
-N = 12                    # frames per cycle
-SPEED = 3                 # px per frame (the scene moves her 3 px a tick)
-DUTY = 0.6                # share of the cycle a foot is on the ground
-R = SPEED * DUTY * N / 2  # half the stance stroke, so stance feet stay planted
-BELLY = 40                # the body is cut below this row (its generated legs go)
-GROUND = 56               # the bottom row of her paws
-TAIL = (21, 12)           # the raised tail: rows above, columns left of
-# the legs: anchor (x, y) on the body, segment lengths, neutral foot offset from the anchor, lift, phase, near or far
-LEGS = [  # far legs first (drawn behind the body), then near
-    dict(name='RH', kind='hind', anchor=(20, 33), lens=(10, 10, 7), neutral=0, lift=3, phase=0.5, near=False),
-    dict(name='RF', kind='fore', anchor=(46, 33), lens=(8, 12, 4), neutral=1, lift=4, phase=0.75, near=False),
-    dict(name='LH', kind='hind', anchor=(17, 34), lens=(10, 10, 7), neutral=0, lift=3, phase=0.0, near=True),
-    dict(name='LF', kind='fore', anchor=(50, 34), lens=(8, 12, 4), neutral=1, lift=4, phase=0.25, near=True),
-]
-# width of the leg (outline included) at hip/shoulder, knee/elbow, hock/wrist, paw: as thick as the generated cat's legs
-WIDTH = {'hind': (9.0, 8.0, 6.6, 7.0), 'fore': (8.6, 8.0, 7.0, 7.4)}
-HAUNCH = (6.0, 8.2)       # the hind thigh's oval (half width, half height), turned with the thigh
-CORNERS = [(10, 18, 19.5, 34.0, 6.5), (40, 50, 40.0, 33.5, 7.5)]   # body corners to round: columns, circle centre, radius
+N, SPEED, STANCE = 10, 3, 7                 # frames a cycle, px a frame, frames a paw is down
+CONTACT = {'RH': 0, 'RF': 2, 'LH': 5, 'LF': 7}   # frame each paw lands (lateral sequence)
+NEAR = {'RH': True, 'RF': True, 'LH': False, 'LF': False}
+KIND = {'RH': 'hind', 'LH': 'hind', 'RF': 'fore', 'LF': 'fore'}
+HIP, SHOULDER = 15.0, 39.0                  # pivot columns of the hind and fore legs, inside the body
+HEEL = {'fore': 45, 'hind': 21}             # heel column of a paw as it lands; 3 px back each frame on the ground
+GROUND = 53                                 # the paws' bottom row (the sprite's last row), near and far alike
+DOWN = (2, 3, 7, 8)                         # frames her body sinks a pixel: as each fore paw lands and takes her weight
+TIP = (10, 12)                              # the raised tail's top (rows above 10, columns left of 12) follows a frame late
+
+# where the stand sprite's legs are cut off: the lowest body row for each column (haunch, belly, chest)
+def _bottom(x):
+    if x <= 7: return 39
+    if x == 8: return 40
+    if x in (9, 17): return 41
+    if 10 <= x <= 16: return 42
+    if x == 18: return 40
+    if 19 <= x <= 33: return 39
+    if 34 <= x <= 44: return 41
+    if x == 45: return 40
+    return 39
 
 
-def ease(s): return s * s * (3 - 2 * s)
+def body(stand, LINE, SHADE):
+    """the stand sprite without its legs: everything below the cut goes, the new bottom edge gets its outline; the line
+    inside the chest where the generated near foreleg met the belly is smoothed into the coat (the legs move now)"""
+    b = stand.copy(); h, w = b.idx.shape
+    for x in range(w):
+        b.idx[_bottom(x) + 1:, x] = -1
+    for y in range(33, 40):                                                  # the old foreleg's back edge, column 33
+        if b.idx[y, 33] >= 0 and b.pal[b.idx[y, 33]] == LINE: b.idx[y, 33] = b.color(SHADE)
+    solid = b.idx >= 0
+    for y in range(36, h):
+        for x in range(w):
+            if solid[y, x] and any(not (0 <= yy < h and 0 <= xx < w) or not solid[yy, xx] for yy, xx in ((y + 1, x), (y, x - 1), (y, x + 1))):
+                b.idx[y, x] = b.color(LINE)
+    return b
 
 
-def foot(leg, phase):
-    """foot position relative to the anchor (dx, dy from the ground), and how far into the swing (0 = planted)"""
-    p = (phase + leg['phase']) % 1.0
-    if p < DUTY:
-        s = p / DUTY; return leg['neutral'] + R - 2 * R * s, 0.0, 0.0
-    s = (p - DUTY) / (1 - DUTY)
-    return leg['neutral'] - R + 2 * R * ease(s), leg['lift'] * math.sin(math.pi * s), s
+# ---------------- the legs ----------------
+# A leg is drawn as rows of pixels between a left and a right column ("spans"), the way a pixel artist draws a limb of
+# even width, then shaded: outline at both ends, the back edge a step darker, a light edge in front on the upper leg.
+# Paws on the ground are stamps (rows of letters, the heel in column 0, the last row on the ground row).
+PAW = {('fore', 'flat'): ['KDSSSK.', 'KDSSSSK', '.KKKKKK'],
+       ('fore', 'tilt'): ['KDSSSK.', 'KKDSSSK', '...KKKK'],      # last frame down: the heel lifts, the toes stay
+       ('hind', 'flat'): ['KDSSK..', 'KDSSSSK', '.KKKKKK'],
+       ('hind', 'tilt'): ['KDSSK..', 'KKDSSSK', '...KKKK']}
+
+# Legs in the air: joints (x, row, width) from inside the body down to the wrist or the foot, the paw's rows given as
+# spans (row: (left, right)), and the row of the hock where the heel bone sticks out behind. Near legs; far legs are
+# the same, darker and behind the body.
+SWING = {
+    # fore, lift: the paw has just flicked up off the desk and folds back under the bent wrist, 2 px up
+    ('fore', 0): dict(joints=[(36.0, 36, 6), (34.5, 47, 6)], paw={48: (31, 36), 49: (30, 35), 50: (29, 34), 51: (30, 33)}),
+    # fore, passing: the forearm swings forward under the chest, the paw still hanging from the bent wrist, 3 px up
+    ('fore', 1): dict(joints=[(38.5, 36, 6), (41.0, 47, 6)], paw={48: (38, 43), 49: (37, 42), 50: (38, 41)}),
+    # fore, reach: the leg straightens forward, the paw opens toward the desk a pixel above it
+    ('fore', 2): dict(joints=[(41.5, 36, 6), (46.5, 49, 6)], paw={50: (44, 50), 51: (44, 51), 52: (45, 50)}),
+    # hind, lift: the toes have just left the desk behind her; the hock is up, the foot hangs toes down, 2 px up
+    ('hind', 0): dict(joints=[(13.5, 36, 9), (11.5, 42, 7), (7.5, 46, 5), (6.0, 49, 5)], paw={50: (4, 8), 51: (5, 7)}, hock=46),
+    # hind, passing: knee forward, hock folded, the paw under the hip three pixels up
+    ('hind', 1): dict(joints=[(15.0, 36, 9), (15.5, 42, 7), (12.5, 46, 5), (14.0, 48, 5)], paw={49: (12, 17), 50: (13, 16)}, hock=46),
+    # hind, reach: the leg swings forward and opens, the paw a pixel above the desk ahead of the hip
+    ('hind', 2): dict(joints=[(16.5, 36, 9), (18.5, 42, 7), (18.0, 47, 5), (20.5, 50, 5)], paw={51: (18, 24), 52: (19, 24)}, hock=47),
+}
+# the hind leg on the desk, frame by frame (k = 0 lands ... 6 heel up): knee and hock centres. Landing, the foot leans
+# forward from the hock; upright in the middle; pushing, the shin slants back more than the foot, so the heel always
+# points back (the hock bends the other way from the knee)
+HIND_KNEE = [19.5, 18.5, 17.5, 16.5, 15.0, 13.5, 12.0]       # row 42
+HIND_HOCK = [20.0, 17.8, 15.3, 12.8, 10.5, 8.5, 6.8]         # row 47 (46 in the last frame: the heel lifts)
 
 
-def ik(a, t, la, lb, bend):
-    """2-bone IK: the joint between a and t, with the bend toward +x (bend = 1) or -x (bend = -1)"""
-    ax, ay = a; tx, ty = t; dx, dy = tx - ax, ty - ay; d = max(abs(la - lb) + 0.01, min(la + lb - 0.01, math.hypot(dx, dy)))
-    base = math.atan2(dy, dx); off = math.acos(max(-1, min(1, (la * la + d * d - lb * lb) / (2 * la * d))))
-    best = None
-    for sgn in (1, -1):
-        th = base + sgn * off; j = (ax + la * math.cos(th), ay + la * math.sin(th))
-        side = (tx - ax) * (j[1] - ay) - (ty - ay) * (j[0] - ax)          # which side of a->t the joint is on
-        score = (j[0] - (ax + tx) / 2) * bend
-        if best is None or score > best[0]: best = (score, j)
-    return best[1]
+def _limb(joints):
+    """spans of a limb through joints (x centre, row, width): between two joints the front edge and the back edge each
+    run as a straight line, so both outlines are clean even stair steps (the limb narrows by its edges converging)"""
+    rnd = lambda v: int(math.floor(v + 0.5))
+    out = {}
+    for (x0, y0, w0), (x1, y1, w1) in zip(joints, joints[1:]):
+        f0, f1, b0, b1 = x0 + (w0 - 1) / 2, x1 + (w1 - 1) / 2, x0 - (w0 - 1) / 2, x1 - (w1 - 1) / 2
+        for r in range(y0, y1 + 1):
+            t = 0 if y1 == y0 else (r - y0) / (y1 - y0)
+            a, b = rnd(b0 + (b1 - b0) * t), rnd(f0 + (f1 - f0) * t)
+            if r in out: a, b = min(a, out[r][0]), max(b, out[r][1])
+            out[r] = (a, b)
+    return out
 
 
-def leg_points(leg, phase, bob):
-    ax, ay = leg['anchor']; ay -= bob
-    fx, lift, swing = foot(leg, phase); px_, py_ = ax + fx, GROUND - 1 - lift
-    l1, l2, l3 = leg['lens']
-    if leg['kind'] == 'hind':
-        ang = math.radians(68 - 30 * math.sin(math.pi * swing))          # the metatarsus: steep when planted, flexes back in the swing
-        hock = (px_ - l3 * math.cos(ang), py_ - l3 * math.sin(ang))
-        knee = ik((ax, ay), hock, l1, l2, +1)                            # knee forward
-        return [(ax, ay), knee, hock, (px_, py_)]
-    fold = math.sin(math.pi * min(1, swing * 1.6)) if swing > 0 else 0.0  # the wrist folds early in the swing
-    wrist = (px_ + 0.6 + 2.2 * fold, py_ - l3 + 1.0 * fold)
-    elbow = ik((ax, ay), wrist, l1, l2, -1)                              # elbow back
-    return [(ax, ay), elbow, wrist, (px_ - 1.2 * fold, py_)]
+def _paint(spans, G):
+    """spans -> {(row, x): letter}: K outline, D back edge, S coat, F light front edge (upper leg only)"""
+    px = {}
+    for r, (a, b) in spans.items():
+        for x in range(a, b + 1):
+            if x in (a, b): ch = 'K'
+            elif x == a + 1: ch = 'D'
+            elif x == b - 1 and r <= G - 6: ch = 'F'
+            else: ch = 'S'
+            px[(r, x)] = ch
+    return px
 
 
-def stamp(mask, pts, widths, h, w):
-    yy, xx = np.mgrid[0:h, 0:w]
-    for (x0, y0), (x1, y1), r0, r1 in zip(pts, pts[1:], widths, widths[1:]):
-        L = max(1.0, math.hypot(x1 - x0, y1 - y0))
-        for k in range(int(L * 3) + 1):
-            t = k / max(1, int(L * 3)); cx, cy = x0 + (x1 - x0) * t, y0 + (y1 - y0) * t; r = (r0 + (r1 - r0) * t) / 2
-            mask |= (xx + 0.5 - cx) ** 2 + (yy + 0.5 - cy) ** 2 <= r * r
-    return mask
+def stance_leg(kind, k, G):
+    """a leg in its k-th frame on the desk: it turns about its pivot, the paw stamp stays flat (tilted in the last)"""
+    heel = HEEL[kind] - SPEED * k; c = heel + 2.5                          # paw centre under the leg
+    if kind == 'fore':
+        top = SHOULDER + 0.45 * (c - SHOULDER)                              # the leg's top slides under the chest
+        spans = _limb([(top, 36, 6), (c, G - 3, 6)])                         # a straight forearm of even width
+    else:
+        knee, hock = HIND_KNEE[k], HIND_HOCK[k]; hr = G - 6 if k < STANCE - 1 else G - 7
+        spans = _limb([(HIP + 0.45 * (knee - HIP), 36, 9), (knee, G - 11, 7), (hock, hr, 5), (heel + 2, G - 3, 5)])
+        a, b = spans[hr]; spans[hr] = (a - 1, b)                             # the hock: the heel bone sticks out behind
+    px = _paint(spans, G)
+    for key in [q for q in px if q[0] >= G - 2]: del px[key]
+    for i, row in enumerate(PAW[(kind, 'tilt' if k == STANCE - 1 else 'flat')]):
+        for j, ch in enumerate(row):
+            if ch != '.': px[(G - 2 + i, heel + j)] = ch
+    return px, heel
 
 
-def paw(mask, x, y, h, w, flat=True):
-    yy, xx = np.mgrid[0:h, 0:w]
-    rx, ry = (3.7, 2.1) if flat else (3.0, 2.3)
-    mask |= ((xx + 0.5 - x) / rx) ** 2 + ((yy + 0.5 - (y - 0.8)) / ry) ** 2 <= 1.0
-    return mask
+def swing_leg(kind, s, G):
+    q = SWING[(kind, s)]; spans = _limb(q['joints'])
+    if 'hock' in q: a, b = spans[q['hock']]; spans[q['hock']] = (a - 1, b)
+    spans.update(q['paw'])
+    px = _paint(spans, G); last = max(q['paw'])
+    for (r, x) in list(px):
+        if r >= last - 1 and px[(r, x)] in 'SF': px[(r, x)] = 'D'          # the paw a shade darker, as on the desk
+        if r == last: px[(r, x)] = 'K'                                        # and its underside outlined
+    return px
 
 
-def haunch(mask, hip, knee, h, w, scale=1.0):
-    """the hind thigh: an oval from the hip toward the knee"""
-    yy, xx = np.mgrid[0:h, 0:w]; (hx, hy), (kx, ky) = hip, knee
-    cx, cy = hx + (kx - hx) * 0.45, hy + (ky - hy) * 0.45; ang = math.atan2(ky - hy, kx - hx)
-    a, b = HAUNCH[1] * scale, HAUNCH[0] * scale; c, s = math.cos(ang), math.sin(ang)
-    u = (xx + 0.5 - cx) * c + (yy + 0.5 - cy) * s; v = -(xx + 0.5 - cx) * s + (yy + 0.5 - cy) * c
-    mask |= (u / a) ** 2 + (v / b) ** 2 <= 1.0
-    return mask
+def leg_pixels(leg, f):
+    k = (f - CONTACT[leg]) % N; G = GROUND
+    if k < STANCE: px, heel = stance_leg(KIND[leg], k, G); return px, heel, True
+    return swing_leg(KIND[leg], k - STANCE, G), None, False
 
 
-def frames(body, colours, extra_top=3):
-    """body: a Sprite of her walking (its legs are cut away here); colours: dict LINE, DEEP, SHADE, FILL, LIGHT"""
-    LINE, DEEP, SHADE, FILL, LIGHT = (colours[k] for k in ('LINE', 'DEEP', 'SHADE', 'FILL', 'LIGHT'))
-    base = body.pad(top=extra_top); off = extra_top
-    for leg in LEGS: leg['_a'] = (leg['anchor'][0], leg['anchor'][1] + off)
-    cut = base.copy(); cut.idx[BELLY + off + 1:, :] = -1                 # the generated legs go
-    for (x0, x1, cx, cy, r) in CORNERS:                                  # round the cut body's lower corners (rump, chest)
-        for y in range(BELLY - 6 + off, BELLY + off + 1):
-            for x in range(x0, x1 + 1):
-                if (x + 0.5 - cx) ** 2 + (y + 0.5 - (cy + off)) ** 2 > r * r: cut.idx[y, x] = -1
-    solid = cut.idx >= 0; below_empty = np.zeros_like(solid); below_empty[:-1] = ~solid[1:]
-    edge = solid & below_empty; edge[:BELLY + off - 2, :] = False
-    cut.idx[edge] = cut.color(LINE)                                      # the belly gets its outline back
-    tail = np.zeros_like(solid); tail[:TAIL[0] + off, :TAIL[1]] = True; tail &= solid
-    h, w = cut.idx.shape; out = []
-    for i in range(N):
-        ph = i / N; bob = 1 if math.cos(4 * math.pi * ph) > 0.35 else 0
-        fr = cut.copy(); fr.idx[:] = -1
-        # body (with the tail swaying a pixel or two behind the step) moved up by the bob
-        sway = 1.6 * math.sin(2 * math.pi * ph - 0.9)
-        src = cut.idx.copy()
-        for y in range(h):
-            for x in range(w):
-                v = src[y, x]
-                if v < 0: continue
-                dx = int(round(sway * (1 - (y - off) / float(TAIL[0])))) if tail[y, x] else 0
-                ny, nx = y - bob, x + dx
-                if 0 <= ny < h and 0 <= nx < w: fr.idx[ny, nx] = v
-        body_mask = fr.idx >= 0
-        layers = []
-        for leg in LEGS:
-            a = leg['_a']; L = dict(leg); L['anchor'] = a
-            pts = leg_points(L, ph, bob)
-            pts = [(x, y + 0) for x, y in pts]; pts[-1] = (pts[-1][0], pts[-1][1] + off)
-            m = np.zeros((h, w), bool); m = stamp(m, pts, WIDTH[leg['kind']], h, w)
-            if leg['kind'] == 'hind': m = haunch(m, pts[0], pts[1], h, w, 1.0 if leg['near'] else 0.85)
-            fx, fy = pts[-1]; m = paw(m, fx, fy + 0.5, h, w, flat=(foot(leg, ph)[2] == 0))
-            layers.append((leg, m, pts))
-        def paint(target, leg, m, pts, behind):
-            inner = ndimage.binary_erosion(m, structure=np.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]], bool))
-            rim = m & ~inner
-            # rear side of the leg: left of its centreline (she faces right) is shaded
-            cx = np.full(h, np.nan)
-            for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
-                for k in range(40):
-                    t = k / 39; y = int(round(y0 + (y1 - y0) * t)); x = x0 + (x1 - x0) * t
-                    if 0 <= y < h: cx[y] = x
-            near_col, rear_col = (SHADE, DEEP) if leg['near'] else (SHADE, DEEP)  # legs are in the shade under her, as in the generated cat
-            for y, x in zip(*np.where(m)):
-                if behind and body_mask[y, x]: continue                   # far legs: the body hides their tops
-                if leg['near'] and body_mask[y, x] and y < BELLY + off - bob:   # near legs merge into the body above the belly
-                    if rim[y, x] and not np.isnan(cx[y]) and x < cx[y]: target.idx[y, x] = target.color(SHADE)
+def contacts(f):
+    """{leg: (heel column or None, on the ground)} in frame f"""
+    out = {}
+    for leg in CONTACT:
+        _, heel, down = leg_pixels(leg, f); out[leg] = (heel, down)
+    return out
+
+
+def _sink(b, f):
+    """the body a pixel lower in the DOWN frames (the legs then reach a pixel less far: the paws stay on the desk), and the
+    top of the raised tail following a frame later: the upright part of the tail stretches or shortens by a row"""
+    dy = 1 if f in DOWN else 0; tip = 1 if (f - 1) % N in DOWN else 0; cut, cols = TIP
+    out = b.copy(); out.idx[:] = -1
+    out.idx[dy:, :] = b.idx[:b.h - dy, :]
+    if tip != dy:
+        out.idx[:cut + 1, :cols] = -1
+        out.idx[tip:cut + tip, :cols] = b.idx[:cut, :cols]                   # the tip where it follows to
+        for r in range(cut + tip, cut + dy + 1): out.idx[r, :cols] = b.idx[cut, :cols]   # the upright part, a row longer if needed
+    return out
+
+
+def frames(stand, colours, bob=True):
+    """stand: the standing sprite (big eyes, open or shut); colours: dict LINE, DEEP, SHADE, FILL"""
+    LINE, DEEP, SHADE, FILL = (colours[k] for k in ('LINE', 'DEEP', 'SHADE', 'FILL'))
+    near_c = {'K': LINE, 'D': DEEP, 'S': SHADE, 'F': FILL}
+    far_c = {'K': LINE, 'D': DEEP, 'S': DEEP, 'F': DEEP}                    # the far legs all in the deepest coat grey
+    base = body(stand, LINE, SHADE)
+    out = []
+    for f in range(N):
+        bd = _sink(base, f) if bob else base.copy()
+        B = bd.idx >= 0; h, w = B.shape
+        res = bd.copy(); res.idx[:] = -1
+        legs = {leg: leg_pixels(leg, f)[0] for leg in CONTACT}
+        for leg in ('LH', 'LF'):                                             # far legs, behind the body
+            for (y, x), ch in legs[leg].items():
+                if 0 <= y < h and 0 <= x < w and not B[y, x]: res.idx[y, x] = res.color(far_c[ch])
+        for y, x in zip(*np.where(B)): res.idx[y, x] = bd.idx[y, x]
+        for leg in ('RH', 'RF'):                                             # near legs, in front
+            for (y, x), ch in legs[leg].items():
+                if not (0 <= y < h and 0 <= x < w): continue
+                if B[y, x]:
+                    # inside the body the leg is the body, except that the body's bottom line opens where the leg leaves it
+                    if bd.pal[bd.idx[y, x]] == LINE and y >= 36 and ch != 'K': res.idx[y, x] = res.color(SHADE)
                     continue
-                if rim[y, x]: target.idx[y, x] = target.color(LINE); continue
-                rear = (not np.isnan(cx[y])) and x + 0.5 < cx[y] - 1.4
-                front = (not np.isnan(cx[y])) and x + 0.5 > cx[y] + 1.6
-                col = rear_col if rear else near_col
-                if front and leg['near'] and y < GROUND + off - 3: col = FILL      # light on the front of the near legs
-                if not leg['near'] and not front: col = DEEP                       # the far legs a step darker
-                target.idx[y, x] = target.color(col)
-        res = fr.copy(); res.idx[:] = -1
-        for leg, m, pts in layers:                                       # far legs, behind the body
-            if not leg['near']: paint(res, leg, m, pts, behind=True)
-        for y, x in zip(*np.where(body_mask)): res.idx[y, x] = res.color(fr.pal[fr.idx[y, x]])
-        for leg, m, pts in layers:                                       # near legs
-            if leg['near']: paint(res, leg, m, pts, behind=False)
-        out.append(Sprite(res.idx[:GROUND + off + 1].copy(), list(res.pal)))   # the paws' bottom is the sprite's bottom row
+                res.idx[y, x] = res.color(near_c[ch])
+        out.append(Sprite(res.idx.copy(), list(res.pal)))
     return out

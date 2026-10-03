@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.15.0
+ * Version 0.16.0
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -62,6 +62,8 @@
  *   stay on the desk while he waves the smoke away (they vanished with the soldering pose) (v0.14.1)
  * Modified: 2026-10-03 - Cole's note 10: a looking-down head for both, drawn whenever they look down at something (the
  *   work, the DS, the cat, a pointer over the desk) and for a nod; the one petting Maker looks at her (v0.15.0)
+ * Modified: 2026-10-03 - Maker's new walk (Cole's note 9e): ten frames a cycle, a cat's lateral-sequence walk built
+ *   from tools/desk/docs/animal-walk-cycles.md (v0.16.0)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(),
@@ -678,10 +680,11 @@
   var MAKER = bakeSheet(ART.maker);
   // Where her feet go: the front of the desk top (it is drawn higher in the phone layout's room).
   function catY() { return ENV.ready ? L.art.catY : DESK_Y + 2; }
+  var WALK_N = 10;                                                       // Maker's walk: frames a cycle (tools/desk/walk_rig.py)
   function drawMaker(x, y, pose, dir, f, blink) {
     var d = dir || 1;
-    // the walk: twelve rigged frames, one per three pixels she moves, so the feet on the desk stay where they are
-    var step = Math.floor(x * d / 3), key = pose === "walk" ? "walk" + (((step % 12) + 12) % 12) : pose === "knead" ? "knead" + ((f >> 2) % 2) : pose;
+    // the walk: ten frames, one per three pixels she moves (a 30 px stride), so the paws on the desk stay where they are
+    var step = Math.floor(x * d / 3), key = pose === "walk" ? "walk" + (((step % WALK_N) + WALK_N) % WALK_N) : pose === "knead" ? "knead" + ((f >> 2) % 2) : pose;
     var set = MAKER, data = ART.maker;
     if (blink && set && set[key + "Blink"]) { key += "Blink"; }
     if (set && set[key]) {

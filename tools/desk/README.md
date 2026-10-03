@@ -1,6 +1,6 @@
 # Desk scene art
 
-Version 1.5.0 · Created 2026-10-02 · Modified 2026-10-03 (motion frames for every activity, hands under the desk for Maker, everything on the desk edge-on, a looking-down head)
+Version 1.6.0 · Created 2026-10-02 · Modified 2026-10-03 (motion frames for every activity, hands under the desk for Maker, everything on the desk edge-on, a looking-down head, Maker's new walk)
 
 Everything the co-founders' scene draws that is not simple geometry lives here as sprites, and reaches the site as
 data in `js/desk-sprites.js`. That file is **generated**: change the sources here and run the exporter.
@@ -20,6 +20,8 @@ python3 tools/desk/env_build.py        # writes assets/desk/*.png: the room, the
 | `characters.py` | the hand finishing of Cole and Ilinca: the face blanked and redrawn feature by feature, the cut into torso and head |
 | `poses.py`, `pose_sprites.py`, `sprites/poses/`, `pose-prompts/` | the body poses: every activity's arms, hands and props, generated, reduced and cut to fit under the head |
 | `maker_build.py` | Maker: her generated pictures reduced to size (her head the same size in every pose), five greys with light on her back, big stylized eyes, blink and kneading frames |
+| `walk_rig.py`, `walk_check.py` | Maker's walk: a cat's lateral-sequence walk in ten frames, legs drawn on her standing body; `walk_check.py` makes the contact sheet, strip, onion skin and GIFs to check it |
+| `docs/animal-walk-cycles.md`, `docs/walk-refs/` | how animals (cats above all) walk and how to frame and check a walk, with reference pictures: read it before touching a walk |
 | `env_build.py`, `env_guides.py`, `env-prompts/` | the room, the desk, the Midtown skyline (day and night), the anglepoise lamps and the desk props, written as PNGs to `assets/desk/` |
 | `spritekit.py` | load a sprite, change pixels, and render it large with a ruler so coordinates can be read off |
 | `export_js.py`, `extra_sprites.py` | the exporter |

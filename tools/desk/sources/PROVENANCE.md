@@ -1,6 +1,6 @@
 # Where the pictures in this folder came from
 
-Version 1.6.0 · Created 2026-10-02 · Modified 2026-10-03 (walk cycle; petting with a cat; audit references; the rigged walk; looking down)
+Version 1.7.0 · Created 2026-10-02 · Modified 2026-10-03 (walk cycle; petting with a cat; audit references; the walk redone; looking down)
 
 ## Credits to show when the scene goes live (not on the page yet, by Cole's choice)
 
@@ -95,16 +95,14 @@ The photographs themselves are not in this repo.
 - The petting poses (`sprites/poses/*/petcat.png`) were generated with a grey cat under the hand; `poses.py` erases
   that cat and the scene puts Maker in its place.
 
-## The rigged walk (2026-10-03, Cole's note 6)
+## The walk (2026-10-03, Cole's notes 6 and 9)
 
-- `walk_rig.py` draws the legs of Maker's walk for twelve frames as a cat walks: a lateral-sequence walk (feet landing
-  left hind, left fore, right hind, right fore), each foot on the ground 60% of the cycle and planted while it is, the
-  wrist and hock flexing in the swing, the body dipping twice a cycle. The gait follows Eadweard Muybridge, *Animal
-  Locomotion* (1887), plate 716, a cat walking (public domain; Boston Public Library scan on Wikimedia Commons,
-  https://commons.wikimedia.org/wiki/File:Animal_locomotion._Plate_716_(Boston_Public_Library).jpg). Looked at, not copied.
-- `maker-walkbody-seed9815.png`: the body. A first version of the rig, drawn on the generated walk, was given back to
-  FLUX.2 klein 4B as a sketch to redraw in her look (work folder `env/gen/run_walkrig.sh`, one picture per frame); its
-  frame 5 had the best body, which `maker_build.walk_body` reduces, and the rig cuts its legs off and draws its own.
+- `walk_rig.py` (2.0) draws the legs of Maker's walk on her own standing body (the `stand` sprite, from
+  `maker-knead-seed9536.png`), ten frames a cycle: a cat's lateral-sequence walk, each paw down 70% of the cycle and
+  planted while it is, following `docs/animal-walk-cycles.md`. No new generated pictures. The doc's reference pictures
+  and their credits are in `docs/walk-refs/` and at the end of the doc: Eadweard Muybridge, *Animal Locomotion* (1887),
+  plates 716 and 729, public domain (National Gallery of Art scans, CC0). Looked at, not copied.
+- The first rig (1.0, Cole: "completely wrong") and its generated body `maker-walkbody-seed9815.png` are gone.
 
 ## Looking down (2026-10-03, Cole's note 10)
 
