@@ -1,6 +1,6 @@
 # Where the pictures in this folder came from
 
-Version 1.1.0 · Created 2026-10-02 · Modified 2026-10-02 (the room, the skyline, the lamps, props, Maker's new poses)
+Version 1.2.0 · Created 2026-10-02 · Modified 2026-10-02 (the room, the skyline, the lamps, props, Maker's new poses; the poster edited out, the Mondrian)
 
 Everything here was generated on bigbaby (RTX 3090) with **FLUX.2 klein 4B** (Black Forest Labs, Apache 2.0, 4-step
 distilled) through ComfyUI, driven by `tools/portraits/generate_comfy.py`. 1024x1280 for the people, 1024x768 for
@@ -61,6 +61,17 @@ and Chrysler buildings share the window.
   Commons photos of Midtown, for how the Empire State and Chrysler tops are lit.
 
 The photographs themselves are not in this repo.
+
+## The painting where the poster was (2026-10-02)
+
+- `room-wide-noposter-edit-seed9811.png`, `room-narrow-noposter-edit-seed9821.png`: FLUX.2 klein 4B edits of a crop of
+  each room around the poster (prompt `env-prompts/unposter.txt`), blended back into the rooms as
+  `room-*-noposter.png`, which `env_build.py` reduces.
+- *Victory Boogie Woogie* (Piet Mondrian, 1942-44, Kunstmuseum Den Haag), reduced by `env_build.painting` from the
+  photograph *Piet mondrian, victory boogie woogie, 1942-44, 01* by Sailko, CC BY 3.0,
+  https://commons.wikimedia.org/wiki/File:Piet_mondrian,_victory_boogie_woogie,_1942-44,_01.jpg
+  (licence: https://creativecommons.org/licenses/by/3.0/). Mondrian died in 1944; Wikimedia Commons hosts the painting
+  as public domain. The photograph is not in this repo.
 
 **Not used, on purpose:** Qwen-Image 2.1, which is also on that machine. Its licence (Qwen Research License) allows
 research and evaluation only, so it must not produce artwork for the company's site.

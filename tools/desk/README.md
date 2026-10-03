@@ -1,6 +1,6 @@
 # Desk scene art
 
-Version 1.2.0 · Created 2026-10-02 · Modified 2026-10-02 (the room, skyline, lamps and props are generated too; hands softened; Maker bigger, with new poses)
+Version 1.3.0 · Created 2026-10-02 · Modified 2026-10-02 (the room, skyline, lamps and props are generated too; hands softened; Maker bigger, with new poses; the Mondrian)
 
 Everything the co-founders' scene draws that is not simple geometry lives here as sprites, and reaches the site as
 data in `js/desk-sprites.js`. That file is **generated**: change the sources here and run the exporter.
@@ -59,7 +59,9 @@ Generated like the figures (FLUX.2 klein 4B on bigbaby, `env-prompts/`), from fl
 the window, poster, clock and shelves land where the scene needs them, then reduced at cell 4 to 360x160 (240x160 for
 the phone). The window glass is cut out: the scene paints the sky by the hour behind it, then the skyline picture (day,
 and the night one faded in at dusk). The poster's mark and the clock's hands are drawn by the scene on the generated
-board and face. The lamps are one generated lamp, recoloured white for Ilinca and mirrored. `sources/PROVENANCE.md`
+board and face. The lamps are one generated lamp, recoloured white for Ilinca and mirrored. Mondrian's Victory Boogie Woogie hangs where
+the poster was (the poster edited out of the generated rooms; the painting reduced from a photograph, its colours
+favoured over the white so its small squares survive). `sources/PROVENANCE.md`
 lists every picture, prompt and seed, and the photographs the skyline follows (CC BY, credited there).
 
 ## Making or replacing a pose

@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - env_build.py
-Version 1.0.0
+Version 1.1.0
 
 Created: 2026-10-02 - The room, the skyline and the two anglepoise lamps as generated pictures reduced to the scene's
   pixels, written to assets/desk/ (v1.0.0)
+Modified: 2026-10-02 - Victory Boogie Woogie instead of the poster; the rooms with the poster edited out (v1.1.0)
 
 The environment was drawn in code until v0.7 and looked low-fi next to the figures, so it is made the same way as they
 are now: pictures generated on the GPU machine (FLUX.2 klein 4B, see sources/PROVENANCE.md) and reduced with
@@ -15,6 +16,7 @@ tools/portraits/pixelize.py. This writes, into assets/desk/:
   sky-day.png, sky-night.png        Midtown seen through the window (sky cut out: the scene paints the sky by the hour)
   lamp-red.png, lamp-white.png      the anglepoise lamps: Cole's red one, Ilinca's white one (the same lamp recoloured)
   prop-*.png                        things on the desk: the shaker bottle, a mug, papers, a vase of tulips, a succulent
+  painting-wide.png, -narrow.png    Mondrian's Victory Boogie Woogie in its diamond white box frame, where the poster was
 
 and prints the numbers the scene needs (where the glass is, where the red aircraft lights are).
 
@@ -32,7 +34,9 @@ from spritekit import Sprite, hex2rgb, rgb2hex
 SRC = os.path.join(HERE, 'sources')
 OUT = os.path.join(HERE, '..', '..', 'assets', 'desk')
 DESK_Y = 134                                   # the scene's desk line (js/desk-scene.js)
-ROOMS = {'wide': ('room-wide-seed9701.png', (256, 12, 356, 108)), 'narrow': ('room-narrow-seed9802.png', (186, 14, 240, 96))}   # picture, box around the window
+# picture, box around the window. The "-noposter" pictures are the generated rooms with the poster edited out (a crop
+# around it given back to the model, see PROVENANCE.md), so the painting can hang there instead.
+ROOMS = {'wide': ('room-wide-seed9701-noposter.png', (256, 12, 356, 108)), 'narrow': ('room-narrow-seed9802-noposter.png', (186, 14, 240, 96))}
 
 
 def reduce_full(path, cell, colors, line_colors=3):
@@ -126,6 +130,51 @@ def lamps():
     return dict(size=[red.w, red.h])
 
 
+# Victory Boogie Woogie (Piet Mondrian, 1942-44) where the poster was: a diamond in a white box frame, as it hangs in
+# the Kunstmuseum Den Haag. The painting's own lines run level, so each sprite pixel is the average of its patch of the
+# photograph snapped to Mondrian's colours; the frame and its shadow are plain shapes. PAINTING = the photo (its
+# painting's centre and half-diagonal in the photo's pixels); sizes = the frame's half-diagonal per layout.
+PAINTING = ('/home/maker/claude/nutrimatic/work/env/mondrian/vbw-source.jpg', (636, 622), 443)
+MONDRIAN = ['#f1efe6', '#cfcfc8', '#a7a7a0', '#1d1d1f', '#c9202f', '#1f3e94', '#efc22c']
+PAINTING_SIZES = {'wide': 31, 'narrow': 26}
+
+
+def pick_colour(counts):
+    """a patch's colour: one of the red, blue or yellow if it covers a good part of it (they are what the painting is
+    about, and a plain majority loses most of its small squares to the white and greys), else black, else the
+    commonest of the white and greys"""
+    total = max(1, counts.sum()); hues = {4: counts[4], 5: counts[5], 6: counts[6]}; best = max(hues, key=hues.get)
+    if hues[best] / total >= 0.28: return best
+    if counts[3] / total >= 0.35: return 3
+    return int(np.argmax(counts[:3]))
+
+
+def painting(name):
+    path, (scx, scy), sr = PAINTING; R = PAINTING_SIZES[name]; ri = R - 4
+    src = np.asarray(Image.open(path).convert('RGB')).astype(np.float64); n = 2 * R + 3
+    area = src[int(scy - sr * 0.5):int(scy + sr * 0.5), int(scx - sr * 0.5):int(scx + sr * 0.5)].reshape(-1, 3)
+    src = np.clip(src * (241.0 / np.percentile(area.mean(axis=1), 90)), 0, 255)     # the gallery light to paper white
+    pal = np.array([hex2rgb(c) for c in MONDRIAN], dtype=np.float64); lab_pal = PX.srgb_to_oklab(pal)
+    out = Sprite(-np.ones((n, n), dtype=np.int16), [])
+    c = R; k = sr / (ri + 0.5)
+    for y in range(n):
+        for x in range(n):
+            dx, dy = x - c, y - c
+            if abs(dx) + abs(dy) <= ri:                                     # the painting
+                x0, y0 = scx + (dx - 0.5) * k, scy + (dy - 0.5) * k
+                patch = src[int(max(0, y0)):int(y0 + k), int(max(0, x0)):int(x0 + k)].reshape(-1, 3)
+                lab = PX.srgb_to_oklab(patch); counts = np.bincount(((lab[:, None, :] - lab_pal[None]) ** 2).sum(axis=2).argmin(axis=1), minlength=len(MONDRIAN))
+                out.put(x, y, MONDRIAN[pick_colour(counts)])
+            elif abs(dx) + abs(dy) == ri + 1: out.put(x, y, '#d8d6cf')     # the painting's edge in the mat
+            elif abs(dx) + abs(dy) < R: out.put(x, y, '#f6f5f0')            # the white mat
+            elif abs(dx) + abs(dy) == R: out.put(x, y, '#b9b8b2' if dy >= 0 else '#e6e5df')   # the frame's edge, darker below
+    for y in range(n):                                                       # its shadow on the wall, down and right
+        for x in range(n):
+            dx, dy = x - c - 1, y - c - 2
+            if out.idx[y, x] < 0 and abs(dx) + abs(dy) <= R: out.put(x, y, '#9a9a96')
+    out.save(os.path.join(OUT, 'painting-%s.png' % name)); return [out.w, out.h]
+
+
 PROPS = {'bottle': ('prop-bottle-seed9967.png', 30), 'mug': ('prop-mug-seed9933.png', 12), 'papers': ('prop-papers-seed9966.png', 10),
          'vase': ('prop-vase-seed9944.png', 30), 'plant': ('prop-plant-seed9956.png', 18)}
 
@@ -152,5 +201,5 @@ def props():
 
 if __name__ == '__main__':
     os.makedirs(OUT, exist_ok=True)
-    info = {'wide': room('wide'), 'narrow': room('narrow'), 'sky': skyline(), 'lamp': lamps(), 'props': props()}
+    info = {'wide': room('wide'), 'narrow': room('narrow'), 'sky': skyline(), 'lamp': lamps(), 'props': props(), 'painting': [painting('wide'), painting('narrow')]}
     print(json.dumps(info, indent=1))
