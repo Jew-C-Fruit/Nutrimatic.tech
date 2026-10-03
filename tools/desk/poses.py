@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - poses.py
-Version 1.4.1
+Version 1.4.2
 
 Created: 2026-10-02 - The figures' body poses, from generated pictures, as layers under the base head; the neck, and
   Ilinca's top, taken from the base so every pose joins the same head; front boxes by eye (v1.0.0)
@@ -27,6 +27,9 @@ Modified: 2026-10-03 - Notes 2 and 3: gaps and one-pixel cracks inside a figure 
   phone pose with a blue phone and hands over her hair; a larger laptop for her, its panel made whole (v1.4.0)
 Modified: 2026-10-03 - Note 4: Cole's console redrawn after his reference (the back of a red New 3DS XL), behind his
   hands (fix op 'under') (v1.4.1)
+Modified: 2026-10-03 - Note 5: a new chin-on-fist picture for Ilinca; her forearm crosses in front of her hair, so in
+  boxes round the fist and the crossing all the pose drew except its own hair goes in front (front mode 'nothair', front
+  boxes may be several) (v1.4.2)
 
 Every activity in the scene is drawn with a body pose: the whole torso with arms, hands and whatever they hold, made
 by the image model from the figure's own portrait (pose_sprites.py says how) and reduced to a sprite on the base
@@ -119,7 +122,9 @@ MANUAL = {
         'stretch': dict(fix=[('clear', 63, 38, 67, 84)]),                # a chair's edge behind her
         'rest': dict(fix=[('recolour', 56, 55, 64, 66, {'#5f6368': '#191718', '#9a9ea2': '#292423'})]),   # a grey chair corner by her shoulder
         'write': dict(props={'paper': (PAPER, (-14, 74, 40, 96))}, frames={'write1': ((-6, 60, 16, 90), 1, 0), 'write2': ((-6, 60, 16, 90), 2, -1)}),
-        'think': dict(front=(8, 28, 34, 48), front_mode='diff', keep_neck=True, fix=[('clear', 3, 41, 16, 58)]),   # dashes of a lost shoulder outline cleared
+        # note 5 (suit breaking, doubled hands, clipping hair): chin on her fist, the forearm crossing in front of her left
+        # hair strand: in a box round the fist and the crossing, all the pose drew except its own hair goes in front
+        'think': dict(keep_neck=True, front=[(14, 31, 25, 47), (8, 48, 25, 62)], front_mode='nothair'),
         # her phone and both hands are in front of her hair (they were drawn under it), and the phone is blue again (the
         # reduction had snapped the picture's blue phone to grey)
         'phone': dict(keep_chest=True, front=(4, 44, 44, 72), front_mode='limb', base_box=(12, 68, 34, 86),

@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - pose_sprites.py
-Version 1.2.0
+Version 1.3.0
 
 Created: 2026-10-02 - Generated pose pictures -> body sprites that fit under the figure's head (v1.0.0)
 Modified: 2026-10-02 - front mode 'limb': a hand or sleeve drawn over long hair without the pose's own hair (v1.1.0)
 Modified: 2026-10-03 - front mode 'arm' (only skin joined to an arm from below: a fist at the chin); the neck patch no
   longer paints over a limb reaching the chin (v1.2.0)
+Modified: 2026-10-03 - front mode 'nothair' (an arm crossing in front of long hair); a front may be several boxes (v1.3.0)
 
 The arms are not drawn in code. For every pose the model redraws the whole figure from the "stage" picture (the picked
 portrait on a larger canvas, sitting behind a flat blue desk at the scene's desk line; see make_stage in this file), so
@@ -137,10 +138,15 @@ def split(pose, ox, oy, head_mask, jaw_rows, front_box=None, hair=None, neck=Non
         remove |= hair_px | (ring & grown)
     front = None
     if front_box:
-        x0, y0, x1, y1 = front_box; fm = np.zeros_like(H); fm[max(0, y0 - oy):max(0, y1 + 1 - oy), max(0, x0 - ox):max(0, x1 + 1 - ox)] = True
+        boxes = front_box if isinstance(front_box[0], (tuple, list)) else [front_box]   # one box, or several (an arm crossing hair)
+        fm = np.zeros_like(H)
+        for x0, y0, x1, y1 in boxes: fm[max(0, y0 - oy):max(0, y1 + 1 - oy), max(0, x0 - ox):max(0, x1 + 1 - ox)] = True
+        x0, y0, x1, y1 = boxes[0][0], min(b[1] for b in boxes), boxes[0][2], max(b[3] for b in boxes)
         if front_mode == 'props':                                    # only what is made of prop colours (a mug, a bottle) and its outline
             prop = np.isin(pose.idx, [i for i, c in enumerate(pose.pal) if c in PROPS])
             fm &= prop | (ndimage.binary_dilation(prop, structure=np.ones((3, 3), bool)) & dark(pose))
+        elif front_mode == 'nothair' and hair is not None:            # an arm crossing in front of long hair: all the pose drew there except its hair
+            fm &= ~np.isin(pose.idx, [i for i, c in enumerate(pose.pal) if c in hair])
         elif front_mode == 'arm':                                      # a hand at the face: only the skin joined to an arm coming up from below the box
             skin = np.zeros(pose.idx.shape, bool)
             lab_p = PX.srgb_to_oklab(np.array([hex2rgb(c) for c in pose.pal], dtype=np.float64))
