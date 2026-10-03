@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - characters.py
-Version 1.2.0
+Version 1.3.0
 
 Created: 2026-10-02 - Cole and Ilinca as sprites: generated bases finished by hand in the face, cut into layers (v1.0.0)
 Modified: 2026-10-02 - Cole's resting mouth is a half smile, not a straight line (v1.0.1)
 Modified: 2026-10-02 - More mouths: grin and smirk for both, soft and pursed for Ilinca, so she isn't smiling all the time (v1.1.0)
 Modified: 2026-10-03 - Ilinca looking down: the whole iris under the lowered lid, the pupil low, so she reads as looking at
   her work rather than half asleep (v1.2.0)
+Modified: 2026-10-03 - Cole's note 10: a looking-down head for each (down_blank, down_layers, down_frames): the head
+  tips toward the desk, from a generated picture of each looking down (klein for Cole, Qwen-Image-Edit 2511 for Ilinca,
+  on the base grid; sprites/*-down-1x.png, the full-size pictures in sources/), finished here in the base face's own
+  style: brows, glasses, lids, nose and mouth lower, more of the crown, the eyes downcast (v1.3.0)
 
 characters.py - Cole and Ilinca for the desk scene.
 
@@ -111,8 +115,9 @@ class Cole:
     }
 
     @classmethod
-    def mouth(c, s, kind='smile'):
-        s.rows(c.MX, c.MY - (1 if kind == 'yawn' else 0), c.MOUTHS[kind], {'b': c.BR, 'w': c.W, 'h': c.SH, 'd': c.DM})
+    def mouth(c, s, kind='smile', at=None):
+        mx, my = at or (c.MX, c.MY)
+        s.rows(mx, my - (1 if kind == 'yawn' else 0), c.MOUTHS[kind], {'b': c.BR, 'w': c.W, 'h': c.SH, 'd': c.DM})
 
     @classmethod
     def full(c, look=0, eye='open', brow='neutral', mouth='smile'):
@@ -148,6 +153,64 @@ class Cole:
     centre = 37          # the column of the sprite that sits on the character's x in the scene
     desk = 88            # the row of the sprite that meets the desk top
     points = dict(mouth=(43, 37), eye=(40, 25), chin=(44, 45), ear=(24, 28))
+
+    # ---- looking down (note 10) ---------------------------------------------------------------------------------
+    # The head tipped toward the desk: FLUX.2 klein 4B on the pose stage (seed 5108) gave the head's new shape (more of
+    # the hair on top, the forelock lower, the jaw line and chin), reduced on the base grid (sprites/cole-down-1x.png).
+    # Its face is redrawn here in the base's style, from x = 24: the brows and the glasses four rows lower, the lenses
+    # seen from above (four rows instead of six), the lids lowered over the eyes, a longer nose pointing down, the jaw
+    # line in the base's dark brown. The mouth frames go one column right and four rows down (DMX, DMY).
+    DOWN = 'cole-down-1x.png'
+    DMX, DMY = 39, 39
+    DOWN_KEY = {'k': '#010101', 'K': '#211f1f', 'b': '#100f13', 'B': '#090507', 'z': '#0f0503', 'S': '#ee947c', 'm': '#f8cda6', 'M': '#f6af8d',
+                'h': '#dc7f6d', 'H': '#623e32', 'd': '#f9eee0', 'D': '#7d6230', 'g': '#9a9ea2'}
+    DOWN_ROWS = {
+        24: "mBBmkBbMMMMMkkkkkkkkmmmmkkkkkmmk....",
+        25: "mmBBMkkBMMMMkkkkkkkkmmmmkkkkkmmk....",
+        26: "mmBBSkkBBMMM" + "m" * 19 + "k....",
+        27: "mhhHS" + "k" * 26 + ".....",
+        28: "mhhhm" + "kk" + "hhhh" + "k" + "m" * 8 + "k" + "mm" + "k" + "m" * 5 + "k" + "......",
+        29: "mmhhm" + "kk" + "hhhh" + "k" + "m" + "S" * 6 + "m" + "k" + "mm" + "k" + "S" * 4 + "m" + "k" + "......",
+        30: "BmmHM" + "MMhhhh" + "k" + "m" + "k" * 6 + "m" + "k" + "mm" + "k" + "k" * 4 + "m" + "k" + "......",
+        31: "kmmmm" + "MMMMMm" + "k" + "m" * 8 + "k" + "mmm" + "DDDDD" + "k" + "......",
+        32: ".kmmm" + "MMMMMmm" + "D" * 8 + "m" * 8 + "k" + ".......",
+        33: ".kkkk" + "hMMMMMm" + "m" * 17 + "k" + "......",
+        34: "..kkh" + "mMMMMmm" + "m" * 12 + "H" + "mmmm" + "k" + "......",
+        35: "..kkh" + "mmMMMmm" + "m" * 12 + "H" + "mmmm" + "k" + "......",
+        36: "...kh" + "mmMMMmm" + "m" * 8 + "S" + "m" + "MM" + "H" + "mmm" + "k" + ".......",
+        37: "...kh" + "Szz" + "MMmm" + "m" * 9 + "HHH" + "mmmm" + "k" + ".......",
+        38: "...kh" + "Smzz" + "Mmm" + "m" * 15 + "k" + "........",
+        39: "...kh" + "hhmzz" + "mm" + "m" * 15 + "k" + "........",
+        40: "...kh" + "hhhmzz" + "m" + "m" * 15 + "k" + "........",
+        41: "....k" + "Mhhhmzz" + "m" * 14 + "k" + ".........",
+        42: "...k" + "hMMhhhmzz" + "m" * 13 + "k" + ".........",
+        43: "...k" + "MMMMhhhmzz" + "m" * 11 + "k" + "..........",
+        44: "...k" + "MMMMmhhhmzz" + "m" * 9 + "k" + "...........",
+        45: "..kz" + "MMMMmMhhhhmzz" + "m" * 7 + "k" + "...........",
+        46: ".kk" + "MMMMMmMhhhhhmzzz" + "m" * 5 + "k" + "...........",
+        47: "kbk" + "MMMMMmmMMhhhhh" + "hzzzz" + "kk" + "B" + "kk" + ".........",
+    }
+    # per column, the last row of the looking-down head (the jaw line, then the chin)
+    DOWN_JAW = [(24, 33), (28, 33), (29, 36), (30, 37), (31, 38), (32, 39), (33, 40), (34, 41), (35, 42), (36, 43), (37, 43), (38, 44), (39, 45),
+                (40, 45), (41, 46), (43, 46), (44, 47), (47, 47), (48, 46), (74, 46)]
+
+    @classmethod
+    def down_blank(c):
+        s = load(os.path.join(SRC, c.DOWN))
+        for y, row in c.DOWN_ROWS.items():
+            for i, ch in enumerate(row): s.put(24 + i, y, None if ch == '.' else c.DOWN_KEY[ch])
+        return s
+
+    @classmethod
+    def down_mask(c, s):
+        m = np.zeros(s.idx.shape, dtype=bool); pts = c.DOWN_JAW
+        for x in range(s.w):
+            y1 = pts[-1][1]
+            for (x0, y0), (x1, yy1) in zip(pts, pts[1:]):
+                if x0 <= x <= x1: y1 = y0 if x1 == x0 else int(round(y0 + (yy1 - y0) * (x - x0) / (x1 - x0))); break
+            if x < pts[0][0]: y1 = pts[0][1]
+            m[:y1 + 1, x] = True
+        return m & (s.idx >= 0)
 
 
 # =====================================================================================================================
@@ -220,8 +283,9 @@ class Ilinca:
     }
 
     @classmethod
-    def mouth(c, s, kind='smile'):
-        s.rows(c.MX, c.MY - (1 if kind == 'yawn' else 0), c.MOUTHS[kind], {'r': c.ROSE, 'w': c.W, 'l': c.SA, 'd': c.DM})
+    def mouth(c, s, kind='smile', at=None):
+        mx, my = at or (c.MX, c.MY)
+        s.rows(mx, my - (1 if kind == 'yawn' else 0), c.MOUTHS[kind], {'r': c.ROSE, 'w': c.W, 'l': c.SA, 'd': c.DM})
 
     @classmethod
     def full(c, look=0, eye='open', brow='neutral', mouth='smile'):
@@ -256,6 +320,32 @@ class Ilinca:
     desk = 84
     points = dict(mouth=(25, 30), eye=(29, 19), chin=(26, 36), ear=(38, 27))
 
+    # ---- looking down (note 10) ---------------------------------------------------------------------------------
+    # Qwen-Image-Edit 2511 tipped her head toward the desk (seed 2003) and kept her outline exactly; what it changed is
+    # done here on her finished face: the hairline two rows lower (its pixels from the generated picture, reduced on the
+    # base grid: sprites/ilinca-down-1x.png), brows three rows lower, the eyes downcast (the lash lines only), nose and
+    # mouth two rows lower over the same chin.
+    DOWN = 'ilinca-down-1x.png'
+    DMX, DMY = 20, 30
+    FIXCOL = {'#d9a650': '#d9ae71', '#b5705f': '#bd8e5d'}         # the reduction read hair lights as prop gold, hair shade as her lip rose
+
+    @classmethod
+    def down_blank(c):
+        s = c.blank(); g = load(os.path.join(SRC, c.DOWN))
+        for y in (7, 8, 9):                                          # the hairline, two rows lower
+            for x in range(16, 30):
+                if g.idx[y, x] >= 0: col = g.pal[g.idx[y, x]]; s.put(x, y, c.FIXCOL.get(col, col))
+        s.put(31, 18, c.S); s.put(32, 19, c.S)                       # the open eye's outer corner is not there when she looks down
+        for x, y in [(26, 18), (27, 18), (28, 18), (29, 18), (30, 19), (18, 19), (19, 18), (20, 18), (21, 18)]: s.put(x, y, c.DB)
+        for x, y in [(27, 22), (28, 22), (29, 22), (30, 22), (31, 22), (32, 21), (18, 22), (19, 22), (20, 22), (21, 22), (17, 21)]: s.put(x, y, c.K)
+        for x, y in [(22, 22), (22, 23), (22, 26), (23, 27), (24, 27)]: s.put(x, y, c.S)
+        for y in (24, 25, 26, 27): s.put(22, y, c.NOSE)
+        s.put(22, 28, c.ROSE); s.put(23, 29, c.ROSE); s.put(24, 29, c.ROSE)
+        return s
+
+    @classmethod
+    def down_mask(c, s): return c.head_mask(s)
+
 
 CHARACTERS = {'cole': Cole, 'ilinca': Ilinca}
 
@@ -281,6 +371,24 @@ def layers(c):
                 for y in range(max(46, top - 16), top):
                     if hm[y, x] and torso.idx[y, x] < 0: torso.idx[y, x] = cloth
     return torso, head, hm
+
+
+def down_layers(c):
+    """the looking-down head as a layer on the full-size canvas (it is drawn instead of the head), down to its own jaw and
+    never short of the base head's (the torso has nothing where the base head was)"""
+    s = c.down_blank(); _, _, hm = layers(c); m = c.down_mask(s)
+    base_rows = np.array([max([y for y in range(hm.shape[0]) if hm[y, x]], default=-1) for x in range(hm.shape[1])])
+    for x in range(s.w):
+        if base_rows[x] >= 0: m[:base_rows[x] + 1, x] |= s.idx[:base_rows[x] + 1, x] >= 0
+    head = s.copy(); head.idx[~m] = -1
+    return head
+
+
+def down_frames(c):
+    b = c.down_blank(); out = {}
+    for k in c.MOUTHS:
+        s = b.copy(); c.mouth(s, k, at=(c.DMX, c.DMY)); out[k] = diff(b, s)
+    return out
 
 
 def frames(c):

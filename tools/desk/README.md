@@ -1,6 +1,6 @@
 # Desk scene art
 
-Version 1.4.0 · Created 2026-10-02 · Modified 2026-10-03 (motion frames for every activity, hands under the desk for Maker, everything on the desk edge-on)
+Version 1.5.0 · Created 2026-10-02 · Modified 2026-10-03 (motion frames for every activity, hands under the desk for Maker, everything on the desk edge-on, a looking-down head)
 
 Everything the co-founders' scene draws that is not simple geometry lives here as sprites, and reaches the site as
 data in `js/desk-sprites.js`. That file is **generated**: change the sources here and run the exporter.
@@ -57,6 +57,10 @@ drawn, the part of the pose below the desk line goes on again, so hands lie over
   thumbs on the console `ds1`/`ds2`, a fidgeting hand `rest1`, a scrolled phone `phone1`, `solder1`, and a second way
   of holding the iron (`solder2`, its own picture). A frame moves a pixel or two, never more.
 - **Hands under the desk** (`hide`): when Maker walks past, hands go down out of her way instead of up in the air.
+- **Looking down** (`characters.py`: `down_blank`, `down_layers`, `down_frames`): a second head for each, tipped toward
+  the desk, from a generated picture of them looking down, finished in the base face's style. The scene draws it
+  whenever they look down at something (the work, the cat, a pointer over the desk) and for a nod; only the mouth
+  changes on it.
 - **Flat desk**: the desk is seen straight from the front, so anything lying on it is drawn edge-on (the paper, the
   soldering boards, the papers by the plant), never from above.
 - **Fronts**: `front_mode='limb'` draws a hand or sleeve, not the pose's own hair, over Ilinca's long hair.

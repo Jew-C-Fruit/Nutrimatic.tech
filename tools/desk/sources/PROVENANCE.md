@@ -1,6 +1,6 @@
 # Where the pictures in this folder came from
 
-Version 1.5.0 · Created 2026-10-02 · Modified 2026-10-03 (walk cycle; petting with a cat; audit references; the rigged walk)
+Version 1.6.0 · Created 2026-10-02 · Modified 2026-10-03 (walk cycle; petting with a cat; audit references; the rigged walk; looking down)
 
 ## Credits to show when the scene goes live (not on the page yet, by Cole's choice)
 
@@ -105,6 +105,17 @@ The photographs themselves are not in this repo.
 - `maker-walkbody-seed9815.png`: the body. A first version of the rig, drawn on the generated walk, was given back to
   FLUX.2 klein 4B as a sketch to redraw in her look (work folder `env/gen/run_walkrig.sh`, one picture per frame); its
   frame 5 had the best body, which `maker_build.walk_body` reduces, and the rig cuts its legs off and draws its own.
+
+## Looking down (2026-10-03, Cole's note 10)
+
+- `cole-down-seed5108.png`: FLUX.2 klein 4B on Cole's pose stage picture (the base portrait behind the flat blue desk),
+  asked to change only his head: bowed toward the desk, his face turned as before, lids lowered, a faint smile.
+  `characters.Cole.down_blank` uses its reduction (`sprites/cole-down-1x.png`) for the head's new shape and redraws
+  the face in the base face's style.
+- `ilinca-down-seed2003.png`: Qwen-Image-Edit 2511 (Apache 2.0) on Ilinca's base portrait, asked to have her look down
+  at a desk just in front of her, everything else unchanged. Her outline stayed exactly; `characters.Ilinca.down_blank`
+  takes its hairline (`sprites/ilinca-down-1x.png`) and moves her features as it did.
+- Work folder `lookdown/` (run.sh to run4.sh): the other candidates, the reductions and the comparison sheets.
 
 ## The painting where the poster was (2026-10-02)
 
