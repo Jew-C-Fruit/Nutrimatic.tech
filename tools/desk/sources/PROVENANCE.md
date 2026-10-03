@@ -1,6 +1,18 @@
 # Where the pictures in this folder came from
 
-Version 1.2.0 · Created 2026-10-02 · Modified 2026-10-02 (the room, the skyline, the lamps, props, Maker's new poses; the poster edited out, the Mondrian)
+Version 1.3.0 · Created 2026-10-02 · Modified 2026-10-03 (credits list; lean-back stretches, Ilinca's cleaner hands, Maker's yawn, big-eye references)
+
+## Credits to show when the scene goes live (not on the page yet, by Cole's choice)
+
+- Skyline after *Midtown Manhattan Skyline 2025 195* by Kidfly182 (CC BY 4.0) and *Midtown Manhattan night pano* by
+  palendromist (CC BY 2.0), Wikimedia Commons.
+- *Victory Boogie Woogie*, Piet Mondrian (1942-44), after a photograph by Sailko (CC BY 3.0), Wikimedia Commons.
+- Everything else was generated with FLUX.2 klein 4B (Apache 2.0) and needs no credit.
+
+Looked at only, nothing copied: cute pixel cats on OpenGameArt for the big-eye look (*Cute cat (32x32)* by limafresh,
+CC0; *Cats - Pixel Art* by peony, CC BY 4.0; *Pixel art cute cat* by snoopy11).
+
+## The pictures
 
 Everything here was generated on bigbaby (RTX 3090) with **FLUX.2 klein 4B** (Black Forest Labs, Apache 2.0, 4-step
 distilled) through ComfyUI, driven by `tools/portraits/generate_comfy.py`. 1024x1280 for the people, 1024x768 for
@@ -61,6 +73,13 @@ and Chrysler buildings share the window.
   Commons photos of Midtown, for how the Empire State and Chrysler tops are lit.
 
 The photographs themselves are not in this repo.
+
+## Later poses (2026-10-03)
+
+- `maker-yawn-back-seed9612.png`: Maker yawning with her head thrown back (her photos; the prompt in `run_maker2.sh`
+  of the work folder, same style as her other poses).
+- The lean-back stretches (`sprites/poses/*/stretch.png`, `stretchback.png`) come from prompts that let the model
+  change the head too (`pose-prompts/pose-prefix-*-free.txt`).
 
 ## The painting where the poster was (2026-10-02)
 

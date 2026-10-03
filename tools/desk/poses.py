@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - poses.py
-Version 1.1.1
+Version 1.2.0
 
 Created: 2026-10-02 - The figures' body poses, from generated pictures, as layers under the base head; the neck, and
   Ilinca's top, taken from the base so every pose joins the same head; front boxes by eye (v1.0.0)
@@ -12,6 +12,8 @@ Modified: 2026-10-02 - Hands and forearms: black lines inside skin (finger gaps,
   writing frames made by moving the writing hand (write1, write2) (v1.1.0)
 Modified: 2026-10-02 - New talk, pethead (Cole) and type (Ilinca) pictures: the old ones had a third arm or hands
   through each other; the old talk pose's pixel fix went with it (v1.1.1)
+Modified: 2026-10-03 - Poses may keep their own head (stretchback: leaning back, head back, eyes shut); the "nu" mark on
+  the shaker bottles; Ilinca's wave, surprise, think and yawn redone with cleaner hands; her wave rocks a pixel (v1.2.0)
 
 Every activity in the scene is drawn with a body pose: the whole torso with arms, hands and whatever they hold, made
 by the image model from the figure's own portrait (pose_sprites.py says how) and reduced to a sprite on the base
@@ -36,6 +38,9 @@ from characters import CHARACTERS, layers
 POSES = os.path.join(HERE, 'sprites', 'poses')
 GRIDS = {'cole': os.path.join(HERE, 'sprites', 'cole-301.json'), 'ilinca': os.path.join(HERE, 'sprites', 'ilinca-407.json')}
 
+# the Nutrimatic "nu" monogram (assets/nu-mark.svg reduced to five pixels) for the shaker bottles; '.' keeps a pixel
+NU_MARK = ['kkk..', 'k.k..', 'k.k.k', 'k.k.k', '..kkk']
+
 # colours of the props that can be lifted out of a pose
 LAPTOP = {'#cfd2d4', '#9a9ea2', '#5f6368', '#dfe9f5', '#7fb2e0', '#d9d5c8', '#fbfaf5'}
 PAPER = {'#fbfaf5', '#d9d5c8'}
@@ -48,10 +53,12 @@ MANUAL = {
         'drink': dict(front=(40, 28, 61, 58), front_mode='props'),
         'solder': dict(pts={'tip': (35, 82)}),
         'think': dict(neck_fill=False),                                  # the hand at his chin: the gap there is real
+        'stretchback': dict(own_head=True, fix=[('clear', -6, 53, 3, 88)]),   # the middle of a stretch: leaning back, head back, eyes shut (a chair's edge cleared)
         # props the scene also draws on their own: the laptop (the cat sits on it), the paper, the bottle being handed over
         'type': dict(props={'laptop': (LAPTOP, (20, 56, 100, 100))}),
         'write': dict(props={'paper': (PAPER, (10, 80, 90, 100))}, frames={'write1': ((14, 64, 36, 92), 1, 0), 'write2': ((14, 64, 36, 92), 2, -1)}),
-        'offer': dict(fix=[('recolour', 74, 19, 87, 49, {'#f9eee0': '#fbfaf5'})], props={'bottle': (BOTTLE, (58, 0, 100, 50))}, empty={'offerEmpty': 'bottle'}),
+        'offer': dict(fix=[('recolour', 74, 19, 87, 49, {'#f9eee0': '#fbfaf5'}), ('rows', 78, 28, NU_MARK)], props={'bottle': (BOTTLE, (58, 0, 100, 50))}, empty={'offerEmpty': 'bottle'}),
+        'shake': dict(fix=[('rows', 38, 78, NU_MARK)]),
         'highfive': dict(pts={'hand': (67, 24)}),
         'throw': dict(pts={'hand': (76, 34)}),
         'yawn': dict(front=(30, 31, 52, 47), keep_neck=True),
@@ -63,6 +70,8 @@ MANUAL = {
     'ilinca': {
         'sip': dict(front=(3, 20, 24, 42), front_mode='props'),
         'type': dict(props={'laptop': (LAPTOP, (-30, 50, 40, 96))}),
+        'stretchback': dict(own_head=True, fix=[('clear', 63, 38, 75, 82)]),
+        'wave': dict(frames={'wave2': ((-12, 12, 12, 38), 1, 0)}),          # a casual wave: the hand rocks a pixel
         'write': dict(props={'paper': (PAPER, (-14, 74, 40, 96))}, frames={'write1': ((-6, 60, 16, 90), 1, 0), 'write2': ((-6, 60, 16, 90), 2, -1)}),
         'think': dict(front=(8, 28, 34, 48), front_mode='diff', keep_neck=True),
         'phone': dict(keep_chest=True),
@@ -74,7 +83,7 @@ MANUAL = {
         'call': dict(keep_chest=True, front=(4, 24, 15, 46), front_mode='limb'),
         'surprise': dict(keep_chest=True, front=(48, 24, 68, 58), front_mode='limb'),
         # the bottle came out in her skin colours
-        'take': dict(fix=[('recolour', -18, 19, -4, 47, {'#faebe1': '#fbfaf5', '#f9e2d2': '#fbfaf5', '#d18881': '#d9d5c8', '#e1cec4': '#d9d5c8'})],
+        'take': dict(fix=[('recolour', -18, 19, -4, 47, {'#faebe1': '#fbfaf5', '#f9e2d2': '#fbfaf5', '#d18881': '#d9d5c8', '#e1cec4': '#d9d5c8'}), ('rows', -12, 30, NU_MARK)],
                      props={'bottle': (BOTTLE, (-20, 8, -3, 48))}),
     },
 }
@@ -104,11 +113,12 @@ def index(who):
     return json.load(open(p)) if os.path.exists(p) else {}
 
 
-def pick(who, pose, picture):
-    """reduce one generated pose picture to a sprite on the base grid, aligned to the base head, and store it"""
+def pick(who, pose, picture, align=True):
+    """reduce one generated pose picture to a sprite on the base grid, aligned to the base head (unless the pose keeps
+    its own head), and store it"""
     c = CHARACTERS[who]; grid = json.load(open(GRIDS[who])); base = c.blank(); _, _, hm = layers(c)
     spr, x0, y0 = PS.to_sprite(picture, grid); spr = PS.snap(spr, master_palette(c))
-    dx, dy, score = PS.align(spr, x0, y0, base, hm); x0 -= dx; y0 -= dy
+    dx, dy, score = PS.align(spr, x0, y0, base, hm) if align else (0, 0, 0.0); x0 -= dx; y0 -= dy
     os.makedirs(os.path.join(POSES, who), exist_ok=True); spr.save(os.path.join(POSES, who, pose + '.png'))
     ix = index(who); ix[pose] = dict(x=x0, y=y0, src=os.path.basename(os.path.dirname(picture)) + '/' + os.path.basename(picture), align=[dx, dy], fit=round(score, 3))
     json.dump(ix, open(os.path.join(POSES, who, 'index.json'), 'w'), indent=1, sort_keys=True)
@@ -237,6 +247,10 @@ def build(c):
     hair = set(c.HAIR) if hasattr(c, 'HAIR') else None; out = {}; neck = neck_patch(c, torso, jaw); chest = chest_patch(c, torso)
     for pose, meta in sorted(ix.items()):
         spr = load(os.path.join(POSES, who, pose + '.png')); man = MANUAL.get(who, {}).get(pose, {})
+        if man.get('own_head'):                                          # the whole picture, head and all (a stretch leaning back)
+            if man.get('fix'): spr = fix(spr, meta['x'], meta['y'], man['fix'], KEYS[who])
+            out[pose] = dict(body=(soften(spr, who), meta['x'], meta['y']), front=None, pts=man.get('pts', {}), props={}, own_head=True)
+            continue
         if man.get('fix'): spr = fix(spr, meta['x'], meta['y'], man['fix'], KEYS[who])     # before softening: a recoloured prop is not skin any more
         spr = soften(spr, who)
         body, front = PS.split(spr, meta['x'], meta['y'], hm, jaw, man.get('front'), hair, None if man.get('keep_neck') else neck, man.get('front_mode', 'all'),

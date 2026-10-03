@@ -161,13 +161,23 @@
  },
  "stretch": {
   "align": [
+   -2,
+   -1
+  ],
+  "fit": 0.709,
+  "src": "cole-stretchfree/cand-002-seed5041.png",
+  "x": -4,
+  "y": -1
+ },
+ "stretchback": {
+  "align": [
    0,
    0
   ],
-  "fit": 0.907,
-  "src": "cole-stretch2/cand-001-seed3382.png",
-  "x": -13,
-  "y": 0
+  "fit": 0.709,
+  "src": "cole-stretchfree/cand-002-seed5041.png",
+  "x": -6,
+  "y": -2
  },
  "surprise": {
   "align": [

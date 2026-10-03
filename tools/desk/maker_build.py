@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - maker_build.py
-Version 1.2.0
+Version 1.3.0
 
 Created: 2026-10-02 - Maker the cat: five generated poses on one palette, eyes tidied (v1.0.0)
 Modified: 2026-10-02 - A fifth bigger (reduced again from the generated pictures: 62 px long walking, 45 px tall
@@ -9,6 +9,8 @@ Modified: 2026-10-02 - A fifth bigger (reduced again from the generated pictures
   to knead) and derived frames: blinks, eyes shut, kneading paws (v1.1.0)
 Modified: 2026-10-02 - Every pose sized so her head is the same size; raised tails redrawn longer and ending in a
   point; lying down she lies with a front paw over the desk edge (the scene adds the hanging tail) (v1.2.0)
+Modified: 2026-10-03 - Darker coat; a yawn with her head thrown back; tails end like a paintbrush; a second look with big
+  stylized eyes (sheet(big=True), exported as makerB) to compare (v1.3.0)
 
 maker_build.py - Maker the cat: generated sprites (FLUX.2 klein 4B on her photos, see sources/PROVENANCE.md), reduced
 with tools/portraits/pixelize.py to a set size, recoloured to one shared palette close to her real blue-grey, and
@@ -27,9 +29,10 @@ SRC = os.path.join(HERE, 'sources')
 # generated picture drew her at its own scale, and sizing them all by length made her look bigger lying down and
 # smaller sitting side-on.
 JOBS = {'walk0': ('maker-walk-seed503.png', 'w', 62), 'walk1': ('maker-walk-seed504.png', 'w', 62), 'sit': ('maker-sit-seed511.png', 'h', 50),
-        'yawn': ('maker-yawn-seed521.png', 'h', 50), 'loaf': ('maker-loaf-seed533.png', 'w', 53), 'sitside': ('maker-sitside-seed9550.png', 'h', 53),
+        'yawn': ('maker-yawn-back-seed9612.png', 'h', 50), 'loaf': ('maker-loaf-seed533.png', 'w', 53), 'sitside': ('maker-sitside-seed9550.png', 'h', 53),
         'curl': ('maker-curl-seed9529.png', 'w', 51), 'stand': ('maker-knead-seed9536.png', 'w', 60)}
-LINE, DEEP, SHADE, FILL, LIGHT, HI = '#262830', '#474b56', '#5b5f6a', '#7b808b', '#8f949f', '#a9aeb8'
+# her coat, darker than first drawn (the user: "a bit darker")
+LINE, DEEP, SHADE, FILL, LIGHT, HI = '#1f2129', '#3b3f49', '#4d515c', '#696e79', '#7d828d', '#959aa5'
 EYE, PINK, MOUTH, WHITE = '#c9d84a', '#c48f9b', '#de7186', '#f4f4f0'
 COAT = [DEEP, SHADE, FILL, LIGHT, HI]
 BANDS = [0.10, 0.32, 0.74, 0.93]          # share of the coat (darkest first) that each grey ends at
@@ -92,14 +95,22 @@ def shut(s, x, y, w=2, below=FILL):
 
 
 # eyes the reduction lost (x, y, width, pupil column), found by looking at the zoomed sprites
-EYES = {'walk1': [(54, 15, 3, 1)], 'loaf': [(40, 12, 3, 1)]}
+EYES = {'walk1': [(54, 15, 3, 1)], 'loaf': [(40, 12, 3, 1)], 'stand': [(52, 16, 3, 1)]}
 
-# Tails held up end in a point now, a few pixels longer than the generated ones' round ends: the round end is cleared
-# above a row and the tail is drawn on from there, narrowing to a point along a short curve.
+# Tails held up end in a soft point now, a few pixels longer than the generated ones' round ends: the round end is
+# cleared above a row and the tail is drawn on from there along a short curve, full width until near the end and then
+# gathering to a point like a paintbrush.
 # pose: (row to cut at, x where the tail is at that row, its width there, the curve on from it, rows to add on top)
 TAILS = {'walk0': (8, 4.5, 6, [(4.8, 4), (5.8, 0), (7.5, -3), (9, -4.5)], 5),
          'walk1': (9, 3.5, 5, [(3.8, 5), (4.8, 1), (6.5, -2), (8, -3.5)], 4),
          'stand': (8, 4.0, 5, [(4.3, 4), (5.5, 0.5), (7.5, -2), (9.5, -3.5)], 4)}
+
+
+def brush(t):
+    """a cat's tail along its length (0 root .. 1 tip), as a share of its width: full most of the way with a slight
+    swell, then gathering to a point over the last quarter, like a paintbrush (not a long even taper)"""
+    if t < 0.72: return 1.0 + 0.10 * np.sin(np.pi * t / 0.72)
+    return max(0.0, 1.0 - ((t - 0.72) / 0.28) ** 1.7)
 
 
 def taper(s, cut, x0, w0, pts, add):
@@ -114,7 +125,7 @@ def taper(s, cut, x0, w0, pts, add):
             t = k / max(1, int(L * 4)); samples.append((ax + (bx - ax) * t, ay + (by - ay) * t))
     h, w = s.idx.shape; yy, xx = np.mgrid[0:h, 0:w]; outline = np.zeros((h, w), bool); fill = np.zeros((h, w), bool); light = np.zeros((h, w), bool)
     for i, (cx, cy) in enumerate(samples):
-        t = i / max(1, len(samples) - 1); r = (w0 / 2 - 0.5) * (1 - t) ** 1.3 + 0.2
+        t = i / max(1, len(samples) - 1); r = brush(t) * (w0 / 2 - 0.5) + 0.2
         d = np.hypot(xx + 0.5 - cx, yy + 0.5 - cy)
         outline |= d <= r + 0.85; fill |= d <= r; light |= np.hypot(xx + 0.5 - (cx + 0.9), yy + 0.5 - cy) <= r - 0.8
     region = outline & ~(s.idx >= 0) | (outline & (yy < cut))
@@ -147,18 +158,71 @@ def lift(s, x0, x1, y0, y1, dy=2):
     return out
 
 
-def sprites():
+# A second look for her, to compare (the user: "experiment with making Maker's eyes bigger and more stylized"): the
+# eyes redrawn after cute pixel-art animals (CC0 / CC BY sheets on OpenGameArt, see sources/PROVENANCE.md): round, four
+# pixels across, a dark lid line on top, a big round pupil with a white catchlight, and closed as a smiling arc.
+BIG_FRONT = ['kkkk', 'epwe', 'eppe', '.ee.']
+BIG_SIDE = ['kkk', 'epw', 'epp', '.e.']
+BIG_SHUT_FRONT = ['....', 'k..k', '.kk.', '....']
+BIG_SHUT_SIDE = ['...', 'k.k', '.k.', '...']
+
+
+def eye_spots(s):
+    """where the drawn eyes are: (x0, y0, x1, y1) of each eye, its eye-coloured pixels taken together with the dark
+    pixels of the pupil and lid right around them (an eye can be a single yellow pixel in a dark patch)"""
+    from scipy import ndimage
+    if EYE not in s.pal: return []
+    e = s.idx == s.pal.index(EYE); dark = s.idx == s.pal.index(LINE)
+    near = ndimage.binary_dilation(e, structure=np.ones((3, 3), bool), iterations=1)
+    lab, n = ndimage.label(ndimage.binary_dilation(e, structure=np.ones((3, 3), bool), iterations=2) & (e | dark))
+    spots = []
+    for i in range(1, n + 1):
+        m = (lab == i) & (e | (dark & near)); ys, xs = np.where(m)
+        if (m & e).any() and xs.max() - xs.min() <= 5: spots.append((xs.min(), ys.min(), xs.max(), ys.max()))
+    return spots
+
+
+def big_eyes(s, shut=False):
+    """the sprite with its eyes redrawn big and round (or shut, as smiling arcs)"""
+    out = s.copy(); spots = eye_spots(s); front = len(spots) >= 2
+    key = {'k': LINE, 'e': EYE, 'p': LINE, 'w': WHITE}
+    for x0, y0, x1, y1 in spots:
+        for y in range(y0, y1 + 1):                                         # the old eye and its pupil go back to coat
+            for x in range(x0, x1 + 1):
+                if s.idx[y, x] >= 0 and s.pal[s.idx[y, x]] in (EYE, LINE): out.put(x, y, FILL)
+        pat = (BIG_SHUT_FRONT if shut else BIG_FRONT) if front else (BIG_SHUT_SIDE if shut else BIG_SIDE)
+        cx = (x0 + x1 + 1) // 2; ox, oy = cx - len(pat[0]) // 2, y0 - 1
+        for r, row in enumerate(pat):
+            for c, ch in enumerate(row):
+                if ch != '.': out.put(ox + c, oy + r, key[ch])
+    return out
+
+
+def sprites(big=False):
     out = {k: recolour(reduce(*job)) for k, job in JOBS.items()}
     for k, eyes in EYES.items():
         for e in eyes: eye(out[k], *e)
     for k, (cut, x0, w0, pts, add) in TAILS.items(): out[k] = taper(out[k], cut, x0, w0, pts, add)
     for k, box in PAWS.items(): out[k] = lift(out['stand'], *box)
+    if big:
+        base = dict(out); out = {}
+        for k, s in base.items():
+            out[k] = big_eyes(s) if k != 'yawn' else s
+            if k != 'yawn': out[k + 'Blink'] = big_eyes(s, shut=True)
+        return out
     for k in [k for k in out if k not in ('yawn',)]: out[k + 'Blink'] = blink(out[k])
     return out
 
 
 # rows of each sprite that hang below the surface she lies on: lying at the desk's front edge, a front paw hangs over
 GROUND = {'loaf': 6, 'loafBlink': 6}
+_cache = {}
+
+
+def sheet(big=False):
+    """the sprites, made once per run (the exporter asks for both looks)"""
+    if big not in _cache: _cache[big] = sprites(big)
+    return _cache[big]
 
 if __name__ == '__main__':
     sp = sprites(); ims = []
