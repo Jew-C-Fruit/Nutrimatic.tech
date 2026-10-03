@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.12.0
+ * Version 0.12.1
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -49,6 +49,7 @@
  *   hanging tail is thicker and moves in steps with a flick; she steps up behind the laptop screen onto the keyboard;
  *   petting is rigged (she lies where the cat was in the petting picture, the hand strokes along her back), on the
  *   paper too; petting starts when she settles; shaking moves only the arms; Ilinca looks straight at her laptop (v0.12.0)
+ * Modified: 2026-10-03 - Ilinca's phone lies on her right, clear of her (now larger) laptop (v0.12.1)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(),
@@ -430,6 +431,8 @@
     rect(x - 10, DESK_Y - 8, 20, 8, C.ink3); outline(x - 10, DESK_Y - 8, 20, 8, C.ink); px(x - 7, DESK_Y - 5, C.red); px(x - 4, DESK_Y - 5, C.greenL); rect(x, DESK_Y - 6, 6, 3, C.greyLight);
     rect(x + 6, DESK_Y - 20, 2, 12, C.grey); hline(x + 3, DESK_Y - 20, 8, C.grey);
   }
+  // Where Ilinca's phone lies when she isn't holding it: on her right, clear of her laptop and her arm.
+  function phoneSpot() { return ilinca.x + 40; }
   function propPhoneOnDesk(x) { rect(x - 5, DESK_Y - 2, 10, 2, C.phone); hline(x - 4, DESK_Y - 2, 8, C.ink3); }
   function propPlane(x, y, dir) {   // a paper airplane pointing in dir (1 = right)
     var d = dir || 1;
@@ -570,7 +573,7 @@
         propArt(kind, L.art.slots[j], DESK_Y + 2); if (kind === "mug") { steam(L.art.slots[j] - 1, DESK_Y - 10, f); }
       }
       if (cole.activity === "solder" && !cole.hidden) { propSolderStation(cole.x - 32); }
-      if (ilinca.phoneOnDesk && !ilinca.hidden) { propPhoneOnDesk(ilinca.x - 28); }
+      if (ilinca.phoneOnDesk && !ilinca.hidden) { propPhoneOnDesk(phoneSpot()); }
       for (var m = 0; m < extras.length; m++) {
         var e2 = extras[m];
         if (e2.kind === "plane") { propPlane(e2.x, DESK_Y - 2, e2.dir); } else if (e2.kind === "bottle") { propArt("bottle", e2.x, DESK_Y + 2); }
@@ -584,7 +587,7 @@
       else if (k === "cartridge") { propCartridge(x); } else if (k === "mug") { propMug(x, DESK_Y, false, f); } else if (k.indexOf("vase") === 0) { propVase(x, +k[4]); }
     }
     if (cole.activity === "solder" && !cole.hidden) { propSolderStation(cole.x - 50); }
-    if (ilinca.phoneOnDesk && !ilinca.hidden) { propPhoneOnDesk(ilinca.x - 28); }
+    if (ilinca.phoneOnDesk && !ilinca.hidden) { propPhoneOnDesk(phoneSpot()); }
     for (var e = 0; e < extras.length; e++) { var ex = extras[e]; if (ex.kind === "plane") { propPlane(ex.x, DESK_Y - 2, ex.dir); } else if (ex.kind === "bottle") { propBottle(ex.x, DESK_Y); } else if (ex.kind === "mug") { propMug(ex.x, DESK_Y, ex.steam, f); } }
   }
 
@@ -960,7 +963,7 @@
         [8.6, function () { ilinca.gesture = false; ilinca.mouth = "laugh"; setActivity(cole, "fistpump", 99); cole.mouth = "laugh"; }],
         [10.2, function () { setActivity(cole, "rest", 99); cole.mouth = "smile"; ilinca.mouth = "smile"; }]
       ],
-      drawFront: function (t, f) { var b = actors.buzz; if (b && ilinca.phoneOnDesk) { var x = ilinca.x - 28 + ((f % 2) ? 1 : -1); rect(x - 5, DESK_Y - 3, 10, 2, C.phone); px(x - 7, DESK_Y - 6, C.greyLight); px(x + 7, DESK_Y - 6, C.greyLight); px(x - 9, DESK_Y - 9, C.greyLight); px(x + 9, DESK_Y - 9, C.greyLight); } }
+      drawFront: function (t, f) { var b = actors.buzz; if (b && ilinca.phoneOnDesk) { var x = phoneSpot() + ((f % 2) ? 1 : -1); rect(x - 5, DESK_Y - 3, 10, 2, C.phone); px(x - 7, DESK_Y - 6, C.greyLight); px(x + 7, DESK_Y - 6, C.greyLight); px(x - 9, DESK_Y - 9, C.greyLight); px(x + 9, DESK_Y - 9, C.greyLight); } }
     }
   };
   var SCENARIO_NAMES = Object.keys(SCENARIOS);

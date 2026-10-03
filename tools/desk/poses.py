@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - poses.py
-Version 1.3.1
+Version 1.4.0
 
 Created: 2026-10-02 - The figures' body poses, from generated pictures, as layers under the base head; the neck, and
   Ilinca's top, taken from the base so every pose joins the same head; front boxes by eye (v1.0.0)
@@ -22,6 +22,9 @@ Modified: 2026-10-03 - Audit fixes: Ilinca's hands and held things in front of h
 Modified: 2026-10-03 - Cole's note 1 ("major hand and arm distortion", chin on hand): the cleanup softens only short line
   runs (finger gaps), so crossed limbs keep their outline; a new chin-on-hand picture for Cole whose fist goes in front of
   the jaw (front mode 'arm'); stray dashes cleared from Ilinca's (v1.3.1)
+Modified: 2026-10-03 - Notes 2 and 3: gaps and one-pixel cracks inside a figure are closed (close_holes); objects in
+  front of Ilinca's hair are taken from the uncut pose (a laptop reaching into her hair was cut where it lies); her
+  phone pose with a blue phone and hands over her hair; a larger laptop for her, its panel made whole (v1.4.0)
 
 Every activity in the scene is drawn with a body pose: the whole torso with arms, hands and whatever they hold, made
 by the image model from the figure's own portrait (pose_sprites.py says how) and reduced to a sprite on the base
@@ -84,7 +87,10 @@ MANUAL = {
     },
     'ilinca': {
         'sip': dict(front=(-2, 20, 24, 46), front_mode='limb'),
-        'type': dict(props={'laptop': (LAPTOP, (-30, 50, 40, 96))}),
+        # a big laptop (note 3: hers was too small); the picture hung her hair over its top edge, so its silver panel is
+        # filled solid and the whole laptop goes in front of her hair
+        'type': dict(fix=[('fill', 0, 57, 58, 84, '#cfd2d4', {'#cfd2d4', '#9a9ea2', '#5f6368'}), ('fill', -1, 56, 59, 56, '#5f6368', set())],
+                     props={'laptop': (LAPTOP, (-14, 50, 66, 96))}),
         'wave': dict(frames={'wave2': ((-12, 12, 12, 38), 1, 0)}),          # a casual wave: the hand rocks a pixel
         # her reaching sleeve ended in a spike up into her hair: its top is cut level at the shoulder, under the hair
         'petcat': dict(fix=[('erase', -38, 60, 32, 94, CAT_GREYS), ('clear', 0, 30, 16, 45), ('rows', 4, 46, ['kkkkkk'])], frames={'petcat2': ((-18, 54, 14, 76), 2, 0)}),
@@ -194,15 +200,56 @@ def soften(spr, who, reach_n=2, keep=None):
 HAIR_FRONT_ROW = {'ilinca': 56}
 
 
-def hair_front(body, ox, oy, row, who, front):
-    """the skin and props of a pose below `row` (base coordinates), with the outline touching them, added to its front"""
+def hair_front(body, ox, oy, row, who, front, raw=None):
+    """the skin and props of a pose below `row` (base coordinates), with the outline touching them, added to its front.
+    Props come from the raw pose (`raw`, before the head's area was cut away: a laptop reaching up into the long hair
+    was cut where the hair lies), skin from the body"""
     from scipy import ndimage
-    skin = set(SOFTEN[who][0][0]) | set(PS.PROPS)
-    part = np.isin(body.idx, [i for i, c in enumerate(body.pal) if c in skin]); part[:max(0, row - oy), :] = False
-    m = part | (ndimage.binary_dilation(part, structure=np.ones((3, 3), bool)) & PS.dark(body)); m[:max(0, row - oy), :] = False
+    skin = set(SOFTEN[who][0][0]); props = set(PS.PROPS); src = raw if raw is not None and raw.idx.shape == body.idx.shape else body
+    part_s = np.isin(body.idx, [i for i, c in enumerate(body.pal) if c in skin | (props if src is body else set())])
+    part_p = np.isin(src.idx, [i for i, c in enumerate(src.pal) if c in props]) if src is not body else np.zeros_like(part_s)
+    part = part_s | part_p; part[:max(0, row - oy), :] = False
+    edge_s = ndimage.binary_dilation(part, structure=np.ones((3, 3), bool))
+    m_s = part_s | (edge_s & PS.dark(body)); m_p = part_p | (edge_s & PS.dark(src) & ~PS.dark(body) & (body.idx < 0))
+    m_s[:max(0, row - oy), :] = False; m_p[:max(0, row - oy), :] = False
     out = front.copy() if front is not None else body.copy()
     if front is None: out.idx[:] = -1
-    for y, x in zip(*np.where(m)): out.idx[y, x] = out.color(body.pal[body.idx[y, x]])
+    for y, x in zip(*np.where(m_s)): out.idx[y, x] = out.color(body.pal[body.idx[y, x]]) if body.idx[y, x] >= 0 else out.idx[y, x]
+    for y, x in zip(*np.where(m_p)): out.idx[y, x] = out.color(src.pal[src.idx[y, x]])
+    return out
+
+
+def close_holes(body, ox, oy, head, desk, hair=None):
+    """gaps that open inside a figure (where the picture's hair or a limb was wider than what replaces it): empty pixels
+    of the torso, below the chin, with the figure (body or base head) on both sides and below, take the nearest body
+    pixel; the wall stays wall outside the figure"""
+    out = body.copy(); h, w = out.idx.shape
+    solid = out.idx >= 0
+    hd = np.zeros((h, w), bool); hy, hx = np.where(head.idx >= 0); py, px = hy - oy, hx - ox
+    ok = (py >= 0) & (py < h) & (px >= 0) & (px < w); hd[py[ok], px[ok]] = True
+    fig = solid | hd
+    left = np.maximum.accumulate(fig, axis=1); right = np.maximum.accumulate(fig[:, ::-1], axis=1)[:, ::-1]
+    below = np.maximum.accumulate(fig[::-1], axis=0)[::-1]
+    holes = ~fig & left & right & below
+    top = max(0, 40 - oy); bottom = max(0, desk + 1 - oy); holes[:top, :] = False; holes[bottom:, :] = False
+    if hair is not None:                                             # long hair: the gaps open beside it, where the picture's hair was wider
+        hm = np.zeros((h, w), bool); hy, hx = np.where(np.isin(head.idx, [i for i, c in enumerate(head.pal) if c in hair]))
+        py, px = hy - oy, hx - ox; ok = (py >= 0) & (py < h) & (px >= 0) & (px < w); hm[py[ok], px[ok]] = True
+        holes &= _nd.binary_dilation(hm, structure=np.ones((3, 3), bool), iterations=4)
+        limit = 120
+    else: limit = 40
+    lab, n = _nd.label(holes)
+    if n:                                                            # only small, enclosed gaps (not the space between an arm and the body)
+        sizes = _nd.sum(holes, lab, index=np.arange(1, n + 1)); holes = np.isin(lab, [i + 1 for i, sz in enumerate(sizes) if sz <= limit])
+    # and cracks: one-pixel splits with the figure on both sides (above and below, or left and right), even where they run
+    # out to the figure's edge, such as a slit across a shoulder where the hair above and the arm below don't meet
+    up = np.zeros_like(fig); up[1:] = fig[:-1]; dn = np.zeros_like(fig); dn[:-1] = fig[1:]
+    lf = np.zeros_like(fig); lf[:, 1:] = fig[:, :-1]; rt = np.zeros_like(fig); rt[:, :-1] = fig[:, 1:]
+    crack = ~fig & ((up & dn) | (lf & rt)); crack[:top, :] = False; crack[bottom:, :] = False
+    holes |= crack
+    if holes.any():
+        _, (iy, ix) = _nd.distance_transform_edt(~solid, return_indices=True)
+        out.idx[holes] = out.idx[iy[holes], ix[holes]]
     return out
 
 
@@ -222,6 +269,12 @@ def fix(spr, ox, oy, edits, pal_key):
             if n > 1:
                 sizes = ndimage.sum(s.idx >= 0, lab, index=np.arange(1, n + 1))
                 small = np.isin(lab, [i + 1 for i, sz in enumerate(sizes) if sz < 20]) & box; s.idx[small] = -1
+            continue
+        if e[0] == 'fill':                                               # a plain panel made whole: everything in the box not in its own colours
+            _, x0, y0, x1, y1, col, own = e
+            sub = s.idx[max(0, y0 - oy):max(0, y1 + 1 - oy), max(0, x0 - ox):max(0, x1 + 1 - ox)]
+            ownix = [i for i, cc in enumerate(s.pal) if cc in own]; ci = s.color(col)
+            sub[~np.isin(sub, ownix)] = ci
             continue
         if e[0] == 'rows':
             _, x, y, rows = e; s.rows(x - ox, y - oy, rows, pal_key)
@@ -325,7 +378,12 @@ def build(c):
                     if torso.idx[y, x] < 0 or (body.idx[sy, sx] >= 0 and body.pal[body.idx[sy, sx]] in skin): continue
                     body.idx[sy, sx] = body.color(torso.pal[torso.idx[y, x]])
         if who in HAIR_FRONT_ROW:                                        # long hair: hands and things held below the collar go in front of it
-            front = hair_front(body, meta['x'], meta['y'], HAIR_FRONT_ROW[who], who, front)
+            front = hair_front(body, meta['x'], meta['y'], HAIR_FRONT_ROW[who], who, front, raw=spr)
+        if man.get('fill_holes', True):                                  # repeated: a slit wider than a pixel closes from both sides in turn
+            for _ in range(4):
+                closed = close_holes(body, meta['x'], meta['y'], head, c.desk, hair)
+                if np.array_equal(closed.idx, body.idx): break
+                body = closed
         entry = dict(body=(body, meta['x'], meta['y']), front=(front, meta['x'], meta['y']) if front is not None and (front.idx >= 0).any() else None, pts=man.get('pts', {}), props={})
         masks = {}
         for name, (cols, box) in man.get('props', {}).items():
