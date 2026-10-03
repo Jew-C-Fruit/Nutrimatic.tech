@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - maker_build.py
-Version 1.1.0
+Version 1.2.0
 
 Created: 2026-10-02 - Maker the cat: five generated poses on one palette, eyes tidied (v1.0.0)
 Modified: 2026-10-02 - A fifth bigger (reduced again from the generated pictures: 62 px long walking, 45 px tall
   sitting, 60 px long lying), five greys instead of three, new poses (sitting side-on looking up, curled up, standing
   to knead) and derived frames: blinks, eyes shut, kneading paws (v1.1.0)
+Modified: 2026-10-02 - Every pose sized so her head is the same size; raised tails redrawn longer and ending in a
+  point; lying down she lies with a front paw over the desk edge (the scene adds the hanging tail) (v1.2.0)
 
 maker_build.py - Maker the cat: generated sprites (FLUX.2 klein 4B on her photos, see sources/PROVENANCE.md), reduced
 with tools/portraits/pixelize.py to a set size, recoloured to one shared palette close to her real blue-grey, and
@@ -21,9 +23,12 @@ import pixelize as PX
 
 SRC = os.path.join(HERE, 'sources')
 # sprite name: (generated picture, which side sets the size, its length in pixels)
-JOBS = {'walk0': ('maker-walk-seed503.png', 'w', 62), 'walk1': ('maker-walk-seed504.png', 'w', 62), 'sit': ('maker-sit-seed511.png', 'h', 45),
-        'yawn': ('maker-yawn-seed521.png', 'h', 45), 'loaf': ('maker-loaf-seed533.png', 'w', 60), 'sitside': ('maker-sitside-seed9550.png', 'h', 45),
-        'curl': ('maker-curl-seed9529.png', 'w', 60), 'stand': ('maker-knead-seed9536.png', 'w', 62)}
+# The sizes keep her head the same size in every pose (about 20 px from ear tips to chin, as when walking): each
+# generated picture drew her at its own scale, and sizing them all by length made her look bigger lying down and
+# smaller sitting side-on.
+JOBS = {'walk0': ('maker-walk-seed503.png', 'w', 62), 'walk1': ('maker-walk-seed504.png', 'w', 62), 'sit': ('maker-sit-seed511.png', 'h', 50),
+        'yawn': ('maker-yawn-seed521.png', 'h', 50), 'loaf': ('maker-loaf-seed533.png', 'w', 53), 'sitside': ('maker-sitside-seed9550.png', 'h', 53),
+        'curl': ('maker-curl-seed9529.png', 'w', 51), 'stand': ('maker-knead-seed9536.png', 'w', 60)}
 LINE, DEEP, SHADE, FILL, LIGHT, HI = '#262830', '#474b56', '#5b5f6a', '#7b808b', '#8f949f', '#a9aeb8'
 EYE, PINK, MOUTH, WHITE = '#c9d84a', '#c48f9b', '#de7186', '#f4f4f0'
 COAT = [DEEP, SHADE, FILL, LIGHT, HI]
@@ -87,9 +92,36 @@ def shut(s, x, y, w=2, below=FILL):
 
 
 # eyes the reduction lost (x, y, width, pupil column), found by looking at the zoomed sprites
-EYES = {'walk1': [(54, 15, 3, 1)]}
+EYES = {'walk1': [(54, 15, 3, 1)], 'loaf': [(40, 12, 3, 1)]}
+
+# Tails held up end in a point now, a few pixels longer than the generated ones' round ends: the round end is cleared
+# above a row and the tail is drawn on from there, narrowing to a point along a short curve.
+# pose: (row to cut at, x where the tail is at that row, its width there, the curve on from it, rows to add on top)
+TAILS = {'walk0': (8, 4.5, 6, [(4.8, 4), (5.8, 0), (7.5, -3), (9, -4.5)], 5),
+         'walk1': (9, 3.5, 5, [(3.8, 5), (4.8, 1), (6.5, -2), (8, -3.5)], 4),
+         'stand': (8, 4.0, 5, [(4.3, 4), (5.5, 0.5), (7.5, -2), (9.5, -3.5)], 4)}
+
+
+def taper(s, cut, x0, w0, pts, add):
+    """the tail above row `cut` redrawn as a tapering stroke from (x0, cut) through pts to a point"""
+    s = s.pad(top=add); cut += add; pts = [(x, y + add) for x, y in pts]
+    tail = np.zeros(s.idx.shape, bool); tail[:cut, :max(1, int(x0 + w0 + 3))] = True
+    s.idx[tail & (s.idx >= 0)] = -1                                        # the old round end goes
+    path = [(x0, cut + 0.5)] + pts; samples = []
+    seg = [np.hypot(bx - ax, by - ay) for (ax, ay), (bx, by) in zip(path, path[1:])]; total = sum(seg)
+    for (ax, ay), (bx, by), L in zip(path, path[1:], seg):
+        for k in range(int(L * 4) + 1):
+            t = k / max(1, int(L * 4)); samples.append((ax + (bx - ax) * t, ay + (by - ay) * t))
+    h, w = s.idx.shape; yy, xx = np.mgrid[0:h, 0:w]; outline = np.zeros((h, w), bool); fill = np.zeros((h, w), bool); light = np.zeros((h, w), bool)
+    for i, (cx, cy) in enumerate(samples):
+        t = i / max(1, len(samples) - 1); r = (w0 / 2 - 0.5) * (1 - t) ** 1.3 + 0.2
+        d = np.hypot(xx + 0.5 - cx, yy + 0.5 - cy)
+        outline |= d <= r + 0.85; fill |= d <= r; light |= np.hypot(xx + 0.5 - (cx + 0.9), yy + 0.5 - cy) <= r - 0.8
+    region = outline & ~(s.idx >= 0) | (outline & (yy < cut))
+    s.idx[region & ~fill] = s.color(LINE); s.idx[region & fill] = s.color(FILL); s.idx[region & fill & light] = s.color(LIGHT)
+    return s
 # kneading: the front paw lifted two pixels, near paw then far paw (columns, rows of the leg)
-PAWS = {'knead0': (37, 47, 40, 52), 'knead1': (48, 56, 42, 52)}
+PAWS = {'knead0': (36, 46, 44, 55), 'knead1': (47, 56, 46, 55)}   # (rows counted after the tail's 4 added on top)
 
 
 def blink(s):
@@ -119,13 +151,14 @@ def sprites():
     out = {k: recolour(reduce(*job)) for k, job in JOBS.items()}
     for k, eyes in EYES.items():
         for e in eyes: eye(out[k], *e)
+    for k, (cut, x0, w0, pts, add) in TAILS.items(): out[k] = taper(out[k], cut, x0, w0, pts, add)
     for k, box in PAWS.items(): out[k] = lift(out['stand'], *box)
     for k in [k for k in out if k not in ('yawn',)]: out[k + 'Blink'] = blink(out[k])
     return out
 
 
-# rows of each sprite that hang below the surface she stands on (none now: the old loaf's paw over the edge is gone)
-GROUND = {}
+# rows of each sprite that hang below the surface she lies on: lying at the desk's front edge, a front paw hangs over
+GROUND = {'loaf': 6, 'loafBlink': 6}
 
 if __name__ == '__main__':
     sp = sprites(); ims = []

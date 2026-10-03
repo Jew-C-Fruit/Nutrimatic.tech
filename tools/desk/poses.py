@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - poses.py
-Version 1.1.0
+Version 1.1.1
 
 Created: 2026-10-02 - The figures' body poses, from generated pictures, as layers under the base head; the neck, and
   Ilinca's top, taken from the base so every pose joins the same head; front boxes by eye (v1.0.0)
@@ -10,6 +10,8 @@ Modified: 2026-10-02 - Hands and forearms: black lines inside skin (finger gaps,
   per-pose pixel fixes (FIX); fronts for hands over Ilinca's hair; new poses (lift, pet, petfront); props lifted out
   of a pose (laptop, paper, bottle) so the scene can draw them alone, a pose without one (offerEmpty), and
   writing frames made by moving the writing hand (write1, write2) (v1.1.0)
+Modified: 2026-10-02 - New talk, pethead (Cole) and type (Ilinca) pictures: the old ones had a third arm or hands
+  through each other; the old talk pose's pixel fix went with it (v1.1.1)
 
 Every activity in the scene is drawn with a body pose: the whole torso with arms, hands and whatever they hold, made
 by the image model from the figure's own portrait (pose_sprites.py says how) and reduced to a sprite on the base
@@ -53,9 +55,6 @@ MANUAL = {
         'highfive': dict(pts={'hand': (67, 24)}),
         'throw': dict(pts={'hand': (76, 34)}),
         'yawn': dict(front=(30, 31, 52, 47), keep_neck=True),
-        # the fingertips of the raised hand were a black blob; thumb and palm tidied
-        'talk': dict(fix=[('rows', 72, 37, ['__kkk_____', '_kmsskk___', '_kmssdsk__', '_kmssdsk__', 'kmmssdssk_', 'kmmssdssk_', 'kmdsssdsk_', 'kmdsssdssk']),
-                          ('rows', 71, 47, ['k.......s']), ('rows', 71, 48, ['........s']), ('rows', 63, 49, ['k..d....k'])]),
         # a chair back stood behind the elbow in the generated picture
         'fist': dict(fix=[('clear', 80, 64, 83, 64), ('clear', 73, 65, 83, 65), ('clear', 74, 66, 83, 66), ('clear', 75, 67, 83, 67), ('clear', 76, 68, 83, 69),
                           ('clear', 77, 70, 83, 70), ('clear', 78, 71, 83, 72), ('clear', 79, 73, 83, 73), ('clear', 80, 74, 83, 75), ('clear', 81, 76, 83, 77),
