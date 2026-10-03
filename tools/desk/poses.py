@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - poses.py
-Version 1.4.4
+Version 1.4.5
 
 Created: 2026-10-02 - The figures' body poses, from generated pictures, as layers under the base head; the neck, and
   Ilinca's top, taken from the base so every pose joins the same head; front boxes by eye (v1.0.0)
@@ -34,6 +34,9 @@ Modified: 2026-10-03 - Note 6: the neck patch follows the portrait's round neckl
   new rest pose for Cole with his hands flat on the desk, apart (v1.4.3)
 Modified: 2026-10-03 - Note 7: a hole in Ilinca's top (the cut-out took its grey shadow for the wall) filled; tiny gaps
   enclosed in any pose are filled automatically (pinholes) (v1.4.4)
+Modified: 2026-10-03 - Note 8: Ilinca's laptop squared off with an outline all round and her hands at its sides redrawn
+  clean; props are lifted from the pose before its head area is cut (the cat showed through a gap at the top of her
+  laptop when it was drawn over her) (v1.4.5)
 
 Every activity in the scene is drawn with a body pose: the whole torso with arms, hands and whatever they hold, made
 by the image model from the figure's own portrait (pose_sprites.py says how) and reduced to a sprite on the base
@@ -118,7 +121,15 @@ MANUAL = {
         'sip': dict(front=(-2, 20, 24, 46), front_mode='limb'),
         # a big laptop (note 3: hers was too small); the picture hung her hair over its top edge, so its silver panel is
         # filled solid and the whole laptop goes in front of her hair
-        'type': dict(fix=[('fill', 0, 57, 58, 84, '#cfd2d4', {'#cfd2d4', '#9a9ea2', '#5f6368'}), ('fill', -1, 56, 59, 56, '#5f6368', set())],
+        # note 8 (messy hands): the laptop squared off (straight edges, outline all round), and the two hands at its sides
+        # redrawn clean: a white cuff, the hand going behind the screen
+        'type': dict(fix=[('fill', -2, 57, 60, 84, '#cfd2d4', {'#cfd2d4', '#9a9ea2'}),
+                          ('fill', -3, 56, 61, 56, '#010100', set()), ('fill', -3, 85, 61, 85, '#010100', set()),
+                          ('fill', -3, 57, -3, 84, '#010100', set()), ('fill', 61, 57, 61, 84, '#010100', set()),
+                          ('fill', -2, 57, 60, 57, '#5f6368', set()),
+                          ('rows', -7, 72, ['kkkk', 'wsss', 'wsss', 'wsse', 'wsee', 'kkkk']),
+                          ('rows', 62, 72, ['kkkk', 'sssw', 'sssw', 'essw', 'eesw', 'kkkk']),
+                          ('clear', 62, 78, 64, 81)],
                      props={'laptop': (LAPTOP, (-14, 50, 66, 96))}),
         'wave': dict(frames={'wave2': ((-12, 12, 12, 38), 1, 0)}),          # a casual wave: the hand rocks a pixel
         # her reaching sleeve ended in a spike up into her hair: its top is cut level at the shoulder, under the hair
@@ -460,7 +471,10 @@ def build(c):
         entry = dict(body=(body, meta['x'], meta['y']), front=fr_, pts=man.get('pts', {}), props={})
         masks = {}
         for name, (cols, box) in man.get('props', {}).items():
-            prop, mask = lift_prop(body, meta['x'], meta['y'], cols, box); entry['props'][name] = (prop, meta['x'], meta['y']); masks[name] = mask
+            # the prop comes from the pose before its head area was cut away (a laptop reaching up into the hair was cut
+            # there, and the cat showed through that gap when the laptop was drawn over her alone)
+            prop, mask = lift_prop(spr if spr.idx.shape == body.idx.shape else body, meta['x'], meta['y'], cols, box)
+            entry['props'][name] = (prop, meta['x'], meta['y']); masks[name] = mask & (body.idx >= 0)
         out[pose] = entry
         for variant, name in man.get('empty', {}).items():
             from scipy import ndimage
