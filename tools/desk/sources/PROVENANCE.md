@@ -1,6 +1,6 @@
 # Where the pictures in this folder came from
 
-Version 1.8.0 · Created 2026-10-02 · Modified 2026-10-03 (walk cycle; petting with a cat; audit references; the walk redone; looking down; petting at the desk's edge)
+Version 1.9.0 · Created 2026-10-02 · Modified 2026-10-03 (walk cycle; petting with a cat; audit references; the walk redone; looking down; petting at the desk's edge; portraits kept out of the repo)
 
 ## Credits to show when the scene goes live (not on the page yet, by Cole's choice)
 
@@ -25,7 +25,10 @@ CC0; *Cats - Pixel Art* by peony, CC BY 4.0; *Pixel art cute cat* by snoopy11).
 
 Everything here was generated on bigbaby (RTX 3090) with **FLUX.2 klein 4B** (Black Forest Labs, Apache 2.0, 4-step
 distilled) through ComfyUI, driven by `tools/portraits/generate_comfy.py`. 1024x1280 for the people, 1024x768 for
-Maker. The reference photos are private and are not in this repo.
+Maker. The reference photos are private and are not in this repo. Neither are the full-size generated portraits of
+Cole and Ilinca (`cole-merged-seed301.png`, `ilinca-confident-seed407.png` and the two looking-down pictures below), by
+Cole's call (2026-10-04, "no portraits in repo"): they are kept on bagel in `~/claude/nutrimatic/work/portraits-src/`;
+only the reduced sprites made from them (`../sprites/`) are here.
 
 | File | Prompt | References (image 1, 2, 3) | Seed |
 | --- | --- | --- | --- |
@@ -109,11 +112,11 @@ The photographs themselves are not in this repo.
 
 ## Looking down (2026-10-03, Cole's note 10)
 
-- `cole-down-seed5108.png`: FLUX.2 klein 4B on Cole's pose stage picture (the base portrait behind the flat blue desk),
+- `cole-down-seed5108.png` (kept outside the repo): FLUX.2 klein 4B on Cole's pose stage picture (the base portrait behind the flat blue desk),
   asked to change only his head: bowed toward the desk, his face turned as before, lids lowered, a faint smile.
   `characters.Cole.down_blank` uses its reduction (`sprites/cole-down-1x.png`) for the head's new shape and redraws
   the face in the base face's style.
-- `ilinca-down-seed2003.png`: Qwen-Image-Edit 2511 (Apache 2.0) on Ilinca's base portrait, asked to have her look down
+- `ilinca-down-seed2003.png` (kept outside the repo): Qwen-Image-Edit 2511 (Apache 2.0) on Ilinca's base portrait, asked to have her look down
   at a desk just in front of her, everything else unchanged. Her outline stayed exactly; `characters.Ilinca.down_blank`
   takes its hairline (`sprites/ilinca-down-1x.png`) and moves her features as it did.
 - Work folder `lookdown/` (run.sh to run4.sh): the other candidates, the reductions and the comparison sheets.
