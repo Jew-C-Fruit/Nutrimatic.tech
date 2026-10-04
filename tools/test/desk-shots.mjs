@@ -38,7 +38,7 @@ await shot("v8-maker-paper", "D.step(300); D.activity('cole','rest',60); D.activ
 await shot("v6-pigeon", "D.step(140); " + REST + " D.scenario('pigeon'); D.step(48);");
 await shot("v6-plane", "D.step(140); " + REST + " D.scenario('airplane'); D.step(35);");
 await shot("v6-coffee-run", "D.step(120); " + REST + " D.scenario('coffee'); D.step(112);");
-await shot("v8-handover-offer", "D.step(320); " + REST + " D.scenario('shake'); D.step(56);");
+await shot("v8-handover-offer", "D.step(320); " + REST + " D.scenario('shake'); D.step(36);");
 await shot("v8-handover-take", "D.step(13);");
 await shot("v8-handover-drink", "D.step(20);");
 await shot("v6-call", "D.step(140); " + REST + " D.scenario('call'); D.step(110);");

@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.17.0
+ * Version 0.17.1
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -71,6 +71,7 @@
  *   the lights reach the front edge; Maker walks on its front half, kneads, sits and lies at the front edge (paws and
  *   tail over it), petted with the new petedge poses, and curls up on Ilinca's paper at the back; Ilinca no longer
  *   stretches (v0.17.0)
+ * Modified: 2026-10-04 - The shake handover skips Cole drinking from the shaker (to-do T18) (v0.17.1)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(),
@@ -983,16 +984,16 @@
     },
     // Shake break: Cole mixes a bottle, drinks, passes it over.
     shake: {
-      dur: 12,
+      dur: 10,
       steps: [
         [0, function () { setActivity(cole, "shake", 99); faceOf(cole, { mouth: "smile", look: { x: 0, y: 0 }, turn: 0 }); }],
-        [2.6, function () { setActivity(cole, "drink", 99); cole.mouth = "o"; cole.lookTarget = { x: 0, y: -1 }; }],
-        // he holds it out across the gap; she reaches over and takes it while his arm is still out; then she drinks
-        [4.4, function () { setActivity(cole, "offer", 99); lookAt(cole, ilinca.x, faceLevel(ilinca)); cole.mouth = "smile"; lookAt(ilinca, cole.x, faceLevel(cole)); faceOf(ilinca, { brows: "up", mouth: "smile" }); }],
-        [5.5, function () { setActivity(ilinca, "take", 99); setActivity(cole, "offerEmpty", 99); ilinca.brows = null; }],
-        [6.3, function () { setActivity(cole, "rest", 99); }],
-        [6.9, function () { setActivity(ilinca, "drink", 99); ilinca.mouth = "o"; ilinca.turn = 0; ilinca.lookTarget = { x: 0, y: -1 }; }],
-        [9.6, function () { setActivity(ilinca, "rest", 99); ilinca.mouth = "smile"; ilinca.nodAt = frame + 1; ilinca.hold = null; extras.push({ kind: "bottle", x: midX() + 22 }); }]
+        // he shakes it and holds it straight out across the gap (he doesn't drink from it: Cole); she reaches over and
+        // takes it while his arm is still out; then she drinks
+        [2.6, function () { setActivity(cole, "offer", 99); lookAt(cole, ilinca.x, faceLevel(ilinca)); cole.mouth = "smile"; lookAt(ilinca, cole.x, faceLevel(cole)); faceOf(ilinca, { brows: "up", mouth: "smile" }); }],
+        [3.7, function () { setActivity(ilinca, "take", 99); setActivity(cole, "offerEmpty", 99); ilinca.brows = null; }],
+        [4.5, function () { setActivity(cole, "rest", 99); }],
+        [5.1, function () { setActivity(ilinca, "drink", 99); ilinca.mouth = "o"; ilinca.turn = 0; ilinca.lookTarget = { x: 0, y: -1 }; }],
+        [7.8, function () { setActivity(ilinca, "rest", 99); ilinca.mouth = "smile"; ilinca.nodAt = frame + 1; ilinca.hold = null; extras.push({ kind: "bottle", x: midX() + 22 }); }]
       ],
       end: function () { extras = extras.filter(function (e) { return e.kind !== "bottle"; }); }
     },
