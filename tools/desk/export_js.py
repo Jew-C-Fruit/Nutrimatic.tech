@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - export_js.py
-Version 1.4.1
+Version 1.5.0
 
 Created: 2026-10-02 - Writes js/desk-sprites.js from the sprite sources (v1.0.0)
 Modified: 2026-10-02 - Body poses (poses.py); layers run-length encoded, since there are now dozens of them (v1.1.0)
@@ -9,6 +9,7 @@ Modified: 2026-10-02 - Props lifted out of poses (the laptop, the paper, the bot
 Modified: 2026-10-03 - Poses that keep their own head are marked (oh) (v1.3.0)
 Modified: 2026-10-03 - The looking-down head and its mouth frames (down) (v1.4.0)
 Modified: 2026-10-04 - Its eyes as frames too, open and closed (v1.4.1)
+Modified: 2026-10-04 - A pose's front layer drawn with the body ('fb'), apart from the one drawn with the head (v1.5.0)
 
 export_js.py - write js/desk-sprites.js for the site from the finished sprites.
 
@@ -74,7 +75,7 @@ def figure(c):
     for spr in (torso, head):
         for i in spr.used(): add(spr.pal[i])
     for q in built.values():
-        for part in [q['body'], q['front']] + list(q.get('props', {}).values()):
+        for part in [q['body'], q['front'], q.get('front_body')] + list(q.get('props', {}).values()):
             if part is not None:
                 for i in part[0].used(): add(part[0].pal[i])
     for group in fr.values():
@@ -100,6 +101,7 @@ def figure(c):
     for name, q in built.items():
         b, bx, by = q['body']; entry = dict(b=layer(b, pal, bx, by))
         if q['front'] is not None: f, fx, fy = q['front']; entry['f'] = layer(f, pal, fx, fy)
+        if q.get('front_body') is not None: f, fx, fy = q['front_body']; entry['fb'] = layer(f, pal, fx, fy)   # drawn with the body, not the head
         if q['pts']: entry['pts'] = {k: list(v) for k, v in q['pts'].items()}
         if q.get('props'): entry['p'] = {k: layer(s, pal, sx, sy) for k, (s, sx, sy) in q['props'].items()}
         if q.get('own_head'): entry['oh'] = 1

@@ -14,9 +14,9 @@
    0,
    0
   ],
-  "fit": 0.916,
-  "src": "ilinca-carry/cand-000-seed4927.png",
-  "x": -4,
+  "fit": 0.865,
+  "src": "ilinca-carry-r29/cand-003-seed9634.png",
+  "x": -5,
   "y": 0
  },
  "drink": {
@@ -24,9 +24,9 @@
    0,
    0
   ],
-  "fit": 0.827,
-  "src": "ilinca-drink/cand-001-seed5907.png",
-  "x": -9,
+  "fit": 0.869,
+  "src": "ilinca-drink-r29/cand-002-seed9613.png",
+  "x": -8,
   "y": 0
  },
  "hide": {
@@ -125,9 +125,9 @@
    0,
    0
   ],
-  "fit": 0.822,
-  "src": "ilinca-phone/cand-002-seed3120.png",
-  "x": -8,
+  "fit": 0.878,
+  "src": "ilinca-phone-r29/cand-003-seed9624.png",
+  "x": -5,
   "y": 0
  },
  "rest": {
@@ -175,9 +175,9 @@
    0,
    0
   ],
-  "fit": 0.848,
-  "src": "ilinca-take3/cand-001-seed7643.png",
-  "x": -29,
+  "fit": 0.855,
+  "src": "ilinca-take-r29/cand-001-seed9602.png",
+  "x": -14,
   "y": 0
  },
  "talk": {
@@ -195,9 +195,9 @@
    0,
    0
   ],
-  "fit": 0.802,
-  "src": "ilinca-think6/cand-003-seed3356.png",
-  "x": -9,
+  "fit": 0.814,
+  "src": "ilinca-think-r29/cand-002-seed9643.png",
+  "x": -5,
   "y": 0
  },
  "type": {

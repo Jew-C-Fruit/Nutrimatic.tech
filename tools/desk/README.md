@@ -1,6 +1,6 @@
 # Desk scene art
 
-Version 1.7.0 · Created 2026-10-02 · Modified 2026-10-04 (the desk has a top; motion frames for every activity, hands under the desk for Maker, everything on the desk edge-on, a looking-down head, Maker's new walk)
+Version 1.8.0 · Created 2026-10-02 · Modified 2026-10-04 (the desk has a top; motion frames for every activity, hands under the desk for Maker, everything on the desk edge-on, a looking-down head, Maker's new walk; round 29: clean hands, one laptop, shoulder line, greeting poses)
 
 Everything the co-founders' scene draws that is not simple geometry lives here as sprites, and reaches the site as
 data in `js/desk-sprites.js`. That file is **generated**: change the sources here and run the exporter.
@@ -108,3 +108,19 @@ lists every picture, prompt and seed, and the photographs the skyline follows (C
   `BASE` at it, and move the coordinates. Dumping the sprite as a character grid (see the loop at the bottom of
   `characters.py` for the view calls) is the quickest way to find them.
 - **A new pose for Maker**: add the sprite to `maker_build.sprites()`; the scene finds it by name (`drawMaker`).
+
+## Round 29 additions (2026-10-04)
+
+`poses.py` builds a few things on top of the picked pictures, in this order:
+
+- **Base poses**: a pose can be built on another pose's picture (`base`); typing is the writing picture with the laptop
+  (`LID`) drawn in front, the scene drawing that laptop again after the head so it is in front of the neck and hair.
+- **Clean hands** (`HANDS`, fix op `hand`): finger lines inside a hand take a dark skin tone, one pixel wide; the outline
+  is one black pixel where the hand meets the wall; spurs, notches and specks go. Lines next to the face stay black.
+- **Shoulder line** (`SHOULDERS`): Cole's poses whose shoulders were higher or wider take the rest pose's line, easing
+  out over ten rows into the pose's own arm; his own arms and hands stay in front.
+- **Greeting poses** (`WAVE_FROM`): `<activity>Wave` for rest, type, write, solder, mug and think: the wave picture's
+  raised arm on the left of a seam, the activity's own pose (and anything on the desk) on the right.
+- **Holes**: `pinholes` fills gaps up to 24 px that the figure, its head, its front layer or the desk line close in.
+
+The cardinal reference pictures every round is checked against are in the work folder's `reference/`.

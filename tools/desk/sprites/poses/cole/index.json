@@ -19,6 +19,16 @@
   "x": -3,
   "y": 0
  },
+ "facepalm": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.884,
+  "src": "cole-facepalm-r29/cand-005-seed9666.png",
+  "x": -9,
+  "y": -6
+ },
  "fist": {
   "align": [
    0,
@@ -284,9 +294,9 @@
    0,
    0
   ],
-  "fit": 0.839,
-  "src": "cole-yawn/cand-000-seed8534.png",
-  "x": 0,
+  "fit": 0.864,
+  "src": "cole-yawn-r29/cand-003-seed9654.png",
+  "x": -2,
   "y": 0
  }
 }

@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - pose_sprites.py
-Version 1.3.0
+Version 1.4.0
 
 Created: 2026-10-02 - Generated pose pictures -> body sprites that fit under the figure's head (v1.0.0)
 Modified: 2026-10-02 - front mode 'limb': a hand or sleeve drawn over long hair without the pose's own hair (v1.1.0)
 Modified: 2026-10-03 - front mode 'arm' (only skin joined to an arm from below: a fist at the chin); the neck patch no
   longer paints over a limb reaching the chin (v1.2.0)
 Modified: 2026-10-03 - front mode 'nothair' (an arm crossing in front of long hair); a front may be several boxes (v1.3.0)
+Modified: 2026-10-04 - front modes 'armprops' (a hand at the face and what it holds) and 'notface' (everything at the face but the
+  picture's own face and glasses: round-29 audit, generated faces had shown through) (v1.4.0)
 
 The arms are not drawn in code. For every pose the model redraws the whole figure from the "stage" picture (the picked
 portrait on a larger canvas, sitting behind a flat blue desk at the scene's desk line; see make_stage in this file), so
@@ -119,7 +121,7 @@ def align(pose, ox, oy, base, head_mask, reach=5):
     return best[1], best[2], best[0] / max(1, len(ys))
 
 
-def split(pose, ox, oy, head_mask, jaw_rows, front_box=None, hair=None, neck=None, front_mode='all', base_head=None, chest=None, limb=None):
+def split(pose, ox, oy, head_mask, jaw_rows, front_box=None, hair=None, neck=None, front_mode='all', base_head=None, chest=None, limb=None, face_pt=None):
     """body = the pose without its head; front = what must be drawn over the base head (inside front_box, base coordinates).
     The head is removed with a little margin above and beside it (the redrawn hair is never exactly the base's), but not
     below the jaw, where the neck has to meet the base head."""
@@ -147,7 +149,7 @@ def split(pose, ox, oy, head_mask, jaw_rows, front_box=None, hair=None, neck=Non
             fm &= prop | (ndimage.binary_dilation(prop, structure=np.ones((3, 3), bool)) & dark(pose))
         elif front_mode == 'nothair' and hair is not None:            # an arm crossing in front of long hair: all the pose drew there except its hair
             fm &= ~np.isin(pose.idx, [i for i, c in enumerate(pose.pal) if c in hair])
-        elif front_mode == 'arm':                                      # a hand at the face: only the skin joined to an arm coming up from below the box
+        elif front_mode in ('arm', 'armprops'):                        # a hand at the face: only the skin joined to an arm coming up from below the box (and what it holds)
             skin = np.zeros(pose.idx.shape, bool)
             lab_p = PX.srgb_to_oklab(np.array([hex2rgb(c) for c in pose.pal], dtype=np.float64))
             for i, (L, a_, b_) in enumerate(lab_p):
@@ -156,7 +158,19 @@ def split(pose, ox, oy, head_mask, jaw_rows, front_box=None, hair=None, neck=Non
             for i in range(1, n + 1):
                 comp = lab == i
                 if (comp & fm).any() and comp[bottom:, :].sum() >= 6: arm |= comp
+            if front_mode == 'armprops':                                 # a mug or a bottle held at the mouth, joined to that hand
+                prop = np.isin(pose.idx, [i for i, c in enumerate(pose.pal) if c in PROPS]); lab2, n2 = ndimage.label(prop | arm)
+                keep = np.isin(lab2, np.unique(lab2[arm])) & (lab2 > 0); arm = keep
             fm &= arm | (ndimage.binary_dilation(arm, structure=np.ones((3, 3), bool)) & dark(pose))
+        elif front_mode == 'notface' and limb is not None and face_pt is not None:   # at the face: all the limb colours there but the picture's own face
+            part = np.isin(pose.idx, [i for i, c in enumerate(pose.pal) if c in limb]) & fm
+            skin = np.zeros(pose.idx.shape, bool)
+            lab_p = PX.srgb_to_oklab(np.array([hex2rgb(c) for c in pose.pal], dtype=np.float64))
+            for i, (L, a_, b_) in enumerate(lab_p):
+                if L > 0.55 and a_ > 0.02 and b_ > 0.02: skin |= pose.idx == i
+            lab, n = ndimage.label(skin & fm); fy_, fx_ = face_pt[1] - oy, face_pt[0] - ox
+            if 0 <= fy_ < pose.h and 0 <= fx_ < pose.w and lab[fy_, fx_] > 0: part &= lab != lab[fy_, fx_]
+            fm &= part | (ndimage.binary_dilation(part, structure=np.ones((3, 3), bool)) & dark(pose))
         elif front_mode == 'limb' and limb is not None:                # a hand or sleeve over long hair: skin, cloth and props, with their outline
             part = np.isin(pose.idx, [i for i, c in enumerate(pose.pal) if c in limb])
             fm &= part | (ndimage.binary_dilation(part, structure=np.ones((3, 3), bool)) & dark(pose))

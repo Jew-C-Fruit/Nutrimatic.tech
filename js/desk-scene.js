@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.18.1
+ * Version 0.19.0
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -75,6 +75,11 @@
  * Modified: 2026-10-04 - No high five: their raised hands never met (Cole: make them smack or drop it, to-do T21) (v0.17.2)
  * Modified: 2026-10-04 - A ceiling light: a generated pendant between them, lit after dark (to-do T15) (v0.18.0)
  * Modified: 2026-10-04 - The pigeon is outside, behind the window's glass and bars (to-do T27) (v0.18.1)
+ * Modified: 2026-10-04 - Cole's round of notes T29-T46: both type on the same laptop, drawn in front of the neck and the
+ *   hair; a greeting holds one raised hand while the other arm stays where it was (the wave poses built per activity);
+ *   the spark gets a start and a hand to his head instead of fanning; four pendants, hung higher; the pigeon walks the way
+ *   it faces; no looking down over a coffee, no mouth drawn at a mug or bottle, eyes shut for a sip; the paper plane is
+ *   folded in three steps and glides off out of the room; finger-drumming and call frames; solder2 retired (v0.19.0)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(),
@@ -109,9 +114,9 @@
   // those places, `win` etc. are the drawn room's (the fallback when the pictures do not load).
   var LAYOUTS = {
     wide:   { W: 360, H: 160, cole: 124, ilinca: 226, poster: { x: 14, y: 20, w: 58, h: 62 }, clock: { x: 88, y: 34 }, win: { x: 280, y: 22, w: 66, h: 74 }, lamp: 177, pendant: 121, slots: [36, 272, 338, 12, 306],
-              art: { painting: { x: 7, y: 20 }, clock: { x: 88, y: 34, r: 7 }, win: { x: 262, y: 18, w: 88, h: 84 }, sky: { x: 254, y: 15 }, lamps: [67, 290], slots: [34, 318, 344], catY: 141 } },
+              art: { painting: { x: 7, y: 20 }, clock: { x: 88, y: 34, r: 7 }, win: { x: 262, y: 18, w: 88, h: 84 }, sky: { x: 254, y: 15 }, lamps: [58, 290], slots: [34, 318, 344], catY: 141, pendants: [96, 132, 216, 244] } },
     narrow: { W: 240, H: 160, cole: 60, ilinca: 162, poster: { x: 1, y: 20, w: 51, h: 50 }, clock: { x: 98, y: 30 }, win: { x: 190, y: 22, w: 46, h: 66 }, lamp: 112, pendant: 126, slots: [226, 10],
-              art: { painting: { x: 1, y: 18 }, clock: { x: 99, y: 31, r: 7 }, win: { x: 192, y: 20, w: 44, h: 70 }, sky: { x: 130, y: 3 }, lamps: [0, 226], slots: [], catY: 141 } }
+              art: { painting: { x: 1, y: 18 }, clock: { x: 99, y: 31, r: 7 }, win: { x: 192, y: 20, w: 44, h: 70 }, sky: { x: 130, y: 3 }, lamps: [0, 226], slots: [], catY: 141, pendants: [66, 118, 148, 175] } }
   };
   // The environment pictures. Until they have loaded (or if they never do) the room is drawn in code as before.
   var ENV = { ready: false, img: {} };
@@ -268,11 +273,13 @@
 
   /* ---------- the generated room (assets/desk): Mondrian's Victory Boogie Woogie where the poster was; the clock's hands ---------- */
   function applyArt() { if (layoutName) { WIN = ENV.ready ? L.art.win : L.win; makeStars(); } }
-  // The ceiling light (to-do T15): a generated pendant hanging between them from the ceiling, its shade's rim at row 30
-  // where the night's light pools start; lit after dark, its inside cool grey by day.
+  // The ceiling lights (to-do T15; T41: "hang the pendant light a little higher, add more pendants for a total of 4"):
+  // four generated pendants across the ceiling, clear of the painting, the clock and the window, their shades' rims at
+  // row PENDANT_RIM where the night's light pools start; lit after dark, their insides cool grey by day.
+  var PENDANT_RIM = 25;
   function drawPendantArt(dark) {
     var im = ENV.img[dark ? "pendant-on" : "pendant-off"]; if (!im) { return; }
-    g.drawImage(im, Math.round(L.pendant - im.width / 2), 31 - im.height);
+    L.art.pendants.forEach(function (x) { g.drawImage(im, Math.round(x - im.width / 2), PENDANT_RIM - im.height); });
   }
   function drawClockArt(h) {
     var K = L.art.clock, cx = K.x, cy = K.y, r = K.r - 1;
@@ -471,10 +478,18 @@
   // Where Ilinca's phone lies when she isn't holding it: on her right, clear of her laptop and her arm.
   function phoneSpot() { return ilinca.x + 40; }
   function propPhoneOnDesk(x) { var y = deskAt(0.5); rect(x - 5, y - 2, 10, 2, C.phone); hline(x - 4, y - 2, 8, C.ink3); }
-  function propPlane(x, y, dir) {   // a paper airplane pointing in dir (1 = right)
-    var d = dir || 1;
-    for (var i = 0; i < 9; i++) { px(x + (i - 4) * d, y, C.plane); } for (var j = 0; j < 6; j++) { px(x + (j - 3) * d, y - 1, C.plane); } for (var k = 0; k < 3; k++) { px(x + (k - 2) * d, y - 2, C.plane); }
-    px(x + 4 * d, y, C.planeS); px(x - 4 * d, y + 1, C.planeS); px(x - 3 * d, y + 1, C.planeS); px(x - 2 * d, y + 1, C.planeS);
+  // A paper airplane seen from above at a slant, nose in dir (1 = right), its middle at x, y: the near wing white, the
+  // far wing in shade, the crease between (T42: the old one read as a paper football). The same map as tools/desk/poses.py PLANE.
+  var PLANE = ["kk..............", "kwkk............", "kwwwkk..........", ".kwwwwkk........", ".kwwwwwwkkk.....", "..kwwwwwwwwkkk..",
+               "..kkkkkkkkkkkkkk", "..kgggggggkkk...", ".kgggggkkk......", ".kggkkk.........", "kkk............."];
+  function puff(cx, cy, r, col) {                                       // a round puff of smoke, r pixels across the middle
+    for (var dy = -r; dy <= r; dy++) { var half = Math.round(Math.sqrt(r * r - dy * dy + 0.5)); rect(cx - half, cy + dy, half * 2 + 1, 1, col); }
+  }
+  function propPlane(x, y, dir) {
+    var d = dir || 1, cols = { k: "#010101", w: "#fbfaf5", g: "#cfd2d4" };   // the same colours as the plane in his hand
+    for (var r = 0; r < PLANE.length; r++) {
+      for (var i = 0; i < PLANE[r].length; i++) { var ch = PLANE[r].charAt(i); if (ch !== ".") { px(x + (i - 8) * d, y + r - 6, cols[ch]); } }
+    }
   }
 
   /* ---------- the characters ---------- */
@@ -486,7 +501,7 @@
     Object.keys(a.poses || {}).forEach(function (k) {
       var q = a.poses[k], props = {};
       Object.keys(q.p || {}).forEach(function (n) { props[n] = bake(q.p[n], a.pal); });
-      poses[k] = { body: bake(q.b, a.pal), front: q.f ? bake(q.f, a.pal) : null, pts: q.pts || {}, props: props, ownHead: !!q.oh };
+      poses[k] = { body: bake(q.b, a.pal), front: q.f ? bake(q.f, a.pal) : null, frontBody: q.fb ? bake(q.fb, a.pal) : null, pts: q.pts || {}, props: props, ownHead: !!q.oh };
     });
     if (!poses.rest) { poses.rest = { body: bake(a.torso, a.pal), front: null, pts: {} }; }
     return {
@@ -515,7 +530,8 @@
     rest: "rest", type: "type", write: "write", solder: "solder", think: "think", phone: "phone", call: "call", ds: "ds", dsAway: "hide",
     stretch: "stretch", wave: "wave", highfive: "highfive", fold: "fold", "throw": "throw", shake: "shake", drink: "drink", offer: "offer",
     take: "take", rubEye: "yawn", yawn: "yawn", holdcup: "sip", pet: "pet", fan: "wave", fistpump: "fist", carry: "carry", release: "highfive",
-    underdesk: "hide"                                                    // hands down in the lap, out of Maker's way
+    underdesk: "hide",                                                   // hands down in the lap, out of Maker's way
+    startle: "surprise", facepalm: "facepalm"                            // the spark: a start, then a hand to his head (T38)
   };
   // Something always moves (Cole's note 9): each activity has frames of small motion the pose steps through, as
   // [pose, ticks]: forearms typing behind the laptop screen, thumbs on the console, a hand fidgeting, a phone scrolled.
@@ -525,10 +541,12 @@
     ds: [["ds", 2], ["ds1", 2], ["ds", 1], ["ds2", 2], ["ds", 2], ["ds2", 1], ["ds1", 1], ["ds", 3], ["ds1", 1]],
     rest: [["rest", 40], ["rest1", 12], ["rest", 26], ["rest1", 6]],
     phone: [["phone", 9], ["phone1", 3], ["phone", 5], ["phone1", 2]],
-    solder: [["solder", 16], ["solder1", 3], ["solder", 9], ["solder1", 2]]
+    solder: [["solder", 16], ["solder1", 3], ["solder", 9], ["solder1", 2]],
+    think: [["think", 22], ["think1", 3], ["think", 2], ["think1", 3], ["think", 30], ["think1", 4]],    // T7: fingers drumming on the desk
+    call: [["call", 14], ["call1", 6], ["call", 9], ["call1", 4]]
   };
   function motion(p, name) {
-    if (name === "solder" && p.poses.solder2 && ((p.actFrame / 66 | 0) % 2)) { return "solder2"; }      // another way of holding it, every few seconds
+    // (solder2, another way of holding the iron, went: its shoulders and arms were far wider than every other pose, T30)
     var seq = MOTION[name]; if (!seq) { return name; }
     if (name === "type" && p.poses.typetrack && (p.actFrame % 70) >= 52) { return "typetrack"; }          // a hand on the trackpad
     var total = 0, i; for (i = 0; i < seq.length; i++) { total += seq[i][1]; }
@@ -544,8 +562,13 @@
     if (a === "coffee") { name = ((p.actFrame % 40) >= 12 && (p.actFrame % 40) < 26) ? "sip" : "mug"; }
     if (p.react === "surprise") { name = "surprise"; }
     else if (p.gesture && (a === "rest" || a === "think")) { name = "talk"; }      // a hand joins in only when it is free
-    if (name === "wave" && p.poses.wave2 && ((p.actFrame >> 2) % 2)) { name = "wave2"; }
+    if (a === "wave" && p.react === "greet") {                           // T33: the hand comes up and stays; the other arm stays as it was
+      var from = p.greetAct === "coffee" ? "mug" : (POSE_OF[p.greetAct] || p.greetAct);
+      name = p.poses[from + "Wave"] ? from + "Wave" : p.poses.restWave ? "restWave" : "wave";
+    }
+    if (name === "wave" && p.poses.wave2 && (a === "fan" || p.name === "ilinca") && ((p.actFrame >> 2) % 2)) { name = "wave2"; }   // her wave rocks a pixel; his only fans smoke
     if (name === "write" && p.poses.write1) { name = WRITING[(p.actFrame >> 1) % WRITING.length]; }
+    if (name === "fold" && p.poses.fold3) { name = p.actFrame < 14 ? "fold" : "fold3"; }   // T42: the sheet folded, then the plane
     if (!p.react && !p.gesture) { name = motion(p, name); }
     if (name === "shake" && p.poses.shake2 && (p.actFrame % 2)) { name = "shake2"; }
     if (name === "petcat" && p.poses.petcat2 && ((p.actFrame / 6 | 0) % 2)) { name = "petcat2"; }   // a slow stroke along her back
@@ -563,7 +586,8 @@
   // A stretch: eyes shut, mouth open (the face keeps its own proportions: moving the features read as a different face).
   function stretching(p) { return p.activity === "stretch" && !p.react && !p.talking; }
   function drawFace(p, o, f) {
-    var a = p.art, hy = o.y + p.headDy, t = p.tilt, st = stretching(p), closed = st || p.blink > 0 || p.mouth === "laugh" || p.mouth === "yawn";
+    var a = p.art, hy = o.y + p.headDy, t = p.tilt, st = stretching(p), dn = p.drawn && p.drawn.name, atLips = dn === "sip" || dn === "drink";
+    var closed = st || p.blink > 0 || p.mouth === "laugh" || p.mouth === "yawn" || atLips;   // a sip with the eyes shut (T44)
     if (p.lookDown) {                                                  // the head tipped down: eyes open on the work, shut in a nod or a blink
       pixels(a.down.eyes[(p.nod > 0 || closed) ? "closed" : "open"], o.x, hy, a.pal);
       var md = p.mouth; if (md === "talk") { md = (f % 4 < 2) ? "open" : "neutral"; } if (md === "neutral") { md = p.restMouth; }
@@ -574,7 +598,7 @@
     pixels(a.eyes[key] || a.eyes.open0, o.x, hy + t, a.pal);
     pixels(a.brows[p.brows || (st ? "up" : ly < 0 ? "up" : "neutral")] || a.brows.neutral, o.x, hy + t, a.pal);
     var m = p.mouth; if (m === "talk") { m = (f % 4 < 2) ? "open" : "neutral"; } if (m === "neutral") { m = st ? "o" : p.restMouth; }
-    pixels(a.mouth[m] || a.mouth.neutral, o.x, hy + t, a.pal);
+    if (!atLips) { pixels(a.mouth[m] || a.mouth.neutral, o.x, hy + t, a.pal); }   // the mug or the bottle is at the mouth: no lips drawn beside it (T44)
   }
 
   function drawCharacter(p, f) {
@@ -586,7 +610,9 @@
     if (pose.ownHead) { return; }                                        // the picture brings its own head (leaning back)
     drawHead(p, o);
     drawFace(p, o, f);
-    if (pose.front) { blit(pose.front, o.x, o.y + jig + p.headDy); }
+    if (pose.frontBody) { blit(pose.frontBody, o.x, o.y + jig); }        // hands and things in front of her hair, where her body has them
+    if (pose.front) { blit(pose.front, o.x, o.y + jig + p.headDy); }      // what is at the face moves with the head
+    if (/^type/.test(name) && pose.props.laptop) { blit(pose.props.laptop, o.x, o.y + jig); }   // the laptop stands in front of the neck and the hair (T29, T45)
     if (p.activity === "solder") {                                       // the iron's tip: a glow, a wisp of smoke, now and then a spark
       var tip = posePoint(p, "tip");
       if (tip) { px(tip.x, tip.y, (f % 6 < 3) ? C.ironHot : C.iron); var sm = (f >> 1) % 10; px(tip.x + (sm % 2), tip.y - 2 - sm, sm < 5 ? C.smoke : C.smoke2); if (f % 23 === 0) { px(tip.x - 1, tip.y - 1, C.sun); px(tip.x + 1, tip.y - 2, C.sun); } }
@@ -596,7 +622,7 @@
   function drawOnDesk(p) {
     var d = p.drawn; if (p.hidden || !d) { return; }
     g.save(); g.beginPath(); g.rect(0, DESK_Y, W, H - DESK_Y); g.clip();
-    blit(d.pose.body, d.o.x, d.o.y + d.jig); if (d.pose.front) { blit(d.pose.front, d.o.x, d.o.y + d.jig + p.headDy); }
+    blit(d.pose.body, d.o.x, d.o.y + d.jig); if (d.pose.frontBody) { blit(d.pose.frontBody, d.o.x, d.o.y + d.jig); } if (d.pose.front) { blit(d.pose.front, d.o.x, d.o.y + d.jig + p.headDy); }
     g.restore();
   }
   // The laptop (or the paper) stays on the desk while the hands are off it: lifted for the cat, or petting her.
@@ -832,24 +858,28 @@
         [10.6, function () { setActivity(cole, "type", 99); faceOf(cole, { brows: null, mouth: "neutral" }); faceOf(ilinca, { brows: null, mouth: "smile" }); ilinca.turn = 0; ilinca.lookTarget = { x: 0, y: 1 }; }]
       ]
     },
-    // Cole folds a paper airplane and throws it; it lands in Ilinca's space and stays on the desk.
+    // Cole folds a paper airplane in three steps and throws it; it glides past Ilinca and out of the room, both watch it
+    // go (T42: "should glide to the side and out of frame when thrown").
     airplane: {
       dur: 7.5,
       steps: [
         [0, function () { setActivity(cole, "fold", 99); faceOf(cole, { look: { x: 0, y: 1 }, turn: 0, mouth: "smile" }); }],
         [2.4, function () { setActivity(cole, "throw", 99); lookAt(cole, ilinca.x, faceLevel(ilinca)); }],
-        [3.0, function () { var hand = posePoint(cole, "hand") || { x: cole.x + 32, y: DESK_Y - 44 }; setActivity(cole, "release", 99); actors.plane = { t0: frame, x0: hand.x, y0: hand.y }; }],
-        [3.8, function () { faceOf(ilinca, { brows: "down", mouth: "flat" }); lookAt(ilinca, cole.x, faceLevel(cole)); setActivity(ilinca, "rest", 99); }],
-        [4.0, function () { faceOf(cole, { brows: "up", mouth: "smile" }); setActivity(cole, "rest", 99); }],
-        [5.5, function () { faceOf(ilinca, { brows: null, mouth: "smile" }); }]
+        [3.0, function () { var hand = posePoint(cole, "hand") || { x: cole.x + 40, y: DESK_Y - 100 }; setActivity(cole, "release", 99); actors.plane = { t0: frame, x0: hand.x, y0: hand.y, x: hand.x, y: hand.y }; }],
+        [3.3, function () { faceOf(ilinca, { brows: "up", mouth: "o" }); }],   // she looks up from her laptop; it stays where it is
+        [4.2, function () { faceOf(cole, { brows: "up", mouth: "smile" }); setActivity(cole, "rest", 99); }],
+        [5.2, function () { faceOf(ilinca, { brows: null, mouth: "smile" }); }],
+        [6.6, function () { neutral(cole); neutral(ilinca); }]
       ],
       update: function (t, f) {
-        var pl = actors.plane; if (!pl || pl.landed) { return; }
-        var k = Math.min(1, (f - pl.t0) / 10), dir = ilinca.x > cole.x ? 1 : -1, x0 = pl.x0, x1 = ilinca.x - 34 * dir;
-        pl.x = x0 + (x1 - x0) * k; pl.y = pl.y0 - Math.sin(k * Math.PI) * 22 + k * (deskAt(0.7) - pl.y0);
-        if (k >= 1) { pl.landed = true; extras.push({ kind: "plane", x: x1, dir: dir }); }
+        var pl = actors.plane; if (!pl || pl.gone) { return; }
+        var k = f - pl.t0, dir = ilinca.x > cole.x ? 1 : -1;
+        var cruise = DESK_Y - 95, past = dir > 0 ? pl.x > L.art.win.x - 6 : pl.x < 40;   // level between the two shelves (clear of the books above and the photo below), then a slow sink past the window
+        pl.x = pl.x0 + dir * (k < 4 ? 7 : 5) * k; pl.y = Math.round(pl.y0 + (cruise - pl.y0) * Math.sin(Math.min(1, k / 9) * Math.PI / 2)) + (past ? Math.round((k - 18) * 0.4) : 0);
+        if (pl.x < -20 || pl.x > W + 20) { pl.gone = true; return; }
+        [cole, ilinca].forEach(function (p) { if (k > 1) { lookAt(p, pl.x, pl.y); } });
       },
-      drawFront: function (t, f) { var pl = actors.plane; if (pl && !pl.landed) { propPlane(Math.round(pl.x), Math.round(pl.y), ilinca.x > cole.x ? 1 : -1); } }
+      drawFront: function (t, f) { var pl = actors.plane; if (pl && !pl.gone) { propPlane(Math.round(pl.x), Math.round(pl.y), ilinca.x > cole.x ? 1 : -1); } }
     },
     // A pigeon lands on the sill, pecks about, and leaves. Both watch it.
     pigeon: {
@@ -862,16 +892,17 @@
       ],
       update: function (t, f) {
         var b = actors.bird, target = sillY() - 7;
-        if (b.state === "land") { if (b.y < target) { b.y += 2; b.x -= 1; } else { b.y = target; b.state = "walk"; b.t0 = f; } }
-        else if (b.state === "walk") { var k = f - b.t0; if (k % 24 < 12) { b.x += (k % 2) ? -1 : 0; } b.peck = (k % 30) >= 22; }
-        else if (b.state === "fly") { b.y -= 3; b.x += 2; }
+        if (b.state === "land") { b.dir = -1; if (b.y < target) { b.y += 2; b.x -= 1; } else { b.y = target; b.state = "walk"; b.t0 = f; } }
+        else if (b.state === "walk") { var k = f - b.t0; b.dir = (k % 120) < 72 ? -1 : 1; if (k % 24 < 12 && !b.peck) { b.x += (k % 2) ? b.dir : 0; } b.peck = (k % 30) >= 22; }   // it walks the way it faces (T39), turns once, pecks standing still
+        else if (b.state === "fly") { b.dir = 1; b.y -= 3; b.x += 2; }
       },
       drawOutside: function (t, f) {                                     // on the ledge outside: behind the glass and the window's bars (T27)
-        var b = actors.bird, x = Math.round(b.x), y = Math.round(b.y), flap = b.state !== "walk" && (f % 4 < 2), pk = b.peck ? 2 : 0;
-        rect(x - 4, y, 9, 5, C.pigeon); rect(x - 6, y + 1, 3, 3, C.pigeonD); hline(x - 3, y + 4, 7, C.pigeonD);
-        rect(x + 3, y - 3 + pk, 4, 4, C.pigeonL); px(x + 7, y - 2 + pk, C.sun); px(x + 5, y - 2 + pk, C.ink); hline(x + 3, y + pk, 3, "#5d8f7a");
-        if (flap) { hline(x - 3, y - 2, 6, C.pigeonL); hline(x - 2, y - 3, 4, C.pigeonL); } else { hline(x - 3, y + 1, 5, C.pigeonL); }
-        if (b.state === "walk") { px(x - 1, y + 5, C.sun); px(x + 2, y + 5, C.sun); }
+        var b = actors.bird, x = Math.round(b.x), y = Math.round(b.y), flap = b.state !== "walk" && (f % 4 < 2), pk = b.peck ? 2 : 0, s = b.dir || -1;
+        function R(dx, dy, w, h, col) { rect(s > 0 ? x + dx : x - dx - w + 1, y + dy, w, h, col); }   // drawn facing right, mirrored when it faces left
+        R(-4, 0, 9, 5, C.pigeon); R(-6, 1, 3, 3, C.pigeonD); R(-3, 4, 7, 1, C.pigeonD);
+        R(3, -3 + pk, 4, 4, C.pigeonL); R(7, -2 + pk, 1, 1, C.sun); R(5, -2 + pk, 1, 1, C.ink); R(3, pk, 3, 1, "#5d8f7a");
+        if (flap) { R(-3, -2, 6, 1, C.pigeonL); R(-2, -3, 4, 1, C.pigeonL); } else { R(-3, 1, 5, 1, C.pigeonL); }
+        if (b.state === "walk") { R(-1, 5, 1, 1, C.sun); R(2, 5, 1, 1, C.sun); }
       }
     },
     // Maker comes along the desk (hands come up as she passes), kneads a spot between them, lies down for a good
@@ -1001,23 +1032,25 @@
         [5.0, function () { setActivity(ilinca, "rest", 99); ilinca.mouth = "smile"; setActivity(cole, "rest", 99); lookAt(cole, ilinca.x, faceLevel(ilinca)); cole.mouth = "smile"; }]
       ]
     },
-    // A bigger spark while soldering: a puff of smoke, a startle, a hand fanning the air, then a laugh.
+    // A bigger spark while soldering: a puff of smoke from the board, he starts back, then puts a hand to his head,
+    // frustrated (T38: "instead of looking frustrated or surprised I do a little dance"); she looks over, sympathetic.
     spark: {
       dur: 6.5, when: function () { return cole.activity === "solder"; },
       steps: [
         [0, function () { var tip = posePoint(cole, "tip"); actors.puff = { t0: frame, x: tip ? tip.x : cole.x + 11, y: tip ? tip.y - 1 : DESK_Y - 12 }; }],   // at the iron's tip, whichever way he holds it
-        [0.25, function () { var d = cole.drawn; cole.benchFrom = d && /^solder/.test(d.name) ? d.name : "solder"; faceOf(cole, { brows: "up", mouth: "o" }); cole.bob = -2; setActivity(cole, "fan", 99); }],   // the station and the board stay where they are
-        [0.8, function () { lookAt(ilinca, cole.x, faceLevel(cole)); faceOf(ilinca, { brows: "down", mouth: "flat" }); }],
-        [2.6, function () { lookAt(cole, ilinca.x, faceLevel(ilinca)); faceOf(cole, { brows: "up", mouth: "smile" }); cole.bob = 0; }],
-        [3.6, function () { faceOf(ilinca, { brows: null, mouth: "laugh" }); faceOf(cole, { brows: null, mouth: "laugh" }); }],
-        [5.2, function () { setActivity(cole, "solder", 99); cole.benchFrom = null; cole.mouth = "neutral"; ilinca.mouth = "smile"; ilinca.turn = 0; ilinca.lookTarget = { x: 0, y: 1 }; }]
+        [0.25, function () { var d = cole.drawn; cole.benchFrom = d && /^solder/.test(d.name) ? d.name : "solder"; faceOf(cole, { brows: "up", mouth: "o" }); setActivity(cole, "startle", 99); cole.lookTarget = { x: 0, y: 0 }; }],   // the station and the board stay where they are
+        [0.8, function () { lookAt(ilinca, cole.x, faceLevel(cole)); faceOf(ilinca, { brows: "up", mouth: "o" }); }],
+        [1.4, function () { setActivity(cole, "facepalm", 99); faceOf(cole, { brows: "down", mouth: "flat" }); cole.blink = 6; }],
+        [3.0, function () { faceOf(ilinca, { brows: "sad", mouth: "smile" }); }],
+        [4.4, function () { setActivity(cole, "solder", 99); cole.benchFrom = null; faceOf(cole, { brows: "down", mouth: "flat" }); }],
+        [5.6, function () { faceOf(cole, { brows: null, mouth: "neutral" }); ilinca.mouth = "smile"; ilinca.brows = null; ilinca.turn = 0; ilinca.lookTarget = { x: 0, y: 1 }; }]
       ],
       end: function () { cole.benchFrom = null; },
       drawFront: function (t, f) {
         var pf = actors.puff; if (!pf) { return; }
         var k = f - pf.t0, cx = pf.x, cy = pf.y;
         if (k < 3) { px(cx, cy - 3, C.sun); px(cx - 3, cy, C.sun); px(cx + 3, cy - 1, C.sun); px(cx + 1, cy - 5, C.white); px(cx - 2, cy - 4, C.white); }
-        if (k < 30) { var col = k < 14 ? C.smoke : C.smoke2, r = 3 + (k >> 2); for (var i = 0; i < 4; i++) { var ox = [-3, 2, -1, 4][i] * (1 + k / 10), oy = -k * 1.5 - [0, 3, 6, 2][i]; rect(cx + Math.round(ox) - r / 2, cy + Math.round(oy) - r / 2, r, r, col); } }
+        if (k < 18) { for (var i = 0; i < 3; i++) { var wy = cy - 2 - Math.round(k * 1.4) - i * 2; px(cx + ((k + i) % 2) * (cx < cole.x ? -1 : 1) - i, wy, k < 9 ? C.smoke : C.smoke2); } }   // a thin wisp off the board, no cloud over him
       }
     },
     // The phone buzzes; good news; a fist pump.
@@ -1119,9 +1152,11 @@
     if (n <= 0.02) { return; }
     fgCopyX.clearRect(0, 0, W, H); fgCopyX.drawImage(fg, 0, 0);          // what the layer covers, before the light
     var pim = ENV.img["pendant-on"];
-    if (pim) {                                                           // the ceiling light is on: its shade glows, its light falls on the desk
-      g.drawImage(pim, Math.round(L.pendant - pim.width / 2), 31 - pim.height);
-      pool(L.pendant, 31, DESK_FRONT + 3, 9, 58, n * 0.30); pool(L.pendant, 31, DESK_FRONT + 3, 6, 34, n * 0.24);
+    if (pim) {                                                           // the ceiling lights are on: their shades glow, their light falls on the desk
+      L.art.pendants.forEach(function (x) {
+        g.drawImage(pim, Math.round(x - pim.width / 2), PENDANT_RIM - pim.height);
+        pool(x, PENDANT_RIM, DESK_FRONT + 3, 9, 50, n * 0.12); pool(x, PENDANT_RIM, DESK_FRONT + 3, 7, 36, n * 0.12); pool(x, PENDANT_RIM, DESK_FRONT + 3, 5, 22, n * 0.14);   // nested, so the edges stay soft
+      });
     }
     for (var i = 0; i < 2; i++) {
       if (!lampIsOn(i, h)) { continue; }
@@ -1164,7 +1199,7 @@
       if (p.blink > 0) { p.blink--; } else if (--p.nextBlink <= 0) { p.blink = 2; p.nextBlink = 24 + Math.random() * 48; }
       if (!p.react && !(scenario && scenario.name === "spark")) { p.bob = 0; }
       p.tilt = stretching(p) ? 0 : (p.nod > 0 || (p.workLook[p.activity] && !convo && !p.react && !(pointerActive && !scenario))) ? 1 : 0;
-      p.lookDown = !!p.headDown && !stretching(p) && (p.nod > 0 || (!p.react && p.look.y > 0.5));     // at the work, the cat, a pointer on the desk
+      p.lookDown = !!p.headDown && !stretching(p) && p.activity !== "coffee" && p.activity !== "holdcup" && (p.nod > 0 || (!p.react && p.look.y > 0.5));     // at the work, the cat, a pointer on the desk; never over a coffee (T43)
       stepExpression(p, f);
     }
     if (pointer.inside && pointerActive && !saidHello && !convo && !scenario && f > 4 * FPS) {          // the nearer one glances over and smiles

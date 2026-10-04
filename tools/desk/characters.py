@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - characters.py
-Version 1.4.0
+Version 1.5.0
 
 Created: 2026-10-02 - Cole and Ilinca as sprites: generated bases finished by hand in the face, cut into layers (v1.0.0)
 Modified: 2026-10-02 - Cole's resting mouth is a half smile, not a straight line (v1.0.1)
@@ -15,6 +15,9 @@ Modified: 2026-10-03 - Cole's note 10: a looking-down head for each (down_blank,
 Modified: 2026-10-04 - Note 11 ("eyes look closed on the look down; the current look down is perfect for a nod"): the
   looking-down head's eyes are frames now: 'closed' (the lids as they were, for a nod or a blink) and 'open' (the
   upper lid lowered, the iris low in the eye: looking at the work) (v1.4.0)
+Modified: 2026-10-04 - T22 ("My looking down face looks distorted with a very pointy chin", "still needs reworking"):
+  Cole's looking-down head is his own base head bowed (rows remapped: more hair, features two rows lower, the lower face
+  two rows shorter), his own looking-down and closed eyes; the generated looking-down picture is no longer used (v1.5.0)
 
 characters.py - Cole and Ilinca for the desk scene.
 
@@ -157,67 +160,52 @@ class Cole:
     desk = 88            # the row of the sprite that meets the desk top
     points = dict(mouth=(43, 37), eye=(40, 25), chin=(44, 45), ear=(24, 28))
 
-    # ---- looking down (note 10) ---------------------------------------------------------------------------------
-    # The head tipped toward the desk: FLUX.2 klein 4B on the pose stage (seed 5108) gave the head's new shape (more of
-    # the hair on top, the forelock lower, the jaw line and chin), reduced on the base grid (sprites/cole-down-1x.png).
-    # Its face is redrawn here in the base's style, from x = 24: the brows and the glasses four rows lower, the lenses
-    # seen from above (four rows instead of six), a longer nose pointing down, the jaw line in the base's dark brown.
-    # The eyes are frames (down_eyes): open and looking down at the work, or closed for a nod. The mouth frames go one
-    # column right and four rows down (DMX, DMY).
-    DOWN = 'cole-down-1x.png'
-    DMX, DMY = 39, 39
-    DOWN_KEY = {'k': '#010101', 'K': '#211f1f', 'b': '#100f13', 'B': '#090507', 'z': '#0f0503', 'S': '#ee947c', 'm': '#f8cda6', 'M': '#f6af8d',
-                'h': '#dc7f6d', 'H': '#623e32', 'd': '#f9eee0', 'D': '#7d6230', 'g': '#9a9ea2'}
-    DOWN_ROWS = {
-        24: "mBBmkBbMMMMMkkkkkkkkmmmmkkkkkmmk....",
-        25: "mmBBMkkBMMMMkkkkkkkkmmmmkkkkkmmk....",
-        26: "mmBBSkkBBMMM" + "m" * 19 + "k....",
-        27: "mhhHS" + "k" * 26 + ".....",
-        28: "mhhhm" + "kk" + "hhhh" + "k" + "m" * 8 + "k" + "mm" + "k" + "m" * 5 + "k" + "......",
-        29: "mmhhm" + "kk" + "hhhh" + "k" + "m" * 8 + "k" + "mm" + "k" + "m" * 5 + "k" + "......",
-        30: "BmmHM" + "MMhhhh" + "k" + "m" * 8 + "k" + "mm" + "k" + "m" * 5 + "k" + "......",
-        31: "kmmmm" + "MMMMMm" + "k" + "m" * 8 + "k" + "mmm" + "DDDDD" + "k" + "......",
-        32: ".kmmm" + "MMMMMmm" + "D" * 8 + "m" * 8 + "k" + ".......",
-        33: ".kkkk" + "hMMMMMm" + "m" * 17 + "k" + "......",
-        34: "..kkh" + "mMMMMmm" + "m" * 12 + "H" + "mmmm" + "k" + "......",
-        35: "..kkh" + "mmMMMmm" + "m" * 12 + "H" + "mmmm" + "k" + "......",
-        36: "...kh" + "mmMMMmm" + "m" * 8 + "S" + "m" + "MM" + "H" + "mmm" + "k" + ".......",
-        37: "...kh" + "Szz" + "MMmm" + "m" * 9 + "HHH" + "mmmm" + "k" + ".......",
-        38: "...kh" + "Smzz" + "Mmm" + "m" * 15 + "k" + "........",
-        39: "...kh" + "hhmzz" + "mm" + "m" * 15 + "k" + "........",
-        40: "...kh" + "hhhmzz" + "m" + "m" * 15 + "k" + "........",
-        41: "....k" + "Mhhhmzz" + "m" * 14 + "k" + ".........",
-        42: "...k" + "hMMhhhmzz" + "m" * 13 + "k" + ".........",
-        43: "...k" + "MMMMhhhmzz" + "m" * 11 + "k" + "..........",
-        44: "...k" + "MMMMmhhhmzz" + "m" * 9 + "k" + "...........",
-        45: "..kz" + "MMMMmMhhhhmzz" + "m" * 7 + "k" + "...........",
-        46: ".kk" + "MMMMMmMhhhhhmzzz" + "m" * 5 + "k" + "...........",
-        47: "kbk" + "MMMMMmmMMhhhhh" + "hzzzz" + "kk" + "B" + "kk" + ".........",
-    }
-    # per column, the last row of the looking-down head (the jaw line, then the chin)
-    DOWN_JAW = [(24, 33), (28, 33), (29, 36), (30, 37), (31, 38), (32, 39), (33, 40), (34, 41), (35, 42), (36, 43), (37, 43), (38, 44), (39, 45),
-                (40, 45), (41, 46), (43, 46), (44, 47), (47, 47), (48, 46), (74, 46)]
+    # ---- looking down (note 10; T22, 2026-10-04: "My looking down face looks distorted with a very pointy chin", "My
+    # looking down face still needs reworking") ------------------------------------------------------------------------
+    # The head tipped toward the desk is his own base head, not a second picture: seen from the front a head bowing
+    # forward shows more hair on top and a shorter face, so the rows from 10 to 20 stretch by two (the forelock comes lower),
+    # the glasses, brows and nose come two rows down unchanged, and the lower face from row 37 to the chin is two rows
+    # shorter (the chin tucks in; the generated looking-down picture had made it long and pointed). The eyes are his own
+    # looking-down and closed eyes two rows lower (down_eyes: open on the work, shut for a nod); the mouth frames two rows
+    # lower (DMX, DMY).
+    DMX, DMY = 38, 37
+
+    @staticmethod
+    def down_src_row(y):
+        """the base row shown at row y of the looking-down head"""
+        if y < 10: return y
+        if y < 22: return 10 + int((y - 10) * 10 / 12)
+        if y < 39: return y - 2
+        if y < 47: return 37 + int(round((y - 39) * 10 / 8))
+        return y
+
+    @classmethod
+    def down_row(c, sy):
+        """where base row sy lands in the looking-down head (the inverse of down_src_row, to the nearest row)"""
+        return min(range(60), key=lambda y: (abs(c.down_src_row(y) - sy), y))
 
     @classmethod
     def down_blank(c):
-        s = load(os.path.join(SRC, c.DOWN))
-        for y, row in c.DOWN_ROWS.items():
-            for i, ch in enumerate(row): s.put(24 + i, y, None if ch == '.' else c.DOWN_KEY[ch])
+        b = c.blank(); c.brows(b, 'neutral'); s = b.copy(); s.idx[:] = -1
+        for y in range(b.h):
+            sy = c.down_src_row(y)
+            if 0 <= sy < b.h: s.idx[y] = b.idx[sy]
         return s
 
     @classmethod
     def down_eyes(c, s, state='open'):
-        lids = list(range(37, 43)) + list(range(48, 52))                 # inside the near and the far lens
-        if state == 'closed':                                            # a nod: the lids down, a fold of skin above them
-            for x in lids: s.put(x, 29, c.SH); s.put(x, 30, c.K)
-            return
-        for x in lids: s.put(x, 29, c.K)                                 # the upper lid lowered over eyes looking down
-        for x, col in ((37, c.W), (38, c.W), (39, c.K), (40, c.K), (41, c.W), (48, c.W), (49, c.K), (50, c.K), (51, c.W)): s.put(x, 30, col)
-        s.put(39, 31, c.K); s.put(40, 31, c.K)                           # the near iris low in the eye, against the lower lid
+        b = c.blank(); e = b.copy(); c.eyes(e, 0, 'down' if state == 'open' else 'closed')
+        ys, xs = np.where(e.idx != b.idx)
+        for y, x in zip(ys, xs): s.put(int(x), int(y) + 2, e.pal[e.idx[y, x]] if e.idx[y, x] >= 0 else None)
+
+    @classmethod
+    def down_jaw(c):
+        """per column, the last row of the looking-down head: the base jaw line where the rows moved"""
+        return [(x, c.down_row(y)) for x, y in c.JAW]
 
     @classmethod
     def down_mask(c, s):
-        m = np.zeros(s.idx.shape, dtype=bool); pts = c.DOWN_JAW
+        m = np.zeros(s.idx.shape, dtype=bool); pts = c.down_jaw()
         for x in range(s.w):
             y1 = pts[-1][1]
             for (x0, y0), (x1, yy1) in zip(pts, pts[1:]):

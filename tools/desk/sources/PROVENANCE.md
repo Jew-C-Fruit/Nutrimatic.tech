@@ -1,6 +1,6 @@
 # Where the pictures in this folder came from
 
-Version 1.10.0 · Created 2026-10-02 · Modified 2026-10-03 (walk cycle; petting with a cat; audit references; the walk redone; looking down; petting at the desk's edge; portraits kept out of the repo; the ceiling light)
+Version 1.11.0 · Created 2026-10-02 · Modified 2026-10-04 (walk cycle; petting with a cat; audit references; the walk redone; looking down; petting at the desk's edge; portraits kept out of the repo; the ceiling light; round 29: Ilinca's held things, think, Cole's yawn and facepalm)
 
 ## Credits to show when the scene goes live (not on the page yet, by Cole's choice)
 
@@ -120,6 +120,27 @@ The photographs themselves are not in this repo.
   at a desk just in front of her, everything else unchanged. Her outline stayed exactly; `characters.Ilinca.down_blank`
   takes its hairline (`sprites/ilinca-down-1x.png`) and moves her features as it did.
 - Work folder `lookdown/` (run.sh to run4.sh): the other candidates, the reductions and the comparison sheets.
+
+## Round 29 (2026-10-04, Cole's notes T29 to T46)
+
+FLUX.2 klein 4B on each figure's pose stage, the scene's own objects pasted where the scene draws them so the hands grip
+them (work folder `r29gen/`: `guides.py`, `run.sh`; the chosen pictures are kept in `poses/out/*-r29/`):
+
+| Pose | What was pasted into the stage | Seed |
+| --- | --- | --- |
+| Ilinca `take` | the one shaker, upright beside her | 9602 |
+| Ilinca `drink` | the shaker tipped to her lips | 9613 |
+| Ilinca `phone` | a blue phone in front of her chest | 9624 |
+| Ilinca `carry` | two red mugs (the desk mug), one per hand | 9634 |
+| Ilinca `think` | nothing: the elbow under her chin toward her middle | 9643 |
+| Cole `yawn` | nothing: one hand over his mouth, two arms | 9654 |
+| Cole `facepalm` | nothing: a hand to his head (the spark) | 9666 |
+
+- Typing for both is no longer its own picture: it is the writing picture with the laptop drawn in front (`poses.LID`,
+  the size and shape of the laptop in Cole's earlier typing picture `cole-typehide` seed 7879, redrawn square).
+- Cole's looking-down head is built from his base head (`characters.Cole.down_blank`); `cole-down-1x.png` is no longer used.
+- The DS grip, the folded paper and the paper plane are drawn in code (`poses.DS_HAND`, `paper_stage`, `PLANE`), like
+  the console itself.
 
 ## The ceiling light (2026-10-04, Cole: "Give us a new ceiling light")
 

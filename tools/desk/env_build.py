@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - env_build.py
-Version 1.5.0
+Version 1.6.0
 
 Created: 2026-10-02 - The room, the skyline and the two anglepoise lamps as generated pictures reduced to the scene's
   pixels, written to assets/desk/ (v1.0.0)
@@ -11,6 +11,7 @@ Modified: 2026-10-03 - The papers prop drawn edge-on, as the flat front view of 
 Modified: 2026-10-04 - The desk has a top now (Cole's note 12, "now that the desk is 3d"): nine rows of wood surface
   above the front edge, in the desk's own colours, darker by the wall; the front edge and the drawers move down (v1.4.0)
 Modified: 2026-10-04 - A ceiling light (to-do T15): a generated pendant reduced like the lamps, lit and unlit (v1.5.0)
+Modified: 2026-10-04 - The narrow room's leftover poster frame painted out (round-29 audit) (v1.6.0)
 
 The environment was drawn in code until v0.7 and looked low-fi next to the figures, so it is made the same way as they
 are now: pictures generated on the GPU machine (FLUX.2 klein 4B, see sources/PROVENANCE.md) and reduced with
@@ -59,8 +60,30 @@ def glass(s, box):
     return m
 
 
+# Where the edit took the poster out of the narrow room it left the poster's thin dark frame, which the (diamond) painting
+# does not cover (round-29 audit): its four edges are painted over with the wall a few pixels further out.
+OLD_FRAME = {'narrow': (2, 18, 53, 72)}
+
+
+def unframe(s, box):
+    """the dark one- or two-pixel lines of a rectangle's edges (x0, y0, x1, y1) replaced by the wall beside them"""
+    x0, y0, x1, y1 = box
+    lum = lambda i: sum(w * v for w, v in zip((0.2126, 0.7152, 0.0722), hex2rgb(s.pal[i]))) if i >= 0 else 255
+    for y in range(y0 - 1, y1 + 2):
+        for x in range(x0 - 1, x1 + 2):
+            if not (0 <= y < s.h and 0 <= x < s.w): continue
+            edge = x in (x0 - 1, x0, x0 + 1, x1 - 1, x1, x1 + 1) or y in (y0 - 1, y0, y0 + 1, y1 - 1, y1, y1 + 1)
+            if not edge or lum(s.idx[y, x]) > 150: continue
+            vertical = x in (x0 - 1, x0, x0 + 1, x1 - 1, x1, x1 + 1)
+            sx, sy = (x - 3 if x <= x0 + 1 else x + 3, y) if vertical else (x, y - 3 if y <= y0 + 1 else y + 3)
+            if not (0 <= sx < s.w and 0 <= sy < s.h): sx, sy = (x + 3 if x <= x0 + 1 else x - 3, y) if vertical else (x, y + 3 if y <= y0 + 1 else y - 3)   # at the picture's edge: from inside
+            if 0 <= sx < s.w and 0 <= sy < s.h: s.idx[y, x] = s.idx[sy, sx]
+    return s
+
+
 def room(name):
     path, box = ROOMS[name]; s = reduce_full(os.path.join(SRC, path), 4, 28)
+    if name in OLD_FRAME: s = unframe(s, OLD_FRAME[name])
     m = glass(s, box); ys, xs = np.where(m)
     back = s.copy(); back.idx[m] = -1; back.idx[DESK_Y:, :] = -1           # the window glass and the desk are not part of the back wall
     front = deepen(s.copy(), name); front.idx[:DESK_Y, :] = -1
