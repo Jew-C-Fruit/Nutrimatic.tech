@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - poses.py
-Version 1.5.1
+Version 1.6.0
 
 Created: 2026-10-02 - The figures' body poses, from generated pictures, as layers under the base head; the neck, and
   Ilinca's top, taken from the base so every pose joins the same head; front boxes by eye (v1.0.0)
@@ -43,6 +43,8 @@ Modified: 2026-10-03 - Note 9: small motion frames for every activity (typing fo
   boards edge-on, as the flat front view of the desk needs, and Cole's laptop standing on the desk line; hands under
   the desk ('hide') for both, for when Maker walks by (v1.5.0)
 Modified: 2026-10-03 - The soldering boards are props, so they stay on the desk while Cole waves smoke away (v1.5.1)
+Modified: 2026-10-04 - Petting at the desk's front edge (note 12): petedge poses, made with Maker pasted where she now
+  lies; the 'cat' fix clears her outline in the picture but the hand on her (v1.6.0)
 
 Every activity in the scene is drawn with a body pose: the whole torso with arms, hands and whatever they hold, made
 by the image model from the figure's own portrait (pose_sprites.py says how) and reduced to a sprite on the base
@@ -132,6 +134,9 @@ MANUAL = {
         # petting Maker lying beside him: the picture had a grey cat under his hand; it goes, and the scene lays Maker in
         # its place (RIG below), so the hand lies exactly on her back; the hand moves a little as it strokes
         'petcat': dict(fix=[('erase', 28, 60, 86, 93, CAT_GREYS)], frames={'petcat2': ((46, 56, 80, 82), -2, 0)}),
+        # note 12: Maker lies at the desk's front edge now; this picture was made with her pasted there (work folder
+        # petedge/), so the hand lands on her back; everything of the stand-in cat but the hand goes
+        'petedge': dict(fix=[('cat', 31, 66, SKIN_COLE)], frames={'petedge2': ((62, 56, 90, 84), -2, 0)}),
         'stretch': dict(fix=[('clear', -8, 54, 7, 92), ('clear', 8, 53, 8, 53)]),   # a chair's edge behind him in the generated picture
         # props the scene also draws on their own: the laptop (the cat sits on it), the paper, the bottle being handed over
         'type': dict(fix=[('clear', 14, 91, 64, 96), ('fill', 15, 90, 61, 90, '#010101', set())],   # the laptop stands on the desk line (note 9d)
@@ -171,6 +176,7 @@ MANUAL = {
         'wave': dict(frames={'wave2': ((-12, 12, 12, 38), 1, 0)}),          # a casual wave: the hand rocks a pixel
         # her reaching sleeve ended in a spike up into her hair: its top is cut level at the shoulder, under the hair
         'petcat': dict(fix=[('erase', -38, 60, 32, 94, CAT_GREYS), ('clear', 0, 30, 16, 45), ('rows', 4, 46, ['kkkkkk'])], frames={'petcat2': ((-18, 54, 14, 76), 2, 0)}),
+        'petedge': dict(fix=[('cat', -29, 62, SKIN_ILINCA)], frames={'petedge2': ((-12, 52, 14, 76), 2, 0)}),   # as Cole's: Maker at the front edge
         'stretch': dict(fix=[('clear', 63, 38, 67, 84)]),                # a chair's edge behind her
         'rest': dict(fix=[('recolour', 56, 55, 64, 66, {'#5f6368': '#191718', '#9a9ea2': '#292423'})],   # a grey chair corner by her shoulder
                      frames={'rest1': ((6, 72, 36, 88), 0, -1)}),
@@ -367,6 +373,15 @@ def fix(spr, ox, oy, edits, pal_key):
     ('clear', x0, y0, x1, y1) and ('recolour', x0, y0, x1, y1, {from: to})"""
     s = spr.copy()
     for e in edits:
+        if e[0] == 'cat':                                                # Maker's own outline where she was pasted into the picture: all of it goes
+            from scipy import ndimage                                    # but the hand on her (skin, and the dark line along it)
+            _, x0, y0, skin = e; m = _maker_footprint(); box = np.zeros(s.idx.shape, bool)
+            ys, xs = np.where(m); yy, xx = ys + y0 - oy, xs + x0 - ox; ok = (yy >= 0) & (yy < s.h) & (xx >= 0) & (xx < s.w); box[yy[ok], xx[ok]] = True
+            box = ndimage.binary_dilation(box, structure=np.ones((3, 3), bool))
+            sk = np.isin(s.idx, [i for i, c in enumerate(s.pal) if c in skin])
+            keep = sk | (ndimage.binary_dilation(sk, structure=np.ones((3, 3), bool)) & PS.dark(s))
+            s.idx[box & ~keep] = -1
+            continue
         if e[0] == 'erase':                                              # a generated object to take out (the stand-in cat under a petting hand)
             from scipy import ndimage
             _, x0, y0, x1, y1, cols = e; box = np.zeros(s.idx.shape, bool); box[max(0, y0 - oy):max(0, y1 + 1 - oy), max(0, x0 - ox):max(0, x1 + 1 - ox)] = True
@@ -417,6 +432,16 @@ def fix(spr, ox, oy, edits, pal_key):
             _, x0, y0, x1, y1, m = e
             for a, b in m.items(): s.replace(a, b, (max(0, x0 - ox), max(0, y0 - oy), min(s.w - 1, x1 - ox), min(s.h - 1, y1 - oy))) if a in s.pal else None
     return s
+
+
+_FOOT = []
+def _maker_footprint():
+    """where Maker's lying sprite has pixels, facing left (as she lies to be petted): the stand-in cat pasted into the
+    front-edge petting pictures (work folder petedge/guides.py) was exactly this"""
+    if not _FOOT:
+        import maker_build
+        loaf = maker_build.sheet(big=True)['loaf']; _FOOT.append((loaf.idx >= 0)[:, ::-1])
+    return _FOOT[0]
 
 
 def lift_prop(spr, ox, oy, cols, box):

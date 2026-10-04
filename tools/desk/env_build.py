@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - env_build.py
-Version 1.3.0
+Version 1.4.0
 
 Created: 2026-10-02 - The room, the skyline and the two anglepoise lamps as generated pictures reduced to the scene's
   pixels, written to assets/desk/ (v1.0.0)
 Modified: 2026-10-02 - Victory Boogie Woogie instead of the poster; the rooms with the poster edited out (v1.1.0)
 Modified: 2026-10-03 - The Nutrimatic "nu" mark on the shaker bottle prop (v1.2.0)
 Modified: 2026-10-03 - The papers prop drawn edge-on, as the flat front view of the desk needs (v1.3.0)
+Modified: 2026-10-04 - The desk has a top now (Cole's note 12, "now that the desk is 3d"): nine rows of wood surface
+  above the front edge, in the desk's own colours, darker by the wall; the front edge and the drawers move down (v1.4.0)
 
 The environment was drawn in code until v0.7 and looked low-fi next to the figures, so it is made the same way as they
 are now: pictures generated on the GPU machine (FLUX.2 klein 4B, see sources/PROVENANCE.md) and reduced with
@@ -60,9 +62,40 @@ def room(name):
     path, box = ROOMS[name]; s = reduce_full(os.path.join(SRC, path), 4, 28)
     m = glass(s, box); ys, xs = np.where(m)
     back = s.copy(); back.idx[m] = -1; back.idx[DESK_Y:, :] = -1           # the window glass and the desk are not part of the back wall
-    front = s.copy(); front.idx[:DESK_Y, :] = -1
+    front = deepen(s.copy(), name); front.idx[:DESK_Y, :] = -1
     back.save(os.path.join(OUT, 'room-%s.png' % name)); front.save(os.path.join(OUT, 'desk-%s.png' % name))
     return dict(glass=[int(xs.min()), int(ys.min()), int(xs.max()), int(ys.max())], colours=len(s.pal))
+
+
+# The generated rooms show the desk exactly at desk height: its front edge (a lit top line, the board's face, a shadow)
+# and then the drawers, no top. Seen a little from above it has one: DEEP rows of surface between the wall and the
+# front edge, so the figures sit behind it, their forearms and the things on the desk lie on it, and Maker walks on it.
+DEEP = 9
+# the surface's wood, from the desk's own colours: (the line where it meets the wall, the far rows, the near rows, grain)
+TOP = {'wide': ('#955d3c', '#b57a4f', '#d49a67', '#edbf86'), 'narrow': ('#613925', '#975939', '#ad6e46', '#c58454')}
+
+
+def deepen(s, name):
+    """the desk with a top: everything from the desk line down moves DEEP rows lower (the bottom rows drop off the
+    picture) and the gap becomes the top's surface, a little darker toward the wall, with long thin grain streaks"""
+    h = s.h; out = s.copy()
+    lum = lambda i: sum(w * v for w, v in zip((0.2126, 0.7152, 0.0722), hex2rgb(s.pal[i]))) if i >= 0 else 255
+    desk = np.array([lum(s.idx[DESK_Y + 2, x]) < 180 for x in range(s.w)])   # the desk's columns (the narrow room has wall past its end)
+    out.idx[DESK_Y + DEEP:, desk] = s.idx[DESK_Y:h - DEEP, desk]
+    wall, far, near, light = TOP[name]; rng = np.random.RandomState(12)
+    for r in range(DEEP):
+        y = DESK_Y + r
+        base, streak = (wall, wall) if r == 0 else ((far, wall) if r < 3 else (near, far))
+        x = 0; row = -np.ones(s.w, dtype=np.int16)
+        while x < s.w:                                                   # runs of the base tone broken by streaks of grain
+            run = rng.randint(6, 26); row[x:x + run] = out.color(base); x += run
+            if r > 0:
+                k = rng.randint(3, 12); col = light if (r >= 5 and rng.rand() < 0.18) else streak
+                row[x:x + k] = out.color(col); x += k
+        out.idx[y, desk] = row[desk]
+        ends = [x for x in range(s.w) if desk[x] and ((x + 1 < s.w and not desk[x + 1]) or (x > 0 and not desk[x - 1]))]
+        for x in ends: out.idx[y, x] = out.color('#010102')               # the top's side edge where the desk stops
+    return out
 
 
 def sky_mask(rgb, tol):

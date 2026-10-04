@@ -1,6 +1,6 @@
 # Desk scene art
 
-Version 1.6.0 · Created 2026-10-02 · Modified 2026-10-03 (motion frames for every activity, hands under the desk for Maker, everything on the desk edge-on, a looking-down head, Maker's new walk)
+Version 1.7.0 · Created 2026-10-02 · Modified 2026-10-04 (the desk has a top; motion frames for every activity, hands under the desk for Maker, everything on the desk edge-on, a looking-down head, Maker's new walk)
 
 Everything the co-founders' scene draws that is not simple geometry lives here as sprites, and reaches the site as
 data in `js/desk-sprites.js`. That file is **generated**: change the sources here and run the exporter.
@@ -63,8 +63,11 @@ drawn, the part of the pose below the desk line goes on again, so hands lie over
   the desk, from a generated picture of them looking down, finished in the base face's style. The scene draws it
   whenever they look down at something (the work, the cat, a pointer over the desk) and for a nod; only the mouth
   changes on it.
-- **Flat desk**: the desk is seen straight from the front, so anything lying on it is drawn edge-on (the paper, the
-  soldering boards, the papers by the plant), never from above.
+- **The desk has a top** (Cole's note 12): nine rows of surface between the wall and the front edge (`env_build.deepen`;
+  `DESK_FRONT` in the scene). The figures sit behind it with their forearms on it, things stand on it at a depth
+  (`deskAt`: plant, vase, papers and lamps at the back, mugs and the bottle mid-way), Maker walks on its front half,
+  steps back onto a keyboard or a paper, and lies at the front edge with her paws and tail over it, petted with poses
+  made for that spot (`petedge`). Flat things lying on it (paper, boards) stay thin: the top is seen from just above.
 - **Fronts**: `front_mode='limb'` draws a hand or sleeve, not the pose's own hair, over Ilinca's long hair.
 
 ## The room (env_build.py)

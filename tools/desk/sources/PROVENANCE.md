@@ -1,6 +1,6 @@
 # Where the pictures in this folder came from
 
-Version 1.7.0 · Created 2026-10-02 · Modified 2026-10-03 (walk cycle; petting with a cat; audit references; the walk redone; looking down)
+Version 1.8.0 · Created 2026-10-02 · Modified 2026-10-03 (walk cycle; petting with a cat; audit references; the walk redone; looking down; petting at the desk's edge)
 
 ## Credits to show when the scene goes live (not on the page yet, by Cole's choice)
 
@@ -94,6 +94,9 @@ The photographs themselves are not in this repo.
   `run_walk.sh` of the work folder), cut into frames by `maker_build.walk_frames`.
 - The petting poses (`sprites/poses/*/petcat.png`) were generated with a grey cat under the hand; `poses.py` erases
   that cat and the scene puts Maker in its place.
+- The front-edge petting poses (`sprites/poses/*/petedge.png`, 2026-10-04, Cole's note 12): FLUX.2 klein 4B on each pose
+  stage with Maker's own lying sprite pasted where the scene now lays her (the desk's front edge), asked to rest a hand
+  on her back (work folder `petedge/`); `poses.py` clears her outline but the hand, and the scene draws her there.
 
 ## The walk (2026-10-03, Cole's notes 6 and 9)
 

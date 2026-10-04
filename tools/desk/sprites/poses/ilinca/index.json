@@ -90,6 +90,16 @@
   "x": -23,
   "y": -2
  },
+ "petedge": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.946,
+  "src": "petedge/ilinca-petedge-seed9304.png",
+  "x": -29,
+  "y": 0
+ },
  "petfront": {
   "align": [
    0,

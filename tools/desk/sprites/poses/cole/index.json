@@ -109,6 +109,16 @@
   "x": -9,
   "y": 0
  },
+ "petedge": {
+  "align": [
+   0,
+   0
+  ],
+  "fit": 0.905,
+  "src": "petedge/cole-petedge-seed9205.png",
+  "x": -8,
+  "y": 0
+ },
  "petfront": {
   "align": [
    0,
