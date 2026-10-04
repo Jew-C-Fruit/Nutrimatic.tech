@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - export_js.py
-Version 1.4.0
+Version 1.4.1
 
 Created: 2026-10-02 - Writes js/desk-sprites.js from the sprite sources (v1.0.0)
 Modified: 2026-10-02 - Body poses (poses.py); layers run-length encoded, since there are now dozens of them (v1.1.0)
 Modified: 2026-10-02 - Props lifted out of poses (the laptop, the paper, the bottle) exported with them (v1.2.0)
 Modified: 2026-10-03 - Poses that keep their own head are marked (oh) (v1.3.0)
 Modified: 2026-10-03 - The looking-down head and its mouth frames (down) (v1.4.0)
+Modified: 2026-10-04 - Its eyes as frames too, open and closed (v1.4.1)
 
 export_js.py - write js/desk-sprites.js for the site from the finished sprites.
 
@@ -25,8 +26,8 @@ plain data so the scene needs no image files and no loading step:
                         p: {prop name: layer} (optional: a prop lifted out of the pose, e.g. the laptop),
                         oh: 1 when the pose brings its own head (the scene draws no head or face over it)}}
           eyes, brows, mouth   frames as flat [x, y, colour, x, y, colour, ...] lists drawn over the head (-1 clears a pixel)
-          down          {head: layer, mouth: frames}: the head tipped toward the desk, drawn instead of the head while
-                        looking down at something (its eyes and brows are part of it; only the mouth changes)
+          down          {head: layer, eyes: {open, closed}, mouth: frames}: the head tipped toward the desk, drawn instead
+                        of the head while looking down at something (its brows are part of it)
           joints, arm   where the arms attach and how they are drawn
 """
 import json, os, sys
@@ -81,8 +82,9 @@ def figure(c):
             for _, _, col in lst: add(col)
     dhead, dfr = down_layers(c), down_frames(c)
     for i in dhead.used(): add(dhead.pal[i])
-    for lst in dfr.values():
-        for _, _, col in lst: add(col)
+    for group in dfr.values():
+        for lst in group.values():
+            for _, _, col in lst: add(col)
     arm = dict(c.arm)
     for key in ('skin', 'cloth'):
         for col in arm[key]: add(col)
@@ -93,7 +95,7 @@ def figure(c):
     out = dict(w=torso.w, h=torso.h, centre=c.centre, desk=c.desk, pal=pal, torso=layer(torso, pal), head=layer(head, pal))
     for g in ('eyes', 'brows', 'mouth'):
         out[g] = {k: [v for x, y, col in lst for v in (x, y, -1 if col is None else ix(col))] for k, lst in fr[g].items()}
-    out['down'] = dict(head=layer(dhead, pal), mouth={k: [v for x, y, col in lst for v in (x, y, -1 if col is None else ix(col))] for k, lst in dfr.items()})
+    out['down'] = dict(head=layer(dhead, pal), **{g: {k: [v for x, y, col in lst for v in (x, y, -1 if col is None else ix(col))] for k, lst in dfr[g].items()} for g in ('eyes', 'mouth')})
     out['poses'] = {}
     for name, q in built.items():
         b, bx, by = q['body']; entry = dict(b=layer(b, pal, bx, by))

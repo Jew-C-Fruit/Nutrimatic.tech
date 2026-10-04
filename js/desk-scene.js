@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.16.0
+ * Version 0.16.1
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -64,6 +64,8 @@
  *   work, the DS, the cat, a pointer over the desk) and for a nod; the one petting Maker looks at her (v0.15.0)
  * Modified: 2026-10-03 - Maker's new walk (Cole's note 9e): ten frames a cycle, a cat's lateral-sequence walk built
  *   from tools/desk/docs/animal-walk-cycles.md (v0.16.0)
+ * Modified: 2026-10-04 - Cole's note 11: looking down at the work their eyes are open, looking down; the shut lids are
+ *   kept for a nod (and a blink) (v0.16.1)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(),
@@ -533,13 +535,18 @@
   // A nod, or looking down at the work, moves the face (eyes, brows, mouth) a pixel down inside the head, the lids
   // lowered; the head itself stays whole (folding it a pixel looked like it shrank).
   // Looking down at something (the work, the cat, a nod) the head itself tips toward the desk: a second head drawn from
-  // a generated picture of each of them looking down, its eyes downcast; only the mouth changes on it (Cole's note 10).
+  // a generated picture of each of them looking down (Cole's note 10); its eyes are open on the work and shut in a nod
+  // (note 11: "the current look down is perfect for a nod").
   function drawHead(p, o) { blit(p.lookDown ? p.headDown : p.head, o.x, o.y + p.headDy); }
   // A stretch: eyes shut, mouth open (the face keeps its own proportions: moving the features read as a different face).
   function stretching(p) { return p.activity === "stretch" && !p.react && !p.talking; }
   function drawFace(p, o, f) {
     var a = p.art, hy = o.y + p.headDy, t = p.tilt, st = stretching(p), closed = st || p.blink > 0 || p.mouth === "laugh" || p.mouth === "yawn";
-    if (p.lookDown) { var md = p.mouth; if (md === "talk") { md = (f % 4 < 2) ? "open" : "neutral"; } if (md === "neutral") { md = p.restMouth; } pixels(a.down.mouth[md] || a.down.mouth.neutral, o.x, hy, a.pal); return; }
+    if (p.lookDown) {                                                  // the head tipped down: eyes open on the work, shut in a nod or a blink
+      pixels(a.down.eyes[(p.nod > 0 || closed) ? "closed" : "open"], o.x, hy, a.pal);
+      var md = p.mouth; if (md === "talk") { md = (f % 4 < 2) ? "open" : "neutral"; } if (md === "neutral") { md = p.restMouth; }
+      pixels(a.down.mouth[md] || a.down.mouth.neutral, o.x, hy, a.pal); return;
+    }
     var lx = Math.round(p.look.x), ly = Math.round(p.look.y);
     var key = closed ? "closed" : ((ly > 0 || t > 0 ? "down" : "open") + (lx < 0 ? -1 : lx > 0 ? 1 : 0));
     pixels(a.eyes[key] || a.eyes.open0, o.x, hy + t, a.pal);

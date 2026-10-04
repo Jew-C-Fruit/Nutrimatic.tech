@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - characters.py
-Version 1.3.0
+Version 1.4.0
 
 Created: 2026-10-02 - Cole and Ilinca as sprites: generated bases finished by hand in the face, cut into layers (v1.0.0)
 Modified: 2026-10-02 - Cole's resting mouth is a half smile, not a straight line (v1.0.1)
@@ -12,6 +12,9 @@ Modified: 2026-10-03 - Cole's note 10: a looking-down head for each (down_blank,
   tips toward the desk, from a generated picture of each looking down (klein for Cole, Qwen-Image-Edit 2511 for Ilinca,
   on the base grid; sprites/*-down-1x.png, the full-size pictures in sources/), finished here in the base face's own
   style: brows, glasses, lids, nose and mouth lower, more of the crown, the eyes downcast (v1.3.0)
+Modified: 2026-10-04 - Note 11 ("eyes look closed on the look down; the current look down is perfect for a nod"): the
+  looking-down head's eyes are frames now: 'closed' (the lids as they were, for a nod or a blink) and 'open' (the
+  upper lid lowered, the iris low in the eye: looking at the work) (v1.4.0)
 
 characters.py - Cole and Ilinca for the desk scene.
 
@@ -158,8 +161,9 @@ class Cole:
     # The head tipped toward the desk: FLUX.2 klein 4B on the pose stage (seed 5108) gave the head's new shape (more of
     # the hair on top, the forelock lower, the jaw line and chin), reduced on the base grid (sprites/cole-down-1x.png).
     # Its face is redrawn here in the base's style, from x = 24: the brows and the glasses four rows lower, the lenses
-    # seen from above (four rows instead of six), the lids lowered over the eyes, a longer nose pointing down, the jaw
-    # line in the base's dark brown. The mouth frames go one column right and four rows down (DMX, DMY).
+    # seen from above (four rows instead of six), a longer nose pointing down, the jaw line in the base's dark brown.
+    # The eyes are frames (down_eyes): open and looking down at the work, or closed for a nod. The mouth frames go one
+    # column right and four rows down (DMX, DMY).
     DOWN = 'cole-down-1x.png'
     DMX, DMY = 39, 39
     DOWN_KEY = {'k': '#010101', 'K': '#211f1f', 'b': '#100f13', 'B': '#090507', 'z': '#0f0503', 'S': '#ee947c', 'm': '#f8cda6', 'M': '#f6af8d',
@@ -170,8 +174,8 @@ class Cole:
         26: "mmBBSkkBBMMM" + "m" * 19 + "k....",
         27: "mhhHS" + "k" * 26 + ".....",
         28: "mhhhm" + "kk" + "hhhh" + "k" + "m" * 8 + "k" + "mm" + "k" + "m" * 5 + "k" + "......",
-        29: "mmhhm" + "kk" + "hhhh" + "k" + "m" + "S" * 6 + "m" + "k" + "mm" + "k" + "S" * 4 + "m" + "k" + "......",
-        30: "BmmHM" + "MMhhhh" + "k" + "m" + "k" * 6 + "m" + "k" + "mm" + "k" + "k" * 4 + "m" + "k" + "......",
+        29: "mmhhm" + "kk" + "hhhh" + "k" + "m" * 8 + "k" + "mm" + "k" + "m" * 5 + "k" + "......",
+        30: "BmmHM" + "MMhhhh" + "k" + "m" * 8 + "k" + "mm" + "k" + "m" * 5 + "k" + "......",
         31: "kmmmm" + "MMMMMm" + "k" + "m" * 8 + "k" + "mmm" + "DDDDD" + "k" + "......",
         32: ".kmmm" + "MMMMMmm" + "D" * 8 + "m" * 8 + "k" + ".......",
         33: ".kkkk" + "hMMMMMm" + "m" * 17 + "k" + "......",
@@ -200,6 +204,16 @@ class Cole:
         for y, row in c.DOWN_ROWS.items():
             for i, ch in enumerate(row): s.put(24 + i, y, None if ch == '.' else c.DOWN_KEY[ch])
         return s
+
+    @classmethod
+    def down_eyes(c, s, state='open'):
+        lids = list(range(37, 43)) + list(range(48, 52))                 # inside the near and the far lens
+        if state == 'closed':                                            # a nod: the lids down, a fold of skin above them
+            for x in lids: s.put(x, 29, c.SH); s.put(x, 30, c.K)
+            return
+        for x in lids: s.put(x, 29, c.K)                                 # the upper lid lowered over eyes looking down
+        for x, col in ((37, c.W), (38, c.W), (39, c.K), (40, c.K), (41, c.W), (48, c.W), (49, c.K), (50, c.K), (51, c.W)): s.put(x, 30, col)
+        s.put(39, 31, c.K); s.put(40, 31, c.K)                           # the near iris low in the eye, against the lower lid
 
     @classmethod
     def down_mask(c, s):
@@ -324,7 +338,7 @@ class Ilinca:
     # Qwen-Image-Edit 2511 tipped her head toward the desk (seed 2003) and kept her outline exactly; what it changed is
     # done here on her finished face: the hairline two rows lower (its pixels from the generated picture, reduced on the
     # base grid: sprites/ilinca-down-1x.png), brows three rows lower, the eyes downcast (the lash lines only), nose and
-    # mouth two rows lower over the same chin.
+    # mouth two rows lower over the same chin. The eyes are frames (down_eyes): open looking down, or closed for a nod.
     DOWN = 'ilinca-down-1x.png'
     DMX, DMY = 20, 30
     FIXCOL = {'#d9a650': '#d9ae71', '#b5705f': '#bd8e5d'}         # the reduction read hair lights as prop gold, hair shade as her lip rose
@@ -337,11 +351,24 @@ class Ilinca:
                 if g.idx[y, x] >= 0: col = g.pal[g.idx[y, x]]; s.put(x, y, c.FIXCOL.get(col, col))
         s.put(31, 18, c.S); s.put(32, 19, c.S)                       # the open eye's outer corner is not there when she looks down
         for x, y in [(26, 18), (27, 18), (28, 18), (29, 18), (30, 19), (18, 19), (19, 18), (20, 18), (21, 18)]: s.put(x, y, c.DB)
-        for x, y in [(27, 22), (28, 22), (29, 22), (30, 22), (31, 22), (32, 21), (18, 22), (19, 22), (20, 22), (21, 22), (17, 21)]: s.put(x, y, c.K)
         for x, y in [(22, 22), (22, 23), (22, 26), (23, 27), (24, 27)]: s.put(x, y, c.S)
         for y in (24, 25, 26, 27): s.put(22, y, c.NOSE)
         s.put(22, 28, c.ROSE); s.put(23, 29, c.ROSE); s.put(24, 29, c.ROSE)
         return s
+
+    @classmethod
+    def down_eyes(c, s, state='open'):
+        if state == 'closed':                                            # a nod: the lash lines only
+            for x, y in [(27, 22), (28, 22), (29, 22), (30, 22), (31, 22), (32, 21), (18, 22), (19, 22), (20, 22), (21, 22), (17, 21)]: s.put(x, y, c.K)
+            return
+        top = 21                                                         # her open 'down' eyes, three rows lower: the lid low,
+        for x in range(27, 33): s.put(x, top, c.K)                       # the iris whole under it, the pupil at its bottom
+        for x in range(18, 23): s.put(x, top, c.K)
+        for x in range(27, 32): s.put(x, top + 1, c.W)
+        for x in range(19, 23): s.put(x, top + 1, c.W)
+        for y in (top + 1, top + 2):
+            for x in (29, 30, 20, 21): s.put(x, y, c.DB)
+        s.put(29, top + 2, c.K); s.put(20, top + 2, c.K)
 
     @classmethod
     def down_mask(c, s): return c.head_mask(s)
@@ -385,9 +412,11 @@ def down_layers(c):
 
 
 def down_frames(c):
-    b = c.down_blank(); out = {}
+    b = c.down_blank(); out = {'eyes': {}, 'mouth': {}}
+    for state in ('open', 'closed'):
+        s = b.copy(); c.down_eyes(s, state); out['eyes'][state] = diff(b, s)
     for k in c.MOUTHS:
-        s = b.copy(); c.mouth(s, k, at=(c.DMX, c.DMY)); out[k] = diff(b, s)
+        s = b.copy(); c.mouth(s, k, at=(c.DMX, c.DMY)); out['mouth'][k] = diff(b, s)
     return out
 
 
