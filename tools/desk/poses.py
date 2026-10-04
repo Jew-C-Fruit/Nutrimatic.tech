@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - poses.py
-Version 1.7.0
+Version 1.7.1
 
 Created: 2026-10-02 - The figures' body poses, from generated pictures, as layers under the base head; the neck, and
   Ilinca's top, taken from the base so every pose joins the same head; front boxes by eye (v1.0.0)
@@ -51,6 +51,8 @@ Modified: 2026-10-04 - To-do fixes: typing forearms full width again (T13); the 
   the base, the long right thumb gone (T14); the hand left empty after the handover closes (T17, empty_fix); a frame
   can move only some parts ('move': hands and bottle shaking in front of a still shirt, T19); the hand on Maker in the
   petting pictures redrawn clean, her outline kept clear of the hole filling (T25: it had read as a black hand) (v1.7.0)
+Modified: 2026-10-04 - Ilinca's typing: a new picture with a narrower laptop below her hair's ends, her hands hidden behind
+  it, a lump of blazer above her shoulder cleared (T24) (v1.7.1)
 
 Every activity in the scene is drawn with a body pose: the whole torso with arms, hands and whatever they hold, made
 by the image model from the figure's own portrait (pose_sprites.py says how) and reduced to a sprite on the base
@@ -217,16 +219,15 @@ MANUAL = {
         # filled solid and the whole laptop goes in front of her hair
         # note 8 (messy hands): the laptop squared off (straight edges, outline all round), and the two hands at its sides
         # redrawn clean: a white cuff, the hand going behind the screen
-        'type': dict(frames={'type1': ((-10, 70, -4, 80), 0, 1), 'type2': ((62, 70, 68, 80), 0, 1), 'typetrack': ((62, 70, 68, 80), 1, 0)},
-                     fix=[('fill', -2, 57, 60, 84, '#cfd2d4', {'#cfd2d4', '#9a9ea2'}),
-                          ('fill', -3, 56, 61, 56, '#010100', set()), ('fill', -3, 85, 61, 85, '#010100', set()),
-                          ('fill', -3, 57, -3, 84, '#010100', set()), ('fill', 61, 57, 61, 84, '#010100', set()),
-                          ('fill', -2, 57, 60, 57, '#5f6368', set()),
-                          # note T1 (2026-10-04): no hands at all, the sleeves run in behind the laptop's edges
-                          ('rows', -7, 72, ['jjjj', 'jjjj', 'jjJJ', 'JJJJ', 'JJJJ', 'kkkk', '__._', '__._', '__._']),
-                          ('rows', 62, 72, ['jjjj', 'jjjj', 'JJjj', 'JJJJ', 'JJJJ', 'kkkk']),
-                          ('clear', 62, 78, 64, 81)],
-                     props={'laptop': (LAPTOP, (-14, 50, 66, 96))}),
+        # T24 (2026-10-04, "Her laptop is much too wide and interacts badly with her hair"): a new picture made with a
+        # narrower laptop pasted into her stage (work folder ilinca-laptop/), its top below her hair's ends, so her hair
+        # falls behind it; its top band back to grey; no hands (T1): her sleeves run in behind its edges
+        'type': dict(frames={'type1': ((-3, 70, 4, 82), 0, 1), 'type2': ((52, 70, 58, 82), 0, 1), 'typetrack': ((52, 70, 58, 82), -1, 0)},
+                     fix=[('recolour', 6, 64, 50, 64, {'#6f4b3a': '#5f6368', '#9a6f50': '#5f6368'}),
+                          ('clear', 5, 44, 13, 47), ('rows', 5, 48, ['kkkkk']),     # a dark lump of blazer above her shoulder, by her hair
+                          ('rows', -1, 73, ['JJJJJJ', 'JjjjjJ', 'Jjjjjj', 'Jjjjjj', 'Jjjjjj', 'JJJJJJ', 'JJJJJJ', 'kkkkkk', 'JJJJJJ', 'JJJJJJ', 'kkJJJJ', '__kkkk']),
+                          ('rows', 52, 73, ['JJJJJJ', 'JjjjjJ', 'jjjjjJ', 'jjjjjJ', 'jjjjjJ', 'JJJJJJ', 'JJJJJJ', 'kkkkkk', 'JJJJJJ', 'JJJJJJ', 'JJJJkk', 'kkkk_k'])],
+                     props={'laptop': (LAPTOP, (4, 62, 52, 88))}),
         'wave': dict(frames={'wave2': ((-12, 12, 12, 38), 1, 0)}),          # a casual wave: the hand rocks a pixel
         # her reaching sleeve ended in a spike up into her hair: its top is cut level at the shoulder, under the hair
         'petcat': dict(fix=[('erase', -38, 60, 32, 94, CAT_GREYS), ('clear', 0, 30, 16, 45), ('rows', 4, 46, ['kkkkkk'])], frames={'petcat2': ((-18, 54, 14, 76), 2, 0)}),
