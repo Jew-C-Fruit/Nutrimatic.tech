@@ -314,7 +314,7 @@ MANUAL = {
         # aren't"): Cole's laptop (LID), standing on the desk in front of her middle; the scene draws it over her hair.
         # T31: her writing arms behind it, as his; the frames slide a sleeve in toward the keyboard
         'type': dict(base='write',
-                     fix=[('clear', -20, 87, 70, 96), ('rows', 4, 49, LID),
+                     fix=[('clear', -20, 87, 70, 96), ('recolour', 52, 44, 56, 54, {c_: '#191718' for c_ in ('#cfd2d4', '#9a9ea2', '#5f6368')}), ('rows', 4, 49, LID),
                           # left of the laptop her writing hand and its cuff showed: the sleeve runs on in behind it
                           ('rows', 1, 66, ['.jj', 'jjj', '..j']), ('rows', 0, 72, ['jjjj']),
                           ('rows', -5, 73, ['...jjjjjj', '...jjjjjj', '...jjjjjj', '..jjjjjjJ', '.jjjjjjjJ', '.jjjjjjjJ', '.jjjjjjjJ',
@@ -990,7 +990,8 @@ def build(c):
         spr = soften(spr, who, keep=face)
         body, front = PS.split(spr, meta['x'], meta['y'], hm | hm0, jaw, man.get('front'), hair, None if man.get('keep_neck') else neck, man.get('front_mode', 'all'),   # the picture's own head goes too
                                base_head=head, chest=None if man.get('keep_chest') else chest,
-                               limb=set().union(*[cols for cols, _ in SOFTEN[who]]) | set(PS.PROPS), face_pt=FACE_PT.get(who))
+                               limb=set().union(*[cols for cols, _ in SOFTEN[who]]) | set(PS.PROPS), face_pt=FACE_PT.get(who), own_head=hm0,
+                               hands_touch={c_ for c_ in SOFTEN[who][1][0]} | {'#e4002b', '#a3001f', '#ff5a72'})
         if not man.get('keep_neck') and man.get('neck_fill', True): body = neck_fill(c, torso, head, body, meta['x'], meta['y'])
         if man.get('base_box'):                                          # clothes from the base portrait in a box (a white top that read as a cup)
             bx0, by0, bx1, by1 = man['base_box']; skin = set(SOFTEN[who][0][0])
@@ -1049,8 +1050,10 @@ def build(c):
             if edits: moved = fix(moved, meta['x'], meta['y'], edits, KEYS[who])
             vfb = None
             if who in HAIR_FRONT_ROW:
-                if hdy:
-                    vfb = hair_front(moved, meta['x'], meta['y'], HAIR_FRONT_ROW[who], who, None)
+                if hdy:                                                  # her body-front layer moves with the box too (phone1 had lost her hands)
+                    fb0 = entry['front_body'][0] if entry.get('front_body') else None
+                    vfb = (shifted(fb0, meta['x'], meta['y'], box, dx, dy) if box else fb0.copy()) if fb0 is not None else None
+                    vfb = hair_front(moved, meta['x'], meta['y'], HAIR_FRONT_ROW[who], who, vfb)
                 else: vf = hair_front(moved, meta['x'], meta['y'], HAIR_FRONT_ROW[who], who, vf)
             vfront = (vf, meta['x'], meta['y']) if vf is not None and (vf.idx >= 0).any() else None
             vfbody = (vfb, meta['x'], meta['y']) if vfb is not None and (vfb.idx >= 0).any() else None

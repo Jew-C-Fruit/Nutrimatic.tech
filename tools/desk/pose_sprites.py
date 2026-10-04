@@ -121,7 +121,8 @@ def align(pose, ox, oy, base, head_mask, reach=5):
     return best[1], best[2], best[0] / max(1, len(ys))
 
 
-def split(pose, ox, oy, head_mask, jaw_rows, front_box=None, hair=None, neck=None, front_mode='all', base_head=None, chest=None, limb=None, face_pt=None):
+def split(pose, ox, oy, head_mask, jaw_rows, front_box=None, hair=None, neck=None, front_mode='all', base_head=None, chest=None, limb=None, face_pt=None,
+          own_head=None, hands_touch=None):
     """body = the pose without its head; front = what must be drawn over the base head (inside front_box, base coordinates).
     The head is removed with a little margin above and beside it (the redrawn hair is never exactly the base's), but not
     below the jaw, where the neck has to meet the base head."""
@@ -170,6 +171,13 @@ def split(pose, ox, oy, head_mask, jaw_rows, front_box=None, hair=None, neck=Non
                 if L > 0.55 and a_ > 0.02 and b_ > 0.02: skin |= pose.idx == i
             lab, n = ndimage.label(skin & fm); fy_, fx_ = face_pt[1] - oy, face_pt[0] - ox
             if 0 <= fy_ < pose.h and 0 <= fx_ < pose.w and lab[fy_, fx_] > 0: part &= lab != lab[fy_, fx_]
+            if own_head is not None and hands_touch:                  # other bits of the picture's own face and neck (a nose, a neck below the jaw):
+                OH = np.zeros(pose.idx.shape, bool); hy, hx = np.where(ndimage.binary_dilation(own_head, iterations=3))   # skin mostly in its head or neck
+                py, px = hy - oy, hx - ox; ok = (py >= 0) & (py < pose.h) & (px >= 0) & (px < pose.w); OH[py[ok], px[ok]] = True
+                touch = ndimage.binary_dilation(np.isin(pose.idx, [i for i, c in enumerate(pose.pal) if c in hands_touch]), structure=np.ones((3, 3), bool))
+                for i in range(1, n + 1):                              # that touches no sleeve and nothing held is not a hand
+                    comp = lab == i
+                    if (comp & OH).sum() * 2 > comp.sum() and not (comp & touch).any(): part &= ~comp
             fm &= part | (ndimage.binary_dilation(part, structure=np.ones((3, 3), bool)) & dark(pose))
         elif front_mode == 'limb' and limb is not None:                # a hand or sleeve over long hair: skin, cloth and props, with their outline
             part = np.isin(pose.idx, [i for i, c in enumerate(pose.pal) if c in limb])
