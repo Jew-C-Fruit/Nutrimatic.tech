@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - poses.py
-Version 1.6.0
+Version 1.6.1
 
 Created: 2026-10-02 - The figures' body poses, from generated pictures, as layers under the base head; the neck, and
   Ilinca's top, taken from the base so every pose joins the same head; front boxes by eye (v1.0.0)
@@ -45,6 +45,8 @@ Modified: 2026-10-03 - Note 9: small motion frames for every activity (typing fo
 Modified: 2026-10-03 - The soldering boards are props, so they stay on the desk while Cole waves smoke away (v1.5.1)
 Modified: 2026-10-04 - Petting at the desk's front edge (note 12): petedge poses, made with Maker pasted where she now
   lies; the 'cat' fix clears her outline in the picture but the hand on her (v1.6.0)
+Modified: 2026-10-04 - Typing hides the hands completely (to-do T1): the forearms (Cole) and the sleeves (Ilinca) run in
+  behind the laptop's edges; the typing frames move only them (v1.6.1)
 
 Every activity in the scene is drawn with a body pose: the whole torso with arms, hands and whatever they hold, made
 by the image model from the figure's own portrait (pose_sprites.py says how) and reduced to a sprite on the base
@@ -139,7 +141,35 @@ MANUAL = {
         'petedge': dict(fix=[('cat', 31, 66, SKIN_COLE)], frames={'petedge2': ((62, 56, 90, 84), -2, 0)}),
         'stretch': dict(fix=[('clear', -8, 54, 7, 92), ('clear', 8, 53, 8, 53)]),   # a chair's edge behind him in the generated picture
         # props the scene also draws on their own: the laptop (the cat sits on it), the paper, the bottle being handed over
-        'type': dict(fix=[('clear', 14, 91, 64, 96), ('fill', 15, 90, 61, 90, '#010101', set())],   # the laptop stands on the desk line (note 9d)
+        # note T1 (2026-10-04): "when typing, hands should be COMPLETELY hidden behind laptop screen": below the sleeves
+        # each forearm runs in behind the screen's edge, the shirt shows under it down to the desk, the fists are gone
+        'type': dict(fix=[('clear', 14, 91, 64, 96), ('fill', 15, 90, 61, 90, '#010101', set()),   # the laptop stands on the desk line (note 9d)
+                          ('rows', 0, 77, ['kuuuuuuuuukkkkkkk',
+                                           'kmssssssssssssssm',
+                                           'kmssssssssssssssm',
+                                           'kmsssssssssssssam',
+                                           'kmmsssssssssssaaa',
+                                           'kaassssssssaaaadd',
+                                           'kdaaaaaaaaaaakkkk',
+                                           'kddddddkkkkkktttt',
+                                           'kkkkkkktttttttttt',
+                                           'kutttttttt.......',
+                                           'kkuuuuttt........']),
+                          ('rows', 65, 74, ['uuutttk______',
+                                            'uuutttk______',
+                                            'uuuttttk_____',
+                                            'uuuuuuuk_____',
+                                            'msssssmk_____',
+                                            'ssssssak_____',
+                                            'ssssssak_____',
+                                            'assssaadk____',
+                                            'kkaadddk_____',
+                                            'ttkkkkk______',
+                                            'ttttttk______',
+                                            'ttttttk______',
+                                            'utttttk______',
+                                            'uuuuutk______',
+                                            'kkkkkkk______'])],
                      props={'laptop': (LAPTOP, (20, 56, 100, 100))},
                      frames={'type1': ((-2, 72, 17, 90), 0, -1), 'type2': ((63, 70, 82, 90), 0, -1), 'typetrack': ((63, 70, 82, 90), -1, 0)}),
         # note 9d: the desk is seen flat from the front, so the paper lies edge-on: a thin white strip on the desk line,
@@ -169,8 +199,9 @@ MANUAL = {
                           ('fill', -3, 56, 61, 56, '#010100', set()), ('fill', -3, 85, 61, 85, '#010100', set()),
                           ('fill', -3, 57, -3, 84, '#010100', set()), ('fill', 61, 57, 61, 84, '#010100', set()),
                           ('fill', -2, 57, 60, 57, '#5f6368', set()),
-                          ('rows', -7, 72, ['kkkk', 'wsss', 'wsss', 'wsse', 'wsee', 'kkkk']),
-                          ('rows', 62, 72, ['kkkk', 'sssw', 'sssw', 'essw', 'eesw', 'kkkk']),
+                          # note T1 (2026-10-04): no hands at all, the sleeves run in behind the laptop's edges
+                          ('rows', -7, 72, ['jjjj', 'jjjj', 'jjJJ', 'JJJJ', 'JJJJ', 'kkkk', '__._', '__._', '__._']),
+                          ('rows', 62, 72, ['jjjj', 'jjjj', 'JJjj', 'JJJJ', 'JJJJ', 'kkkk']),
                           ('clear', 62, 78, 64, 81)],
                      props={'laptop': (LAPTOP, (-14, 50, 66, 96))}),
         'wave': dict(frames={'wave2': ((-12, 12, 12, 38), 1, 0)}),          # a casual wave: the hand rocks a pixel
