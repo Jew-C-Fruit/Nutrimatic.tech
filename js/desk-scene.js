@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.18.0
+ * Version 0.18.1
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -74,6 +74,7 @@
  * Modified: 2026-10-04 - The shake handover skips Cole drinking from the shaker (to-do T18) (v0.17.1)
  * Modified: 2026-10-04 - No high five: their raised hands never met (Cole: make them smack or drop it, to-do T21) (v0.17.2)
  * Modified: 2026-10-04 - A ceiling light: a generated pendant between them, lit after dark (to-do T15) (v0.18.0)
+ * Modified: 2026-10-04 - The pigeon is outside, behind the window's glass and bars (to-do T27) (v0.18.1)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(),
@@ -753,7 +754,7 @@
   function startScenario(name) {
     var sc = SCENARIOS[name]; if (!sc || (sc.when && !sc.when())) { return false; }
     if (scenario && scenario.end) { scenario.end(); }                    // (only the test hooks start one over another)
-    scenario = { name: name, t0: frame, steps: sc.steps.map(function (s) { return { at: s[0], fn: s[1], done: false }; }), dur: sc.dur, update: sc.update, drawBack: sc.drawBack, drawMid: sc.drawMid, drawFront: sc.drawFront, end: sc.end };
+    scenario = { name: name, t0: frame, steps: sc.steps.map(function (s) { return { at: s[0], fn: s[1], done: false }; }), dur: sc.dur, update: sc.update, drawOutside: sc.drawOutside, drawBack: sc.drawBack, drawMid: sc.drawMid, drawFront: sc.drawFront, end: sc.end };
     actors = {}; if (sc.setup) { sc.setup(); }
     people.forEach(function (p) { p.actUntil = frame + 1e6; p.gesture = false; }); convo = null;
     return true;
@@ -865,7 +866,7 @@
         else if (b.state === "walk") { var k = f - b.t0; if (k % 24 < 12) { b.x += (k % 2) ? -1 : 0; } b.peck = (k % 30) >= 22; }
         else if (b.state === "fly") { b.y -= 3; b.x += 2; }
       },
-      drawFront: function (t, f) {
+      drawOutside: function (t, f) {                                     // on the ledge outside: behind the glass and the window's bars (T27)
         var b = actors.bird, x = Math.round(b.x), y = Math.round(b.y), flap = b.state !== "walk" && (f % 4 < 2), pk = b.peck ? 2 : 0;
         rect(x - 4, y, 9, 5, C.pigeon); rect(x - 6, y + 1, 3, 3, C.pigeonD); hline(x - 3, y + 4, 7, C.pigeonD);
         rect(x + 3, y - 3 + pk, 4, 4, C.pigeonL); px(x + 7, y - 2 + pk, C.sun); px(x + 5, y - 2 + pk, C.ink); hline(x + 3, y + pk, 3, "#5d8f7a");
@@ -1197,11 +1198,12 @@
     var h = hourNow(), t = scenario ? (f - scenario.t0) / FPS : 0, dark = isDark(h), art = ENV.ready, back = g;
     if (art) {
       drawWindowView(h, f);                                              // behind the glass, on the back layer
+      if (scenario && scenario.drawOutside) { scenario.drawOutside(t, f); }   // outside the window (the pigeon on the ledge)
       g = fgx; g.clearRect(0, 0, W, H);                                  // the room and everyone in it, on the front layer
       g.drawImage(ENV.img["room-" + layoutName], 0, 0); g.drawImage(ENV.img["painting-" + layoutName], L.art.painting.x, L.art.painting.y); drawClockArt(h); drawSunPatch(h);
       drawPendantArt(dark);
     }
-    else { drawRoom(h); drawWindow(h, f); drawSunPatch(h); drawPendant(dark); drawLampArm(); }
+    else { drawRoom(h); drawWindowView(h, f); if (scenario && scenario.drawOutside) { scenario.drawOutside(t, f); } drawWindowFrame(); drawSunPatch(h); drawPendant(dark); drawLampArm(); }
     if (scenario && scenario.drawBack) { scenario.drawBack(t, f); }
     for (var i = 0; i < people.length; i++) { drawCharacter(people[i], f); }
     if (scenario && scenario.drawMid) { scenario.drawMid(t, f); }        // between them and the desk: a cat on a keyboard

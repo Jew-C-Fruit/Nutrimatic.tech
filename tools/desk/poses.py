@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - poses.py
-Version 1.7.1
+Version 1.8.0
 
 Created: 2026-10-02 - The figures' body poses, from generated pictures, as layers under the base head; the neck, and
   Ilinca's top, taken from the base so every pose joins the same head; front boxes by eye (v1.0.0)
@@ -53,6 +53,8 @@ Modified: 2026-10-04 - To-do fixes: typing forearms full width again (T13); the 
   petting pictures redrawn clean, her outline kept clear of the hole filling (T25: it had read as a black hand) (v1.7.0)
 Modified: 2026-10-04 - Ilinca's typing: a new picture with a narrower laptop below her hair's ends, her hands hidden behind
   it, a lump of blazer above her shoulder cleared (T24) (v1.7.1)
+Modified: 2026-10-04 - One shaker everywhere (T28): the generated bottles in the shake, offer, take and drink poses replaced
+  by the shaker that stands on the desk, behind the fingers, tipped for the drink (shaker()) (v1.8.0)
 
 Every activity in the scene is drawn with a body pose: the whole torso with arms, hands and whatever they hold, made
 by the image model from the figure's own portrait (pose_sprites.py says how) and reduced to a sprite on the base
@@ -68,6 +70,7 @@ from). This module cuts each into what the scene draws:
 """
 import json, os, sys
 import numpy as np
+from PIL import Image
 from scipy import ndimage as _nd
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -80,6 +83,36 @@ GRIDS = {'cole': os.path.join(HERE, 'sprites', 'cole-301.json'), 'ilinca': os.pa
 
 # the Nutrimatic "nu" monogram (assets/nu-mark.svg reduced to five pixels) for the shaker bottles; '.' keeps a pixel
 NU_MARK = ['kkk..', 'k.k..', 'k.k.k', 'k.k.k', '..kkk']
+# T28 ("the shaker changes shape multiple times"): one shaker in every hand, the one standing on the desk afterwards
+# (assets/desk/prop-bottle.png, generated): red flip cap with its spout, white body, a grey shaded side, the nu mark.
+SHAKER = ['aaaa.....aaa..', '.abba...acba..', '..abaaaadcba..', '.aaabbbbbdba..', '.abbbbbbbbbea.', 'abccbbbbbbeeea', 'abccbbbbbbeeea',
+          'aaaaaaaaaaaaaa', 'affffffffggga.'] + ['.affffffffgga.'] * 6 + ['.afhhhffffgga.', '.afhfhffffgga.', '.afhfhfhffgga.',
+          '.afhfhfhffgga.', '.afffhhhffgga.'] + ['.affffffffgga.'] * 7 + ['.affffffffga..', '..affffffgga..', '...aaaaaaaa...']
+SHAKER_KEYS = {'cole': dict(a='k', b='r', c='p', d='b', e='R', f='w', g='g', h='k'),
+               'ilinca': dict(a='k', b='r', c='r', d='R', e='R', f='W', g='g', h='k')}
+
+
+def shaker(who, angle=0):
+    """the shaker as a pixel map in the figure's own letters; tilted by angle degrees (clockwise) for a drink, by scaling
+    up, turning and scaling back down so its pixels stay clean"""
+    m = SHAKER_KEYS[who]; rows = [''.join(m.get(ch, '.') for ch in r) for r in SHAKER]
+    if not angle: return rows
+    h, w = len(rows), len(rows[0]); Z = 8
+    letters = sorted({ch for r in rows for ch in r if ch != '.'}); code = {ch: i + 1 for i, ch in enumerate(letters)}
+    a = np.array([[code.get(ch, 0) for ch in r] for r in rows], np.uint8)
+    big = np.kron(a, np.ones((Z, Z), np.uint8))
+    im = Image.fromarray(big).rotate(-angle, resample=Image.NEAREST, expand=True)
+    b = np.asarray(im); H, W = b.shape[0] // Z, b.shape[1] // Z; out = []
+    for y in range(H):
+        row = ''
+        for x in range(W):
+            cell = b[y * Z + Z // 2 - 1:y * Z + Z // 2 + 1, x * Z + Z // 2 - 1:x * Z + Z // 2 + 1].ravel()
+            v = int(np.bincount(cell).argmax()); row += '.' if v == 0 else letters[v - 1]
+        out.append(row)
+    while out and set(out[0]) == {'.'}: out.pop(0)
+    while out and set(out[-1]) == {'.'}: out.pop()
+    lo = min(len(r) - len(r.lstrip('.')) for r in out); hi = max(len(r.rstrip('.')) for r in out)
+    return [r[lo:hi] for r in out]
 
 SKIN_COLE = {'#dc7f6d', '#ee947c', '#f6af8d', '#f8cda6', '#f9eee0'}
 SKIN_ILINCA = {'#f9e2d2', '#faebe1', '#e1cec4', '#e0b3a2', '#f1a49b', '#d18881', '#b5705f'}
@@ -190,7 +223,9 @@ MANUAL = {
                            ('recolour', 14, 88, 72, 90, {'#fbfaf5': None, '#d9d5c8': None, '#cfd2d4': None}),
                            ('under', 22, 88, ['k' + 'w' * 40 + 'k', 'k' + 'g' * 40 + 'k', 'k' * 42], SKIN_COLE)],
                       props={'paper': (PAPER, (10, 80, 90, 100))}, frames={'write1': ((14, 64, 36, 92), 1, 0), 'write2': ((14, 64, 36, 92), 2, -1)}),
-        'offer': dict(fix=[('recolour', 74, 19, 87, 49, {'#f9eee0': '#fbfaf5'}), ('rows', 78, 28, NU_MARK)], props={'bottle': (BOTTLE, (58, 0, 100, 50))}, empty={'offerEmpty': 'bottle'},
+        # T28: the one shaker in every hand (the generated bottle goes, the shaker goes behind the fingers)
+        'offer': dict(fix=[('recolour', 70, 12, 90, 52, {'#f9eee0': '#fbfaf5'}), ('erase', 70, 12, 90, 52, BOTTLE), ('under', 72, 16, shaker('cole'), SKIN_COLE)],
+                      props={'bottle': (BOTTLE, (58, 0, 100, 50))}, empty={'offerEmpty': 'bottle'},
                       # T17: without the bottle the curled hand read as a hole: the fingers close into a fist
                       empty_fix={'offerEmpty': [('rows', 73, 40, ['k...............',
                                                                   'kkkkkkkkkkkkkkk.',
@@ -204,7 +239,8 @@ MANUAL = {
                                                                   'mdddddddddddk...',
                                                                   '...kkkkkkkkk....'])]}),
         # shaking: only the hands, forearms and the bottle move (T19: a box shift took a chunk of his shirt with them)
-        'shake': dict(fix=[('rows', 38, 78, NU_MARK)], frames={'shake2': {'move': ((24, 44, 58, 86), 0, -2, SKIN_COLE | BOTTLE, '#211f1f')}}),
+        'shake': dict(fix=[('erase', 30, 50, 50, 86, BOTTLE), ('under', 33, 55, shaker('cole'), SKIN_COLE)],
+                      frames={'shake2': {'move': ((24, 44, 58, 86), 0, -2, SKIN_COLE | BOTTLE | {'#623e32'}, '#211f1f')}}),
         'highfive': dict(pts={'hand': (67, 24)}),
         'throw': dict(pts={'hand': (76, 34)}),
         'yawn': dict(front=(30, 31, 52, 47), keep_neck=True),
@@ -248,14 +284,15 @@ MANUAL = {
                       frames={'phone1': ((10, 44, 40, 68), 0, -1)},
                       fix=[('recolour', 12, 44, 36, 70, {'#5f6368': '#3d5f99', '#9a9ea2': '#6f93cf'})]),
         'carry': dict(keep_chest=True),
-        'drink': dict(front=(-6, 16, 24, 50), front_mode='limb'),
+        'drink': dict(front=(-6, 16, 18, 56), front_mode='limb',                  # T28: the same shaker, tipped to her lips
+                      fix=[('erase', -6, 16, 24, 52, BOTTLE), ('under', 1, 27, shaker('ilinca', 38), SKIN_ILINCA)]),   # its spout at her mouth's corner
         'yawn': dict(front=(12, 24, 36, 42), front_mode='diff', keep_neck=True),
         # hands and sleeves that are in front of her hair
         'talk': dict(front=(-16, 28, 14, 64), front_mode='limb'),
         'call': dict(keep_chest=True, front=(4, 24, 15, 46), front_mode='limb'),
         'surprise': dict(keep_chest=True, front=(48, 24, 68, 58), front_mode='limb'),
         # the bottle came out in her skin colours
-        'take': dict(fix=[('clear', -30, 78, 13, 84), ('rows', -6, 30, NU_MARK)]),   # her fingers wrap the bottle; a stray grey bar cleared
+        'take': dict(fix=[('clear', -30, 78, 13, 84), ('erase', -12, 12, 4, 50, BOTTLE), ('under', -11, 14, shaker('ilinca'), SKIN_ILINCA)]),   # her fingers wrap the shaker; a stray grey bar cleared
         # note 9b: hands in her lap under the desk (when Maker walks by): her rest picture with the forearms and hands
         # taken out and the blazer and top carried straight down to the desk line (the model would not hide her hands)
         'hide': dict(keep_chest=True, fix=[('handsunder', 71, 84, 15, 25, ('#292423', '#191718', '#010100', '#fbfaf5', '#0b0503')),
