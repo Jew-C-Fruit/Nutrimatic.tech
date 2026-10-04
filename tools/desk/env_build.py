@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - env_build.py
-Version 1.4.0
+Version 1.5.0
 
 Created: 2026-10-02 - The room, the skyline and the two anglepoise lamps as generated pictures reduced to the scene's
   pixels, written to assets/desk/ (v1.0.0)
@@ -10,6 +10,7 @@ Modified: 2026-10-03 - The Nutrimatic "nu" mark on the shaker bottle prop (v1.2.
 Modified: 2026-10-03 - The papers prop drawn edge-on, as the flat front view of the desk needs (v1.3.0)
 Modified: 2026-10-04 - The desk has a top now (Cole's note 12, "now that the desk is 3d"): nine rows of wood surface
   above the front edge, in the desk's own colours, darker by the wall; the front edge and the drawers move down (v1.4.0)
+Modified: 2026-10-04 - A ceiling light (to-do T15): a generated pendant reduced like the lamps, lit and unlit (v1.5.0)
 
 The environment was drawn in code until v0.7 and looked low-fi next to the figures, so it is made the same way as they
 are now: pictures generated on the GPU machine (FLUX.2 klein 4B, see sources/PROVENANCE.md) and reduced with
@@ -165,6 +166,25 @@ def lamps():
     return dict(size=[red.w, red.h])
 
 
+def pendant():
+    """the ceiling light (to-do T15): its generated picture reduced like the lamps, 30 px tall from the cord's top to the
+    shade's rim; 'pendant-on' as generated (the bulb lit, the shade warm inside), 'pendant-off' with the inside and the
+    bulb in cool greys for the day"""
+    rgb = np.asarray(Image.open(os.path.join(SRC, 'ceiling-seed9603.png')).convert('RGB')); mask, _ = PX.subject_mask(rgb)
+    ys, xs = np.where(mask); s = 30 * 10 / (ys.max() - ys.min())
+    rgb2 = np.asarray(Image.fromarray(rgb).resize((int(rgb.shape[1] * s), int(rgb.shape[0] * s)), Image.LANCZOS))
+    m2 = np.asarray(Image.fromarray(mask.astype(np.uint8) * 255).resize((rgb2.shape[1], rgb2.shape[0]), Image.NEAREST)) > 127
+    spr, alpha, centers, _ = PX.pixelize(rgb2, 10, colors=10, mask=m2, line_colors=2)
+    on = Sprite(np.where(alpha, spr, -1).astype(np.int16), [rgb2hex(c) for c in PX.oklab_to_srgb(centers)])
+    off = on.copy(); pal = []
+    for c in on.pal:
+        r, g, b = hex2rgb(c); L = 0.2126 * r + 0.7152 * g + 0.0722 * b
+        pal.append(rgb2hex((int(L * 0.86), int(L * 0.88), int(L * 0.92))) if L > 110 else c)   # the warm light goes out
+    off.pal = pal
+    on.save(os.path.join(OUT, 'pendant-on.png')); off.save(os.path.join(OUT, 'pendant-off.png'))
+    return dict(size=[on.w, on.h])
+
+
 # Victory Boogie Woogie (Piet Mondrian, 1942-44) where the poster was: a diamond in a white box frame, as it hangs in
 # the Kunstmuseum Den Haag. The painting's own lines run level, so each sprite pixel is the average of its patch of the
 # photograph snapped to Mondrian's colours; the frame and its shadow are plain shapes. PAINTING = the photo (its
@@ -263,5 +283,5 @@ def edge_on_papers():
 
 if __name__ == '__main__':
     os.makedirs(OUT, exist_ok=True)
-    info = {'wide': room('wide'), 'narrow': room('narrow'), 'sky': skyline(), 'lamp': lamps(), 'props': props(), 'painting': [painting('wide'), painting('narrow')]}
+    info = {'wide': room('wide'), 'narrow': room('narrow'), 'sky': skyline(), 'lamp': lamps(), 'pendant': pendant(), 'props': props(), 'painting': [painting('wide'), painting('narrow')]}
     print(json.dumps(info, indent=1))

@@ -27,7 +27,6 @@ await shot("v8-night-work", "D.setHour(22.5); D.activity('cole','solder',60); D.
 for (let i = 0; i < 4; i++) await shot("v8-write-" + i, (i ? "D.step(4);" : "D.setHour(11); D.activity('cole','write',60); D.activity('ilinca','write',60); D.step(1);"));
 await shot("v6-ds", "D.setHour(11); " + REST + " D.scenario('ds'); D.step(60);");
 await shot("v6-ds-caught", "D.step(42);");
-await shot("v6-highfive", "D.step(120); " + REST + " D.scenario('highfive'); D.step(18);");
 await shot("v8-maker-hands", "D.step(60); D.activity('cole','type',60); D.activity('ilinca','type',60); D.step(3); D.scenario('visit'); D.step(44);");
 await shot("v8-maker-knead", "D.step(26);");
 await shot("v8-maker-pet", "D.step(110);");

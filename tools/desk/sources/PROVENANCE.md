@@ -1,6 +1,6 @@
 # Where the pictures in this folder came from
 
-Version 1.9.0 · Created 2026-10-02 · Modified 2026-10-03 (walk cycle; petting with a cat; audit references; the walk redone; looking down; petting at the desk's edge; portraits kept out of the repo)
+Version 1.10.0 · Created 2026-10-02 · Modified 2026-10-03 (walk cycle; petting with a cat; audit references; the walk redone; looking down; petting at the desk's edge; portraits kept out of the repo; the ceiling light)
 
 ## Credits to show when the scene goes live (not on the page yet, by Cole's choice)
 
@@ -120,6 +120,12 @@ The photographs themselves are not in this repo.
   at a desk just in front of her, everything else unchanged. Her outline stayed exactly; `characters.Ilinca.down_blank`
   takes its hairline (`sprites/ilinca-down-1x.png`) and moves her features as it did.
 - Work folder `lookdown/` (run.sh to run4.sh): the other candidates, the reductions and the comparison sheets.
+
+## The ceiling light (2026-10-04, Cole: "Give us a new ceiling light")
+
+- `ceiling-seed9603.png`: FLUX.2 klein 4B, with `lamp-seed9401.png` (the anglepoise) as the style reference, asked for
+  an industrial black dome pendant on a cord (work folder `ceiling/`); `env_build.pendant` reduces it to
+  `assets/desk/pendant-on.png` and an unlit `pendant-off.png`.
 
 ## The painting where the poster was (2026-10-02)
 

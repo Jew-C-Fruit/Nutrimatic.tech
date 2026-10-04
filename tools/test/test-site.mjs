@@ -247,7 +247,7 @@ const memberFill = { email: "t@example.com", gym_name: "Ironworks", gym_location
   const info = await page.evaluate(() => {
     const D = window.NutrimaticDesk, A = window.NutrimaticDeskArt; if (!D || !A) return { missing: true };
     const started = {}, cv = document.querySelector("[data-desk-scene] canvas");
-    for (const name of ["ds", "highfive", "airplane", "pigeon", "visit", "laptop", "coffee", "shake", "call"]) {
+    for (const name of ["ds", "airplane", "pigeon", "visit", "laptop", "coffee", "shake", "call"]) {
       D.activity("cole", name === "laptop" ? "type" : "rest", 60); D.activity("ilinca", "rest", 60); started[name] = D.scenario(name); D.step(400);   // long enough for any of them to finish
     }
     const catDuringSolder = (D.activity("cole", "solder", 60), D.scenario("visit"));

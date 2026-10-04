@@ -1,12 +1,12 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.17.1
+ * Version 0.18.0
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
  * Modified: 2026-10-01 - Seated proportions with jointed arms; two layouts (wide desk on desktop, closer on phones);
  *   name plates; articulated lamp that swings over whoever is soldering or writing and casts a cone of light; New York
- *   skyline that lights up at night; scripted scenarios (Nintendo DS, high five, paper airplane, pigeon, cat, coffee run,
+ *   skyline that lights up at night; scripted scenarios (Nintendo DS, paper airplane, pigeon, cat, coffee run,
  *   shake break, late night, solder spark); desk set per visit; no frame, no speech bubbles (v0.5.0)
  * Modified: 2026-10-02 - The figures are no longer drawn in code: they come from portraits generated from photos and
  *   finished as sprites (js/desk-sprites.js). A figure is a torso and a head (the head nods), a face built from blink /
@@ -72,6 +72,8 @@
  *   tail over it), petted with the new petedge poses, and curls up on Ilinca's paper at the back; Ilinca no longer
  *   stretches (v0.17.0)
  * Modified: 2026-10-04 - The shake handover skips Cole drinking from the shaker (to-do T18) (v0.17.1)
+ * Modified: 2026-10-04 - No high five: their raised hands never met (Cole: make them smack or drop it, to-do T21) (v0.17.2)
+ * Modified: 2026-10-04 - A ceiling light: a generated pendant between them, lit after dark (to-do T15) (v0.18.0)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(),
@@ -105,7 +107,7 @@
   // With the generated room (assets/desk) the poster, clock and window are where that picture has them; `art` holds
   // those places, `win` etc. are the drawn room's (the fallback when the pictures do not load).
   var LAYOUTS = {
-    wide:   { W: 360, H: 160, cole: 124, ilinca: 226, poster: { x: 14, y: 20, w: 58, h: 62 }, clock: { x: 88, y: 34 }, win: { x: 280, y: 22, w: 66, h: 74 }, lamp: 177, pendant: 177, slots: [36, 272, 338, 12, 306],
+    wide:   { W: 360, H: 160, cole: 124, ilinca: 226, poster: { x: 14, y: 20, w: 58, h: 62 }, clock: { x: 88, y: 34 }, win: { x: 280, y: 22, w: 66, h: 74 }, lamp: 177, pendant: 121, slots: [36, 272, 338, 12, 306],
               art: { painting: { x: 7, y: 20 }, clock: { x: 88, y: 34, r: 7 }, win: { x: 262, y: 18, w: 88, h: 84 }, sky: { x: 254, y: 15 }, lamps: [67, 290], slots: [34, 318, 344], catY: 141 } },
     narrow: { W: 240, H: 160, cole: 60, ilinca: 162, poster: { x: 1, y: 20, w: 51, h: 50 }, clock: { x: 98, y: 30 }, win: { x: 190, y: 22, w: 46, h: 66 }, lamp: 112, pendant: 126, slots: [226, 10],
               art: { painting: { x: 1, y: 18 }, clock: { x: 99, y: 31, r: 7 }, win: { x: 192, y: 20, w: 44, h: 70 }, sky: { x: 130, y: 3 }, lamps: [0, 226], slots: [], catY: 141 } }
@@ -113,7 +115,7 @@
   // The environment pictures. Until they have loaded (or if they never do) the room is drawn in code as before.
   var ENV = { ready: false, img: {} };
   (function () {
-    var base = "assets/desk/", names = ["room-wide", "desk-wide", "room-narrow", "desk-narrow", "sky-day", "sky-night", "lamp-red", "lamp-white", "prop-bottle", "prop-mug", "prop-papers", "prop-vase", "prop-plant", "painting-wide", "painting-narrow"], left = names.length;
+    var base = "assets/desk/", names = ["room-wide", "desk-wide", "room-narrow", "desk-narrow", "sky-day", "sky-night", "lamp-red", "lamp-white", "prop-bottle", "prop-mug", "prop-papers", "prop-vase", "prop-plant", "painting-wide", "painting-narrow", "pendant-on", "pendant-off"], left = names.length;
     var inline = window.NutrimaticDeskAssets || {};                      // a self-contained preview hands the pictures over as data
     try { if (document.currentScript && document.currentScript.src) { base = new URL("../assets/desk/", document.currentScript.src).href; } } catch (e) { /* relative path */ }
     names.forEach(function (n) {
@@ -265,6 +267,12 @@
 
   /* ---------- the generated room (assets/desk): Mondrian's Victory Boogie Woogie where the poster was; the clock's hands ---------- */
   function applyArt() { if (layoutName) { WIN = ENV.ready ? L.art.win : L.win; makeStars(); } }
+  // The ceiling light (to-do T15): a generated pendant hanging between them from the ceiling, its shade's rim at row 30
+  // where the night's light pools start; lit after dark, its inside cool grey by day.
+  function drawPendantArt(dark) {
+    var im = ENV.img[dark ? "pendant-on" : "pendant-off"]; if (!im) { return; }
+    g.drawImage(im, Math.round(L.pendant - im.width / 2), 31 - im.height);
+  }
   function drawClockArt(h) {
     var K = L.art.clock, cx = K.x, cy = K.y, r = K.r - 1;
     for (var dy = -r; dy <= r; dy++) { var half = Math.floor(Math.sqrt(r * r - dy * dy)); hline(cx - half, cy + dy, half * 2 + 1, "#f6f4ee"); }
@@ -823,22 +831,6 @@
         [10.6, function () { setActivity(cole, "type", 99); faceOf(cole, { brows: null, mouth: "neutral" }); faceOf(ilinca, { brows: null, mouth: "smile" }); ilinca.turn = 0; ilinca.lookTarget = { x: 0, y: 1 }; }]
       ]
     },
-    // Something worked: a high five across the gap.
-    highfive: {
-      dur: 4.2,
-      steps: [
-        [0, function () { lookAtEachOther(); cole.mouth = "smile"; ilinca.mouth = "smile"; }],
-        [0.5, function () { setActivity(cole, "highfive", 99); setActivity(ilinca, "highfive", 99); }],
-        [1.4, function () { cole.mouth = "laugh"; ilinca.mouth = "laugh"; actors.clap = frame; }],
-        [2.6, function () { setActivity(cole, "rest", 99); setActivity(ilinca, "rest", 99); cole.mouth = "smile"; ilinca.mouth = "smile"; }]
-      ],
-      drawFront: function (t, f) {
-        if (actors.clap && f - actors.clap < 6) {
-          var a = posePoint(cole, "hand"), b = posePoint(ilinca, "hand"), mx = a && b ? ((a.x + b.x) / 2 | 0) : midX(), my = a && b ? ((a.y + b.y) / 2 | 0) : DESK_Y - 44;
-          px(mx, my - 5, C.sun); px(mx - 5, my, C.sun); px(mx + 5, my, C.sun); px(mx, my + 5, C.sun); px(mx - 3, my - 3, C.white); px(mx + 3, my + 3, C.white); px(mx + 3, my - 3, C.white); px(mx - 3, my + 3, C.white);
-        }
-      }
-    },
     // Cole folds a paper airplane and throws it; it lands in Ilinca's space and stays on the desk.
     airplane: {
       dur: 7.5,
@@ -1125,6 +1117,11 @@
     g.restore();
     if (n <= 0.02) { return; }
     fgCopyX.clearRect(0, 0, W, H); fgCopyX.drawImage(fg, 0, 0);          // what the layer covers, before the light
+    var pim = ENV.img["pendant-on"];
+    if (pim) {                                                           // the ceiling light is on: its shade glows, its light falls on the desk
+      g.drawImage(pim, Math.round(L.pendant - pim.width / 2), 31 - pim.height);
+      pool(L.pendant, 31, DESK_FRONT + 3, 9, 58, n * 0.30); pool(L.pendant, 31, DESK_FRONT + 3, 6, 34, n * 0.24);
+    }
     for (var i = 0; i < 2; i++) {
       if (!lampIsOn(i, h)) { continue; }
       var q = lampGeom(i);
@@ -1202,6 +1199,7 @@
       drawWindowView(h, f);                                              // behind the glass, on the back layer
       g = fgx; g.clearRect(0, 0, W, H);                                  // the room and everyone in it, on the front layer
       g.drawImage(ENV.img["room-" + layoutName], 0, 0); g.drawImage(ENV.img["painting-" + layoutName], L.art.painting.x, L.art.painting.y); drawClockArt(h); drawSunPatch(h);
+      drawPendantArt(dark);
     }
     else { drawRoom(h); drawWindow(h, f); drawSunPatch(h); drawPendant(dark); drawLampArm(); }
     if (scenario && scenario.drawBack) { scenario.drawBack(t, f); }
