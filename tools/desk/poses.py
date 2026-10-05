@@ -208,6 +208,111 @@ DS_HAND = ['tttttttttttttttttt........',
            'tkssssssssmmmaakkkkttttttt',
            'kssssssssmmmaakttttttttttt']
 
+# T57 (i: "needs to be scale consistent when thrown"; audit: the throwing hand "a mottled blob ... no readable fingers; the
+# plane touches only one fingertip", and the plane's nose ran off the picture's edge, 17 of its 22 px showing): his raised
+# forearm and hand drawn by hand from (62, 30), joined to the forearm where it leaves his sleeve: the wrist bends the hand
+# upright, the thumb stands in front of the plane's far wing, the index finger is behind the plane's lower edge (that edge
+# is the finger's outline), three fingers curl into the palm (finger lines in the darkest skin). The whole PLANE sits at
+# THROW_PLANE, the same plane he folded and the one that flies off from here
+THROW_HAND = ['...........kk',
+              '..........kssk',
+              '..........kssdsssk',
+              '..........ksssdssk',
+              '..........kssssdssk',
+              '..........ksssssdsmk',
+              '..........kssssssddmk',
+              '.........kssssssssssmk',
+              '.........kssssssssssmk',
+              '........kssssssssdddddk',
+              '........ksssssssssssssmk',
+              '........ksssssssssssssmk',
+              '.......ksssssssssssddddk',
+              '......kssssssssssssssmk',
+              '.....ksssssssssssssssmk',
+              '....kssssssssssssddddk',
+              '...ksssssssssssssmmak',
+              '..ksssssssssssssmmmak',
+              '.ksssssssssssssmmmaak',
+              'ksssssssssssssmmmaak',
+              'sssssssssssssmmmaak',
+              'ssssssssssssmmmaak',
+              'sssssssssssmmmaak',
+              'ssssssssssmmmaak',
+              'sssssssssmmmaak',
+              'ssssssssmmmaak',
+              'sssssssmmmaak',
+              'ssssssmmmaak',
+              'sssssmmmaak',
+              'mmmmmmmaak',
+              'mmmmmmaak',
+              'mmmmmaak',
+              'mmmmaak',
+              'mmmaak',
+              'mmaak',
+              'maak',
+              'aak',
+              'ak']
+THROW_PLANE = (66, 22)
+
+# T53 (e: "cole's shaker motion still includes parts of the chest and neck, shaker, hands and arms must be isolated"; audit:
+# the cap covered the bottom of his collar every other frame): both hands round the shaker drawn by hand, as the DS grip
+# (DS_HAND): each thumb up beside the shaker, four fingers across its front (finger lines in the darkest skin, a notch
+# between fingertips), the palm running down into the forearm that stays on the desk. The shake moves only these and the
+# shaker, two rows DOWN (shake_grip): the shaker's cap is never higher than the row under his collar, and nothing at or
+# above his collar is drawn. SHAKE_HAND_L from (18, 59) (his right hand, on the left), SHAKE_HAND_R from (41, 59)
+SHAKE_HAND_L = ['............kk',
+                '...........kssk',
+                '..........ksssk',
+                '.........kssssk',
+                '........ksssssk',
+                '........ksssssskkkkk',
+                '.......ksssssssssssmk',
+                '.......ksssssssssssmk',
+                '......ksssssssdddddk',
+                '......kssssssssssssmk',
+                '......kssssssssssssmk',
+                '.....ksssssssssddddk',
+                '....kkssssssssssssmk',
+                '...kssssssssssssmmk',
+                'kkksssssssssdddk',
+                '.sssssssssssssssmk',
+                '.ssssssssssmmmmak',
+                '.ssssmmmmaaakkkk',
+                '.ssssmmaaaaak',
+                '.ssssaaaaakk',
+                '.ssaaaakkk',
+                '.saaaak']
+SHAKE_HAND_R = ['......kk',
+                '.....kssk',
+                '.....kssk',
+                '.....ksssk',
+                '.....kssssk',
+                '.kkkkksssssk',
+                'kmssssssssk',
+                'kmsssssssssk',
+                '.kddddsssssk',
+                'kmssssssssssk',
+                'kmssssssssssk',
+                '.kdddddssssssk',
+                '.kmssssssssssskk',
+                '..kmmsssssssssssk',
+                '...kdddsssssssssskkk',
+                '...kmssssssssssssssk',
+                '....kammssssssssssss',
+                '.....kkaaammssssssss',
+                '.......kkaaammssssss',
+                '.........kkaaammssss',
+                '...........kkaaammss']
+# where the forearms (they stay put) meet the hands two rows lower: their top edges and the shaded inner edge carried on
+SHAKE_LOW = [('rows', 18, 74, ['kkk', 'sss']), ('rows', 18, 81, ['s']), ('rows', 16, 82, ['sss']), ('rows', 15, 83, ['sssaaaak']),
+             ('rows', 13, 84, ['ssaaaak']), ('rows', 60, 74, ['.t', '.k', 's'])]
+
+
+def shake_grip(dy):
+    """T53: the shaker and both hands holding it, dy rows down (0 or 2), as fix ops over the pose with its own hands taken
+    out: a frame of the shake moves nothing else"""
+    return [('rows', 33, 55 + dy, shaker('cole')), ('rows', 18, 59 + dy, SHAKE_HAND_L), ('rows', 41, 59 + dy, SHAKE_HAND_R)] + (SHAKE_LOW if dy else [])
+
 # By eye, per pose: the box (base coordinates) whose pixels go over the face, and named points.
 MANUAL = {
     'cole': {
@@ -309,14 +414,26 @@ MANUAL = {
                                                                   'mdddddddddddk...',
                                                                   '...kkkkkkkkk....'])]}),
         # shaking: only the hands, forearms and the bottle move (T19: a box shift took a chunk of his shirt with them)
-        'shake': dict(fix=[('erase', 30, 50, 50, 86, BOTTLE), ('under', 33, 55, shaker('cole'), SKIN_COLE)],
-                      frames={'shake2': {'move': ((22, 53, 60, 86), 0, -2, SKIN_COLE | BOTTLE, '#211f1f')}}),   # T53: below his collar: hands, forearms and shaker only
+        # T53 (e): the generated bottle and hands go (shirt where they were); both frames, 'shake' itself too, are drawn as
+        # frames, after the cleanup passes (which had turned outlines between thumb and finger to skin), so the two differ
+        # only in the hands and the shaker, two rows apart, all below his collar (shake_grip)
+        'shake': dict(fix=[('erase', 30, 50, 50, 86, BOTTLE), ('erase', 19, 58, 39, 80, SKIN_COLE), ('erase', 40, 57, 60, 79, SKIN_COLE),
+                           ('holes', 19, 55, 60, 86, '#211f1f')],
+                      frames={'shake': {'edits': shake_grip(0)}, 'shake2': {'edits': shake_grip(2)}}),
         'highfive': dict(pts={'hand': (67, 24)}),
-        # T42: the plane in his hand is the plane that flies (PLANE), its tail between his fingers
-        'throw': dict(pts={'hand': (84, 29)}, fix=[('erase', 74, 18, 98, 38, PAPER), ('under', 73, 23, PLANE, SKIN_COLE, True)]),   # its tail between his fingers
+        # T42: the plane in his hand is the plane that flies (PLANE); T57 (i): the generated hand goes, his hand-drawn forearm and
+        # pinching hand (THROW_HAND) take its place, the whole plane in it. 'hand' is where the flying plane's middle starts:
+        # level with the held one, 17 px on (a flight step is 7), its tail just off the open hand the release pose raises
+        # (started where it was held, it was drawn over that palm for three frames; further on, it grazed Ilinca's head)
+        'throw': dict(pts={'hand': (THROW_PLANE[0] + len(PLANE[0]) // 2 + 17, THROW_PLANE[1] + len(PLANE) // 2)},
+                      fix=[('erase', 74, 18, 98, 38, PAPER), ('clear', 64, 20, 95, 67), ('rows', 62, 30, THROW_HAND),
+                           ('under', THROW_PLANE[0], THROW_PLANE[1], PLANE, SKIN_COLE, True)]),
         # T42: he folds it in three steps, the paper getting smaller each time (the generated sheet goes)
         'fold': dict(fix=[('erase', 20, 56, 58, 88, PAPER), ('holes', 20, 56, 58, 88, '#211f1f'), ('under', 24, 56, paper_stage(0), SKIN_COLE, True)],
-                     frames={'fold3': {'edits': [('erase', 20, 56, 58, 88, PAPER | {'#cfd2d4'}), ('holes', 20, 56, 58, 88, '#211f1f'), ('under', 24, 56, paper_stage(2), SKIN_COLE, True)]}}),
+                     # T57 (i, audit: "the plane held at his chest at the end of folding ... about 1.5x bigger" than the thrown one,
+                     # "reads as an up-arrow"): the finished plane is PLANE itself, the one he throws, its tail behind his left
+                     # fingers and its nose at his right hand (the earlier folding stage stays as it was)
+                     frames={'fold3': {'edits': [('erase', 20, 56, 58, 88, PAPER | {'#cfd2d4'}), ('holes', 20, 56, 58, 88, '#211f1f'), ('under', 29, 61, PLANE, SKIN_COLE, True)]}}),
         # T37 ("On late night yawn, I have 3 arms"): a new picture, one hand over his mouth, the other forearm flat on the desk
         'yawn': dict(front=(30, 29, 60, 48), front_mode='arm', keep_neck=True,
                      fix=[('recolour', 49, 48, 53, 54, {'#211f1f': '#f8cda6', '#010101': '#f8cda6', '#100f13': '#f8cda6'})]),   # T59: no watch-like black block on his wrist
@@ -386,7 +503,7 @@ MANUAL = {
 # clean (fix op 'hand', after the pose's own fixes): boxes in base coordinates, one per hand
 HANDS = {
     'cole': {'sip': [(24, 34, 42, 58)], 'mug': [(-6, 70, 32, 90), (44, 72, 80, 94)],          # T44: his coffee hands too, and every hand the audit found clumped
-             'throw': [(62, 18, 100, 56)], 'surprise': [(-14, 10, 22, 60), (56, 10, 90, 60)], 'yawn': [(-6, 72, 76, 96)], 'talk': [(-10, 50, 84, 96)],
+             'surprise': [(-14, 10, 22, 60), (56, 10, 90, 60)], 'yawn': [(-6, 72, 76, 96)], 'talk': [(-10, 50, 84, 96)],   # T57: not 'throw' (its hand is drawn: THROW_HAND)
              'write': [(40, 70, 84, 96)], 'offer': [(64, 12, 96, 56)]},
     'ilinca': {
         'rest': [(5, 71, 41, 91)], 'mug': [(-8, 67, 41, 85)], 'sip': [(-2, 25, 14, 63), (19, 72, 41, 86)], 'write': [(-6, 71, 17, 87), (26, 73, 52, 88)],
