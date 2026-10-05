@@ -136,6 +136,8 @@ them (work folder `r29gen/`: `guides.py`, `run.sh`; the chosen pictures are kept
 | Cole `yawn` | nothing: one hand over his mouth, two arms | 9654 |
 | Cole `facepalm` | nothing: a hand to his head (the spark) | 9666 |
 
+- Round 30 (2026-10-05, T49): Ilinca `phone` is now `ilinca-phone-r30/cand-003-seed9704.png`, the phone pasted lower in
+  front of her chest and held from below in one hand (work folder `r30gen/`).
 - Typing for both is no longer its own picture: it is the writing picture with the laptop drawn in front (`poses.LID`,
   the size and shape of the laptop in Cole's earlier typing picture `cole-typehide` seed 7879, redrawn square).
 - Cole's looking-down head is built from his base head (`characters.Cole.down_blank`); `cole-down-1x.png` is no longer used.

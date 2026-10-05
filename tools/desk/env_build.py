@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - env_build.py
-Version 1.6.0
+Version 1.7.0
 
 Created: 2026-10-02 - The room, the skyline and the two anglepoise lamps as generated pictures reduced to the scene's
   pixels, written to assets/desk/ (v1.0.0)
@@ -12,6 +12,7 @@ Modified: 2026-10-04 - The desk has a top now (Cole's note 12, "now that the des
   above the front edge, in the desk's own colours, darker by the wall; the front edge and the drawers move down (v1.4.0)
 Modified: 2026-10-04 - A ceiling light (to-do T15): a generated pendant reduced like the lamps, lit and unlit (v1.5.0)
 Modified: 2026-10-04 - The narrow room's leftover poster frame painted out (round-29 audit) (v1.6.0)
+Modified: 2026-10-05 - The narrow room's own desk top above the desk line becomes wall (T52: the figures looked seated in the desk) (v1.7.0)
 
 The environment was drawn in code until v0.7 and looked low-fi next to the figures, so it is made the same way as they
 are now: pictures generated on the GPU machine (FLUX.2 klein 4B, see sources/PROVENANCE.md) and reduced with
@@ -81,9 +82,25 @@ def unframe(s, box):
     return s
 
 
+# T52 (2026-10-05, "when scaled for iphone, sprites seem to be seated in the desk rather than behind it"): the narrow
+# room picture has its own desk top in perspective (rows 119-133) above the scene's desk line (134), so a second band of
+# desk showed behind and beside the figures; it and the little plant on it become wall, the bricks carried down in their
+# own bond (ten rows: two five-row courses), so the desk starts at the desk line as in the wide room.
+OLD_DESK = {'narrow': [(0, 102, 26, 118, 20), (0, 119, 239, 133, 10)]}   # boxes (x0, y0, x1, y1) and the rows to copy from above, in order (the plant first)
+
+
+def unseat(s, boxes):
+    for x0, y0, x1, y1, up in boxes:
+        for y in range(y0, y1 + 1):
+            for x in range(x0, x1 + 1):
+                if 0 <= y - up and 0 <= x < s.w and y < s.h: s.idx[y, x] = s.idx[y - up, x]
+    return s
+
+
 def room(name):
     path, box = ROOMS[name]; s = reduce_full(os.path.join(SRC, path), 4, 28)
     if name in OLD_FRAME: s = unframe(s, OLD_FRAME[name])
+    if name in OLD_DESK: s = unseat(s, OLD_DESK[name])
     m = glass(s, box); ys, xs = np.where(m)
     back = s.copy(); back.idx[m] = -1; back.idx[DESK_Y:, :] = -1           # the window glass and the desk are not part of the back wall
     front = deepen(s.copy(), name); front.idx[:DESK_Y, :] = -1
