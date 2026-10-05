@@ -208,6 +208,86 @@ DS_HAND = ['tttttttttttttttttt........',
            'tkssssssssmmmaakkkkttttttt',
            'kssssssssmmmaakttttttttttt']
 
+# T49 (a, 2026-10-05, rework: "ilinca holding phone: phone should be held from the bottom, one handed"; before it
+# "Her left-side hand holding phone only has 3 fingers" and "Ilinca's hands are still messy"): the generated hand had
+# clutched the phone's lower half with its fingers across it, phone blue showing through it and a black clump of finger lines under
+# it. Hand-authored pixel maps instead, in her letters (the phone's blues: KEYS below): her right hand holds the phone
+# upright from below, the phone's bottom resting in her palm, her thumb along its left side low down, her four
+# fingertips showing at its right side (the fingers behind it); the phone 10 x 20 with its outline, as wide as the one
+# lying on her desk (it had been 12 wide), in the blues it had, its camera at the top of its back. PHONE_BACK is what is
+# behind and round the hand (blazer, her white top beside and below it), PHONE_GRIP the phone and the hand ('.' leaves
+# the picture), so the scrolling frame (phone1) is the same grip a row higher over the same background. x 12..33, row 50 on.
+PHONE_BACK = ['.........sssssssssssss'] + ['........ssssssssssssss'] * 3 + ['........sssssssssssskk'] + \
+             ['........WWWWWWWWWWWWkj'] * 2 + ['........WWWWWWWWWWWkjj',               # her white top, as in every other pose,
+              '......kWWWWWWWWWWWjjjj', '.....kWWWWWWWWWWWWjjjj', '....kWWWWWWWWWWWWWjjjj',   # to the right of the phone and the left
+              '....kWWWWWWWWWWWWWjjjj'] + ['..jjkWWWWWWWWWWWWWjjjj'] * 4 + \
+             ['.jjjkWWWWWWWWWkjjjjjjj'] + ['jjjjkWWWWWWWWWkjjjjjjj'] * 3 + ['jjjjjjjWWWWWWWkjjjjjjj'] * 5 + [   # of her thumb, and below her hand
+              'jjjjjjjWWWWWWWWkjjjjjj', 'jjjjjjkWWWWWWWWkjjjjjj', 'kkkkkkWWWWWWWWWkjjjjjj', '.kjjkWWWWWWWWWWkjjjjjj', '.kjjkWWWWWWWWWWkjjjjjj',
+              '..kkkkWWWWWWWWWkjjjjjj']
+PHONE_GRIP = ['.........kkkkkkkk.....',
+              '........kBBBBBBBbk....',
+              '........kBccBBBBbk....',
+              '........kBccBBBBbk....'] + ['........kBBBBBBBbk....'] * 3 + [
+              '........kBBBBBBBbkkk..',
+              '........kBBBBBBBbkssk.',
+              '........kBBBBBBBbksak.',
+              '........kkkBBBBBbkddk.',
+              '.......khsskBBBBbkssk.',
+              '.......kssskBBBBbksak.',
+              '.......kssskBBBBbkddk.',
+              '.......kssskBBBBbkssk.',
+              '.......kssakBBBBbksak.',
+              '.......ksssdkkkkkkddk.',
+              '.......khssdsssssdssk.',
+              '.......kssssdssssdsak.',
+              '......ksssssssssssak..',
+              '.....ksssssssssssak...',
+              '.....kssssssssssak....',
+              '......kssssssssak.....',
+              '......ksssssaakk......',
+              '.......kaakkkkk.......',
+              '.......kkk............',
+              '......kk..............']
+# where the phone's top meets her left lock: the lock's outline one pixel there, the end of a strand beside it neck skin
+PHONE_NECK = ['.s', 'ss']
+# the shoulder of the raised arm: one outline along its top and no seams of the picture's own between it and her hair
+PHONE_SHOULDER = ['......jjjj', '.........j', '.....j...j', '........jj', '.......jj.', '.......jj.', '.....j.j..', '...j.j....', '....jj....',
+                  '....j.....', '....j.....', '..........', '..........', '.j........', '...j......', '...j......', '..j.......', '.j........']
+# Below the raised forearm her blazer goes down to the desk (the wall had shown through under it and under her elbow):
+# the forearm's underside, a shadow under it, the lapel; x -5..18, from row 72 (the first rows only take out a stray
+# line of the picture's)
+PHONE_TORSO = ['..............jjj.......'] + ['.j............jjj.......'] * 4 + [      # (and the arm's outer line one pixel, not two)
+               '.kjjjjjjjjjjjjjjjkkkkkkW',
+               '.kjjjjjjjjjjkkkkkJJJJkWW',
+               '.kjjjjjkkkkkJJJJJjjjjkWW',
+               '.kkkkkkJJJJJjjjjjjjjjkWW',
+               '.kJJJJJjjjjjjjjjjjjjjkWW',
+               '.kjjjjjjjjjjjjjjjjjjjkW.',
+               '.kjjjjjjjjjjjjjjjjjjjk..']
+# Her left hand resting on the desk, as clean as her resting hands (reference 04): one outline, the white cuff as in her
+# rest pose, four fingers curled down to the desk with three finger lines in dark skin, one line under it and its sleeve
+# where they lie on the desk; it was a generated blob with a brown speck, grey specks and the white top below the phone
+# drawn in skin colours; x 14..48, from row 77
+PHONE_DESK_HAND = ['.............kkkkkkkkkkWkjjjjjj',
+                   '.........kkkkhhhhhhhsssWWkjjjjj',
+                   '......kkkhhhsssssssssssaWWkjjjj',
+                   '...kkkhhsssssssssssssssaWWkjjjj',
+                   '...hhsssssssssssssssssssaWWkjjj',
+                   '..ksssssssssssssssssssssaWWkjjj',
+                   '.ksssdsssdsssdssssssssssaWWkjjj',
+                   '_ksssdsssdsssdsssssssssaaWWkjjj',
+                   '_ksssdsssdsssdsssakkkkkkkkkkkkkkk',
+                   '_ksssdsssdsssdsakk_______________',
+                   '_kaaakaaakaaakaak_',
+                   '__kkk_kkk_kkk_kk__']
+
+
+def phone_paint(lift=0):
+    """T49 rework: the phone pose's hand-authored maps, the grip `lift` rows higher (phone1: she lifts it a little as she scrolls)"""
+    return [('rows', 4, 43, PHONE_SHOULDER), ('rows', 24, 48, PHONE_NECK), ('rows', 12, 50, PHONE_BACK), ('rows', 12, 50 - lift, PHONE_GRIP),
+            ('rows', -5, 72, PHONE_TORSO), ('rows', 14, 77, PHONE_DESK_HAND)]
+
+
 # By eye, per pose: the box (base coordinates) whose pixels go over the face, and named points.
 MANUAL = {
     'cole': {
@@ -357,11 +437,15 @@ MANUAL = {
         # her phone and both hands are in front of her hair (they were drawn under it), and the phone is blue again (the
         # reduction had snapped the picture's blue phone to grey)
         # T49 (2026-10-05, "phone should be held from the bottom, one handed"): a new picture, the phone resting in one hand
-        'phone': dict(keep_chest=True, front=(4, 44, 50, 80), front_mode='limb',
-                      frames={'phone1': ((14, 50, 42, 80), 0, -1)},           # the hand lifts it a little as she scrolls
-                      fix=[('recolour', 14, 48, 40, 76, {'#5f6368': '#3d5f99', '#9a9ea2': '#6f93cf'}),
-                           ('recolour', 9, 50, 17, 63, {'#f9e2d2': '#191718', '#faebe1': '#191718', '#f1a49b': '#191718', '#e1cec4': '#191718', '#e0b3a2': '#191718'}),   # the picture's wider neckline: her blazer, under her hair
-                           ('recolour', 16, 70, 27, 76, {'#f9e2d2': '#fbfaf5', '#faebe1': '#fbfaf5', '#e1cec4': '#ddd6cf'})]),   # her white top under the phone (shrunk to skin colour)
+        # T49 (a, rework): the hands, the phone and the blazer round them are hand-authored maps (phone_paint); what the picture drew
+        # where her hair hangs takes a hair colour first ('hairlock': its blazer, skin-toned scraps and a gold patch had
+        # covered her locks), the picture's wider neckline goes under her hair as blazer; phone1 is the same grip a row higher
+        'phone': dict(keep_chest=True, front=(4, 44, 50, 80), front_mode='limb', paint=phone_paint(0),
+                      fix=[('recolour', 9, 50, 17, 63, {'#f9e2d2': '#191718', '#faebe1': '#191718', '#f1a49b': '#191718', '#e1cec4': '#191718', '#e0b3a2': '#191718'}),
+                           ('hairlock', -4, 44, 60, 70, '#9a6f50')]),
+        'phone1': dict(base='phone', keep_chest=True, front=(4, 44, 50, 80), front_mode='limb', paint=phone_paint(1),
+                       fix=[('recolour', 9, 50, 17, 63, {'#f9e2d2': '#191718', '#faebe1': '#191718', '#f1a49b': '#191718', '#e1cec4': '#191718', '#e0b3a2': '#191718'}),
+                            ('hairlock', -4, 44, 60, 70, '#9a6f50')]),
         'carry': dict(keep_chest=True),
         'drink': dict(front=(-6, 16, 25, 56), front_mode='notface', front_face=True,   # T51: out to her mouth (the cap had stopped at her jaw)                  # T28: the same shaker, tipped to her lips
                       fix=[('erase', -6, 16, 24, 52, BOTTLE), ('under', 2, 23, shaker('ilinca', 38), SKIN_ILINCA, True)]),   # T51: its spout at her lips   # its spout at her mouth's corner
@@ -393,7 +477,7 @@ HANDS = {
         'call': [(2, 69, 25, 80), (5, 25, 16, 47)], 'yawn': [(8, 75, 29, 87)], 'talk': [(-18, 30, 7, 62), (18, 72, 44, 89)],
         'petedge': [(28, 73, 50, 94)], 'petcat': [(-15, 53, 6, 69), (15, 66, 39, 85)], 'wave': [(-11, 13, 11, 50), (4, 71, 28, 85)],
         'surprise': [(-9, 10, 13, 49), (49, 10, 65, 49)],
-        'take': [(-14, 20, 4, 56), (10, 71, 34, 89)], 'drink': [(1, 36, 13, 48), (12, 76, 36, 88)], 'phone': [(14, 56, 42, 80), (4, 76, 40, 90)],
+        'take': [(-14, 20, 4, 56), (10, 71, 34, 89)], 'drink': [(1, 36, 13, 48), (12, 76, 36, 88)],   # T49 rework: the phone pose's hands are hand-authored (phone_paint)
         'carry': [(1, 68, 11, 77), (43, 69, 52, 77)], 'think': [(17, 31, 34, 48), (10, 73, 36, 91)],
     },
 }
@@ -449,7 +533,8 @@ KEYS = {
                  w='#fbfaf5', r='#e4002b', R='#a3001f', g='#cfd2d4', G='#9a9ea2', p='#ff5a72', c='#d9a650', C='#7d6230',
                  v='#2f6b3a', V='#1f4a28', B='#3d5f99', i='#5f6368'),
     'ilinca': dict(k='#010100', D='#b5705f', d='#d18881', a='#f1a49b', e='#e0b3a2', x='#e1cec4', s='#f9e2d2', h='#faebe1', j='#292423', J='#191718',
-                   w='#fbfbf9', W='#fbfaf5', N='#5f4030', n='#6f4b3a', o='#9a6f50', O='#bd8e5d', y='#d9ae71', r='#e4002b', R='#a3001f', g='#cfd2d4', G='#9a9ea2'),
+                   w='#fbfbf9', W='#fbfaf5', N='#5f4030', n='#6f4b3a', o='#9a6f50', O='#bd8e5d', y='#d9ae71', r='#e4002b', R='#a3001f', g='#cfd2d4', G='#9a9ea2',
+                   B='#6f93cf', b='#3d5f99', c='#2b4572'),            # T49 rework: her phone's blues (its back, its shaded side, the camera)
 }
 
 
@@ -590,6 +675,15 @@ def fix(spr, ox, oy, edits, pal_key):
             continue
         if e[0] == 'hand':                                               # a hand redrawn clean: one outline, finger lines in dark skin
             who = 'ilinca' if pal_key is KEYS['ilinca'] else 'cole'; _clean_hand(s, ox, oy, e[1:5], who, _face_guard(who, s.idx.shape, ox, oy))
+            continue
+        if e[0] == 'hairlock':                                           # T49 rework: what the picture drew where the base hair hangs (as the scene draws the head) takes a hair
+            _, x0, y0, x1, y1, col = e                                   # colour, so the cut takes it out and none of it goes in front of her hair (blazer and
+            who = 'ilinca' if pal_key is KEYS['ilinca'] else 'cole'      # skin-toned scraps of the picture's own hair had covered her locks)
+            _, _, hm_ = layers(CHARACTERS[who]); dy_ = HEAD_DY.get(who, 0); ci = s.color(col)
+            for y in range(y0, y1 + 1):
+                for x in range(x0, x1 + 1):
+                    sx, sy = x - ox, y - oy
+                    if 0 <= sx < s.w and 0 <= sy < s.h and 0 <= y - dy_ < hm_.shape[0] and 0 <= x < hm_.shape[1] and hm_[y - dy_, x] and s.idx[sy, sx] >= 0: s.idx[sy, sx] = ci
             continue
         if e[0] == 'erase':                                              # a generated object to take out (the stand-in cat under a petting hand)
             from scipy import ndimage
@@ -1059,6 +1153,9 @@ def build(c):
         face = np.zeros(spr.idx.shape, bool); hy, hx = np.where(_nd.binary_dilation(hm0, structure=np.ones((3, 3), bool), iterations=2))   # the picture's own face
         py, px = hy - meta['y'], hx - meta['x']; ok = (py >= 0) & (py < spr.h) & (px >= 0) & (px < spr.w); face[py[ok], px[ok]] = True
         spr = soften(spr, who, keep=face)
+        # T49 (a, rework, "phone should be held from the bottom, one handed"): hand-authored pixel maps ('paint', fix ops) go on
+        # over the softened picture, so the automatic softening leaves their outlines and finger lines as drawn
+        if man.get('paint'): spr = fix(spr, meta['x'], meta['y'], man['paint'], KEYS[who])
         body, front = PS.split(spr, meta['x'], meta['y'], hm | hm0, jaw, man.get('front'), hair, None if man.get('keep_neck') else neck, man.get('front_mode', 'all'),   # the picture's own head goes too
                                base_head=head, chest=None if man.get('keep_chest') else chest,
                                limb=set().union(*[cols for cols, _ in SOFTEN[who]]) | set(PS.PROPS), face_pt=FACE_PT.get(who), own_head=hm0,
