@@ -600,7 +600,7 @@
   // A stretch: eyes shut, mouth open (the face keeps its own proportions: moving the features read as a different face).
   function stretching(p) { return p.activity === "stretch" && !p.react && !p.talking; }
   function drawFace(p, o, f) {
-    var a = p.art, hy = o.y + p.headDy, t = p.tilt, st = stretching(p), dn = p.drawn && p.drawn.name, atLips = dn === "sip" || dn === "drink";
+    var a = p.art, hy = o.y + p.headDy, t = p.tilt, st = stretching(p), dn = p.drawn && p.drawn.name, atLips = dn === "sip" || dn === "drink", handAtMouth = dn === "yawn";
     var closed = st || p.blink > 0 || p.mouth === "laugh" || p.mouth === "yawn" || atLips;   // a sip with the eyes shut (T44)
     if (p.lookDown) {                                                  // the head tipped down: eyes open on the work, shut in a nod or a blink
       pixels(a.down.eyes[(p.nod > 0 || closed) ? "closed" : "open"], o.x, hy, a.pal);
@@ -612,7 +612,7 @@
     pixels(a.eyes[key] || a.eyes.open0, o.x, hy + t, a.pal);
     pixels(a.brows[p.brows || (st ? "up" : ly < 0 ? "up" : "neutral")] || a.brows.neutral, o.x, hy + t, a.pal);
     var m = p.mouth; if (m === "talk") { m = (f % 4 < 2) ? "open" : "neutral"; } if (m === "neutral") { m = st ? "o" : p.restMouth; }
-    if (!atLips) { pixels(a.mouth[m] || a.mouth.neutral, o.x, hy + t, a.pal); }   // the mug or the bottle is at the mouth: no lips drawn beside it (T44)
+    if (!atLips && !handAtMouth) { pixels(a.mouth[m] || a.mouth.neutral, o.x, hy + t, a.pal); }   // the mug or the bottle is at the mouth: no lips drawn beside it (T44)
   }
 
   function drawCharacter(p, f) {
@@ -1247,7 +1247,7 @@
       if (p.blink > 0) { p.blink--; } else if (--p.nextBlink <= 0) { p.blink = 2; p.nextBlink = 24 + Math.random() * 48; }
       if (!p.react && !(scenario && scenario.name === "spark")) { p.bob = 0; }
       p.tilt = stretching(p) ? 0 : (p.nod > 0 || (p.workLook[p.activity] && !convo && !p.react && !(pointerActive && !scenario))) ? 1 : 0;
-      p.lookDown = !!p.headDown && !stretching(p) && p.activity !== "coffee" && p.activity !== "holdcup" && (p.nod > 0 || (!p.react && p.look.y > 0.5));     // at the work, the cat, a pointer on the desk; never over a coffee (T43)
+      p.lookDown = !!p.headDown && !stretching(p) && p.activity !== "coffee" && p.activity !== "holdcup" && p.activity !== "yawn" && p.activity !== "rubEye" && (p.nod > 0 || (!p.react && p.look.y > 0.5));     // at the work, the cat, a pointer on the desk; never over a coffee (T43)
       stepExpression(p, f);
     }
     if (pointer.inside && pointerActive && !saidHello && !convo && !scenario && f > 4 * FPS) {          // the nearer one glances over and smiles

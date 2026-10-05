@@ -783,7 +783,7 @@ MANUAL = {
                      # fingers and its nose at his right hand (the earlier folding stage stays as it was)
                      frames={'fold3': {'edits': [('erase', 20, 56, 58, 88, PAPER | {'#cfd2d4'}), ('holes', 20, 56, 58, 88, '#211f1f'), ('under', 29, 61, PLANE, SKIN_COLE, True)]}}),
         # T37 ("On late night yawn, I have 3 arms"): a new picture, one hand over his mouth, the other forearm flat on the desk
-        'yawn': dict(front=(30, 29, 60, 48), front_mode='arm', keep_neck=True, paint=COLE_YAWN_PAINT),   # T59 rework: the hand at his mouth drawn whole
+        'yawn': dict(front=(30, 29, 60, 48), front_mode='arm', keep_neck=True, paint=COLE_YAWN_PAINT + [('body', 77, 88, ['k'])]),   # (re-audit: a gap in the desk hand's outline)   # T59 rework: the hand at his mouth drawn whole
         # T38 (the spark: "instead of looking frustrated or surprised I do a little dance"): a hand to his head, frustrated
         'facepalm': dict(front=[(34, -8, 64, 21), (54, 21, 68, 42)], front_mode='notface'),   # the hand on his head and the arm beside his face; never the picture's own face or glasses
         # a chair back stood behind the elbow in the generated picture
