@@ -125,7 +125,7 @@
     wide:   { W: 360, H: 160, cole: 124, ilinca: 226, poster: { x: 14, y: 20, w: 58, h: 62 }, clock: { x: 88, y: 34 }, win: { x: 280, y: 22, w: 66, h: 74 }, lamp: 177, pendant: 121, slots: [36, 272, 338, 12, 306],
               art: { painting: { x: 7, y: 20 }, clock: { x: 88, y: 34, r: 7 }, win: { x: 262, y: 18, w: 88, h: 84 }, sky: { x: 254, y: 15 }, lamps: [58, 290], slots: [34, 318, 344], catY: 141, pendants: [96, 132, 216, 244] } },
     narrow: { W: 240, H: 160, cole: 60, ilinca: 150, poster: { x: 1, y: 20, w: 51, h: 50 }, clock: { x: 98, y: 30 }, win: { x: 190, y: 22, w: 46, h: 66 }, lamp: 112, pendant: 126, slots: [226, 10],
-              art: { painting: { x: 1, y: 18 }, clock: { x: 99, y: 31, r: 7 }, win: { x: 192, y: 20, w: 44, h: 70 }, sky: { x: 130, y: 3 }, lamps: [0, 220], slots: [], catY: 141, pendants: [66, 118, 148, 175] } }
+              art: { painting: { x: 1, y: 18 }, clock: { x: 99, y: 31, r: 7 }, win: { x: 192, y: 20, w: 44, h: 70 }, sky: { x: 130, y: 3 }, lamps: [6, 220], slots: [], catY: 141, pendants: [66, 118, 148, 175] } }
   };
   // The environment pictures. Until they have loaded (or if they never do) the room is drawn in code as before.
   var ENV = { ready: false, img: {} };
@@ -383,7 +383,10 @@
     } else {
       var sx = WIN.x + 4 + Math.round(Math.min(1, Math.max(0, (h - 6) / 13)) * (WIN.w - 14)), sy = WIN.y + 5 + Math.round(Math.abs((h - 12.5) / 6.5) * 20);
       rect(sx, sy, 6, 6, C.sun); px(sx, sy, sky[0]); px(sx + 5, sy, sky[0]); px(sx, sy + 5, sky[0]); px(sx + 5, sy + 5, sky[0]);
-      for (var c = 0; c < clouds.length; c++) { var cl = clouds[c]; var cx = WIN.x + ((cl.x + f / 20) % (WIN.w + cl.w)) - cl.w, cw = cl.w; if (cx < WIN.x) { cw -= WIN.x - cx; cx = WIN.x; } if (cx + cw > WIN.x + WIN.w) { cw = WIN.x + WIN.w - cx; } if (cw > 2) { hline(cx + 1, WIN.y + cl.y, cw - 2, C.cloud); hline(cx, WIN.y + cl.y + 1, cw, C.cloud); hline(cx, WIN.y + cl.y + 2, cw, C.cloudS); } }
+      for (var c = 0; c < clouds.length; c++) {                            // a cloud drifting in or out passes behind the frame: cut, not shrunk (a shrunk stub read as a white speck)
+        var cl = clouds[c], fx = WIN.x + ((cl.x + f / 20) % (WIN.w + cl.w)) - cl.w;
+        [[1, cl.w - 2, C.cloud], [0, cl.w, C.cloud], [0, cl.w, C.cloudS]].forEach(function (r, k) { var x0 = Math.max(WIN.x, Math.round(fx) + r[0]), x1 = Math.min(WIN.x + WIN.w - 1, Math.round(fx) + r[0] + r[1] - 1); if (x1 >= x0) { hline(x0, WIN.y + cl.y + k, x1 - x0 + 1, r[2]); } });
+      }
     }
     if (ENV.ready) { drawSkylineArt(h, f); return; }
     var by = WIN.y + WIN.h - 4;
@@ -572,7 +575,7 @@
     var a = p.activity, name = POSE_OF[a] || (p.poses[a] ? a : "rest");
     if (a === "coffee") { name = ((p.actFrame % 40) >= 12 && (p.actFrame % 40) < 26) ? "sip" : "mug"; }
     if (p.react === "surprise") { name = "surprise"; }
-    else if (p.gesture && (a === "rest" || a === "think")) { name = "talk"; }      // a hand joins in only when it is free
+    else if (p.gesture && a === "rest") { name = "talk"; }      // a hand joins in only when it is free (not from thinking: chin on hand to talking arms read as a shoulder jump, T58/j)
     if (a === "wave" && p.react === "greet") {                           // T33: the hand comes up and stays; the other arm stays as it was
       var from = p.greetAct === "coffee" ? "mug" : (POSE_OF[p.greetAct] || p.greetAct);
       name = p.poses[from + "Wave"] ? from + "Wave" : p.poses.restWave ? "restWave" : "wave";
@@ -705,7 +708,7 @@
   function startConvo(lines) { convo = { lines: lines, i: 0, until: 0 }; }
   function stepConvo(f) {
     if (!convo) {
-      if (f >= nextConvoAt && !scenario && !review) { startConvo(EXCHANGES[(Math.random() * EXCHANGES.length) | 0]); nextConvoAt = f + (26 + Math.random() * 30) * FPS; }
+      if (f >= nextConvoAt && !scenario && !review && !cole.react && !ilinca.react) { startConvo(EXCHANGES[(Math.random() * EXCHANGES.length) | 0]); nextConvoAt = f + (26 + Math.random() * 30) * FPS; }   // (never into a greeting: a listener's nod on a wave, f)
       return;
     }
     if (f >= convo.until) {
@@ -1132,7 +1135,7 @@
     if (p.react !== "greet" && p.react !== "relay") { return; }
     var k = (f - p.greetAt) / FPS, o = other(p);
     if (p.react === "relay") {
-      if (p.greetStep === 0) { p.greetStep = 1; lookAt(p, o.x, faceLevel(o)); p.mouth = "talk"; p.talking = true; p.gesture = p.greetAct === "rest" || p.greetAct === "think"; }
+      if (p.greetStep === 0) { p.greetStep = 1; lookAt(p, o.x, faceLevel(o)); p.mouth = "talk"; p.talking = true; p.gesture = p.greetAct === "rest"; }
       if (k >= 1.2 && p.greetStep === 1) { p.greetStep = 2; p.talking = false; p.gesture = false; p.mouth = "smile"; p.smileUntil = f + 2 * FPS; if (!o.react) { greet(o, false); } }
       return;
     }

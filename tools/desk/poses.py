@@ -997,7 +997,7 @@ def wave_from(c, act, wave, seam):
 SHOULDERS = {'cole': {'think': {'L': 66, 'R': 64}, 'yawn': {'L': 66, 'R': 62}, 'facepalm': {'L': 66}, 'sip': {'R': 56},
                       'solder': {'L': 66, 'R': 66}, 'solder1': {'L': 66, 'R': 66}, 'petedge': {'L': 70, 'R': 66}, 'petedge2': {'L': 70, 'R': 66},
                       'petcat': {'L': 70}, 'petcat2': {'L': 70}, 'offer': {'L': 66}, 'offerEmpty': {'L': 66},
-                      'surprise': {'L': 58}}}
+                      'surprise': {'L': 58}, 'talk': {'L': 70, 'R': 70}}}   # T58 (j): talking arms in a conversation took narrower, lower shoulders
 BLEND = 10
 
 
