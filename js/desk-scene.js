@@ -650,7 +650,7 @@
   }
   // A hand petting the cat lies on her: that part of the pose (a box in the figure's coordinates) goes on again after her.
   var PET_HAND = { cole: { pet: [60, 72, 86, 100], pethead: [28, 60, 52, 82], petcat: [44, 54, 82, 84], petcat2: [44, 54, 82, 84], petedge: [31, 66, 56, 104], petedge2: [31, 66, 57, 104] },   // T62: the hand on her head; the other forearm rests behind her
-                   ilinca: { pet: [-20, 66, 2, 88], pethead: [12, 54, 40, 70], petcat: [-20, 52, 16, 78], petcat2: [-20, 52, 16, 78], petedge: [-29, 62, 24, 100], petedge2: [-29, 52, 24, 100] } };
+                   ilinca: { pet: [-20, 66, 2, 88], pethead: [12, 54, 40, 70], petcat: [-20, 52, 16, 78], petcat2: [-20, 52, 16, 78], petedge: [-29, 62, 24, 100], petedge2: [-29, 62, 24, 100] } };   // (petedge2's started at row 52 and redrew her body over her hair: re-audit)
   // Where Maker lies to be petted: the petting pictures were made with a cat under the hand (since erased); she lies
   // where that cat was, facing the same way, so the hand rests exactly on her back. Figure coordinates of her middle.
   var PET_RIG = { cole: { x: 57, dir: -1 }, ilinca: { x: -3, dir: -1 } };

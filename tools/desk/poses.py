@@ -813,7 +813,8 @@ MANUAL = {
         'petedge': dict(fix=[('cat', -29, 62, SKIN_ILINCA, False), ('rows', -11, 62, PET_ARM_ILINCA), ('rows', 28, 74, REST_HAND_ILINCA), ('rows', 16, 68, TOP_ILINCA),
                              ('late', [('rows', -11, 62, PET_ARM_ILINCA), ('rows', 28, 74, REST_HAND_ILINCA), ('rows', 16, 68, TOP_ILINCA)]),
                              ('maker', -29, 62, (-29, 62, 24, 100), 74)],
-                        frames={'petedge2': {'box': (-6, 58, 16, 72), 'dx': 1, 'edits': [('maker', -29, 62, (-29, 52, 24, 100), 74)]}}),
+                        frames={'petedge2': {'box': (-6, 58, 16, 72), 'dx': 1, 'edits': [('maker', -29, 62, (-29, 52, 24, 100), 74),
+                                                                                        ('rows', 8, 60, ['k']), ('rows', 8, 62, ['k'])]}}),   # re-audit: the stroked hand's edge outlined where it slides under her hair
         'stretch': dict(fix=[('clear', 63, 38, 67, 84)]),                # a chair's edge behind her
         'rest': dict(fix=[('recolour', 56, 55, 64, 66, {'#5f6368': '#191718', '#9a9ea2': '#292423'})],   # a grey chair corner by her shoulder
                      frames={'rest1': ((6, 72, 36, 88), 0, -1)}),
