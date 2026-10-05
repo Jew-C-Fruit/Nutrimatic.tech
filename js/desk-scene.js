@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.20.1
+ * Version 0.20.2
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -89,6 +89,10 @@
  * Modified: 2026-10-05 - Hooks for the approval page (to-do T64): .review({cole, ilinca, greet, relay, petter, pointer})
  *   holds each figure on one activity, stops scenarios and conversations starting by themselves and fixes the random
  *   choices (nod or wave, who pets Maker); .review(null) lets the scene run on its own again (v0.20.1)
+ * Modified: 2026-10-05 - Round-30 audit: no talking arms from thinking (his shoulders jumped) and no conversation during a
+ *   greeting; the phone layout's lamp in frame; clouds pass behind the window frame; the thrown plane leaves his hand
+ *   where he held it, behind his fingers, and climbs clear of Ilinca's head; his waving arm in front of his lamp; no
+ *   mouth drawn under a yawning hand, no looking-down head in a yawn; Ilinca's stroke frame redraws only her hand (v0.20.2)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(i),

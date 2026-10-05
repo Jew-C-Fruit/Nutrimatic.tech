@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - poses.py
-Version 1.10.0
+Version 1.11.0
 
 Created: 2026-10-02 - The figures' body poses, from generated pictures, as layers under the base head; the neck, and
   Ilinca's top, taken from the base so every pose joins the same head; front boxes by eye (v1.0.0)
@@ -66,6 +66,12 @@ Modified: 2026-10-05 - Notes T49-T63: Ilinca's phone held in one hand from below
   the desk; Cole's resting hands redrawn closed (op 'mitten'); the shake frame moves only hands, forearms and shaker;
   no watch block on his wrist; every frame of a capped pose capped too (think1 had blipped); a bigger plane, the size
   of the folded one; the petting stroke moves the hand on Maker's head (v1.10.0)
+Modified: 2026-10-05 - Round-30 audit rework, hands that hold things drawn as pixel maps: Ilinca's phone held from the
+  bottom (phone_paint; phone1 its own pose), her drink's shaker tilted 45 degrees in her fist (DRINK_HAND, 'stamp'), the
+  yawning hands of both and Cole's thinking hand (paint), his resting hands with a thumb (REST_HAND, 'post'), the hands
+  round the shaker moving under his collar (shake_grip), one plane size at his chest and in his pinching hand
+  (THROW_HAND), the petting arms joined to the shoulder and the shirt down to the desk (PET_ARM_COLE/ILINCA, 'maker',
+  'late'); SHOULDERS take arm boxes and fixes; the talking arms take the rest shoulders (v1.11.0)
 
 Every activity in the scene is drawn with a body pose: the whole torso with arms, hands and whatever they hold, made
 by the image model from the figure's own portrait (pose_sprites.py says how) and reduced to a sprite on the base
