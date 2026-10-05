@@ -312,6 +312,102 @@ def shake_grip(dy):
     """T53: the shaker and both hands holding it, dy rows down (0 or 2), as fix ops over the pose with its own hands taken
     out: a frame of the shake moves nothing else"""
     return [('rows', 33, 55 + dy, shaker('cole')), ('rows', 18, 59 + dy, SHAKE_HAND_L), ('rows', 41, 59 + dy, SHAKE_HAND_R)] + (SHAKE_LOW if dy else [])
+# T59 (k: "yawning, black artifact appears on cole's hand, ilinca's hair clips thru arm"), rework after the audit: the
+# hands at the yawn and Cole's hand on the desk while he thinks, drawn whole (the reduced pictures had drawn them as
+# black strokes and clumps, which pixel patches never cleaned). Pixel maps in the figure's letters, '.' keeps a pixel,
+# '_' clears it, placed where the scene draws them (paint()).
+# Cole's yawn, x from 36, rows 32-53: the back of his hand over his mouth, four fingers toward his right cheek, finger
+# lines in dark skin, one black outline against his face, chin and neck, the wrist down into his forearm.
+COLE_YAWN_HAND = [
+    '....kk_____________________',
+    '...ksskk___________________',
+    '..kksssskk_________________',
+    '.kssddsssskk_______________',
+    '.kssssddsssskk_____________',
+    'ksddssssddsssskk___________',
+    'ksssddssssddssssk__________',
+    '.kssssddssssdmsssk_________',
+    '.kddssssddssssssssk________',
+    '.kssddssssddsssssssk_______',
+    '.kmmssddssssdmsssssk_______',
+    '..kkmmssddssssssssssk______',
+    '....kkmmssddssssssssk______',
+    '......kkmmssdmsssssssk_____',
+    '........kkmmsssssssssk_____',
+    '..........kkmmssssssssk____',
+    '............kkamssssssk____',
+    '............kamssssssssk___',
+    '...........kaasssssssssk___',
+    '...........kaasssssssssk___',
+    '...........kaassssssssssk__',
+    '............kaaasssssssssk_']
+COLE_YAWN_PAINT = [('front', 30, 29, ['_' * 31] * 20),               # the picture's hand and chin at his face go
+                   ('front', 36, 32, COLE_YAWN_HAND[:17]), ('body', 36, 32, COLE_YAWN_HAND),
+                   ('front', 46, 34, ['s']),                         # the corner of the yawning mouth showed above the fingers
+                   # under the hand: the picture's own jaw line (below the chin) is neck in shade; the collar meets the wrist
+                   ('body', 36, 45, ['...dd', '....dd', '.....d', '......d', '', '........aaa', '.......aaaa', '......aaaaa', '.....kkkkkkk']),
+                   ('body', 66, 85, ['d']), ('body', 48, 88, ['k']),  # two brown specks on his other hand
+                   ('body', 53, 77, ['..kk..a', '.kkkkka', 'kkkkkka']),   # where the raised forearm meets the desk: one dark fold, no dark-skin crumbs
+                   ('body', -2, 79, ['k', 'k', '', '.k'])]           # the end of his other forearm had no outline against the wall
+# Cole thinking, x from 20, rows 84-96: his right hand on the desk under the raised elbow, palm down, four fingers curled
+# toward the desk's front edge (index and middle longest), the thumb short beside them, the shirt between the hand and
+# the elbow (the picture's hand there had broken, claw-like fingers and a loose fingertip)
+COLE_THINK_HAND = [
+    '.......................s.skku........',
+    '........................ssssku.......',
+    '.........................ssskuu......',
+    '.........................ssskuuuu....',
+    'mmmmmmmmmmmmmmmmmmmmmmmmmmmmkkkkkk...',
+    '........kkkkssdssdsssdssdsssk______..',
+    '........___kssdssdsssdssdmmmk______..',
+    '........___kssdssdsssdsskkkk_______..',
+    '........____kmmdssdsssdssk________...',
+    '........_____kkkmmdsssdmmk_________..',
+    '........________kkkmmmkkk___________.',
+    '........___________kkk_______________',
+    '........_____________________________']
+# the drumming frame: his index and middle fingers a row up
+COLE_THINK_TAP = [('rows', 43, 92, ['mm']), ('rows', 39, 93, ['mmmkkk_']), ('rows', 39, 94, ['kkk___']), ('rows', 39, 95, ['___'])]
+# Ilinca's yawn, x from 10, rows 27-55, where the scene draws it (her head is 3 rows lower than her picture had it): the
+# back of her right hand over her mouth, four fingers up toward her nose, the wrist down into the sleeve's cuff, all in
+# front of her hair (the wrist had been under it: the hair crossed her arm)
+ILINCA_YAWN_HAND = [
+    '............kk...............',
+    '.........kkksskkk............',
+    '........kssdssdssk...........',
+    '.......kssdssdsskkk..........',
+    '.......kssdssdssdssk.........',
+    '.......kssdssdssdssk.........',
+    '......kssdssdssdssk..........',
+    '......kssdssdssdssk..........',
+    '......kssassassassk..........',
+    '......kssssssssssak..........',
+    '......ksssssssssak...........',
+    '.....ksssssssssak............',
+    '.....kssssssssak.............',
+    '....kssssssssak..............',
+    '....ksssssssak...............',
+    '...ksssssssak................',
+    '...Jkssssssak................',
+    '....kssssssak................',
+    '....Jksssssak................',
+    '...JJksssssak................',
+    '...JJJkssssak................',
+    '..JJJJkssssak................',
+    '..JJJJJksssak................',
+    '...JJJJJkssak................',
+    '....JJJJkssak................',
+    '....JJJJJksak................',
+    '.....JJJJksak................',
+    '......JJJJkkk................',
+    '..........k..................']
+# her other hand on the desk (x from 9, rows 79-86): finger gaps as three short diagonals from the fingertips, a flat
+# lower edge (two sleeve-dark pixels and a stub hung below it)
+ILINCA_YAWN_DESK = ['...d', '.sd...d', 'kd...d...d', 'ksssdsssd' + 's' * 10, 'kssdsssd', 'kadaaad' + 'a' * 12, '.' + 'k' * 18, '......_____']
+ILINCA_YAWN_PAINT = ([('front', 10, 25, ['_' * 29] * 22), ('front', 10, 27, ILINCA_YAWN_HAND),
+                      ('front_body', 8, 58, ['..j.', '.j.j', 'j..j', 'j..j', '.jj.'])]   # the black ring her hair's outline left in the sleeve
+                     + [(l_, 9, 79, ILINCA_YAWN_DESK) for l_ in ('body', 'front_body')]
+                     + [('body', 27, 40, ['a', 'a']), ('body', 34, 41, ['.a', 'ss'])])   # her neck where the picture's hand had covered it
 
 # By eye, per pose: the box (base coordinates) whose pixels go over the face, and named points.
 MANUAL = {
@@ -365,8 +461,8 @@ MANUAL = {
                         ('recolour', 12, 50, 26, 59, {c_: '#211f1f' for c_ in SKIN_COLE}), ('recolour', 52, 50, 66, 59, {c_: '#211f1f' for c_ in SKIN_COLE}),
                         ('rows', 8, 60, DS_HAND), ('rows', 44, 60, [r[::-1][:-4] + '....' for r in DS_HAND])]),   # (his right side ends where his shirt does)
         'think': dict(neck_fill=False, keep_neck=True, front=(30, 32, 58, 50), front_mode='arm',   # the fist under his chin, in front of the jaw
-                      fix=[('recolour', 49, 50, 53, 54, {'#211f1f': '#f8cda6', '#010101': '#f8cda6', '#100f13': '#f8cda6'})],   # no watch (none in his other poses)
-                      frames={'think1': ((34, 84, 58, 98), 1, 0)}),            # T7: the fingers on the desk drum a pixel
+                      paint=[('body', 20, 84, COLE_THINK_HAND), ('front', 54, 46, ['_'])],   # T59 rework: the hand on the desk drawn whole; a shirt pixel outside his forearm's outline
+                      frames={'think1': {'edits': COLE_THINK_TAP}}),            # T7: the fingers on the desk drum (two lift a row; a box shift had doubled a finger line)
         'hide': dict(fix=[('clear', -24, 89, 110, 104)]),                # hands in his lap: nothing of them below the desk line (note 9b)
         # note 9a, motion in every activity: frames the scene cycles through (a forearm typing behind the screen, a hand to
         # the trackpad, thumbs on the console, a fidgeting hand)
@@ -435,8 +531,7 @@ MANUAL = {
                      # fingers and its nose at his right hand (the earlier folding stage stays as it was)
                      frames={'fold3': {'edits': [('erase', 20, 56, 58, 88, PAPER | {'#cfd2d4'}), ('holes', 20, 56, 58, 88, '#211f1f'), ('under', 29, 61, PLANE, SKIN_COLE, True)]}}),
         # T37 ("On late night yawn, I have 3 arms"): a new picture, one hand over his mouth, the other forearm flat on the desk
-        'yawn': dict(front=(30, 29, 60, 48), front_mode='arm', keep_neck=True,
-                     fix=[('recolour', 49, 48, 53, 54, {'#211f1f': '#f8cda6', '#010101': '#f8cda6', '#100f13': '#f8cda6'})]),   # T59: no watch-like black block on his wrist
+        'yawn': dict(front=(30, 29, 60, 48), front_mode='arm', keep_neck=True, paint=COLE_YAWN_PAINT),   # T59 rework: the hand at his mouth drawn whole
         # T38 (the spark: "instead of looking frustrated or surprised I do a little dance"): a hand to his head, frustrated
         'facepalm': dict(front=[(34, -8, 64, 21), (54, 21, 68, 42)], front_mode='notface'),   # the hand on his head and the arm beside his face; never the picture's own face or glasses
         # a chair back stood behind the elbow in the generated picture
@@ -483,7 +578,9 @@ MANUAL = {
         'drink': dict(front=(-6, 16, 25, 56), front_mode='notface', front_face=True,   # T51: out to her mouth (the cap had stopped at her jaw)                  # T28: the same shaker, tipped to her lips
                       fix=[('erase', -6, 16, 24, 52, BOTTLE), ('under', 2, 23, shaker('ilinca', 38), SKIN_ILINCA, True)]),   # T51: its spout at her lips   # its spout at her mouth's corner
         'yawn': dict(front=(12, 24, 36, 42), front_mode='notface', keep_neck=True, front_face=True,
-                     arm_front=[(2, 42, 27, 63)],                          # T59: the sleeve of the arm reaching up is in front of her hair
+                     arm_front=[(2, 42, 27, 63), (-6, 63, 14, 66)],   # T59: the sleeve of the arm reaching up is in front of her hair
+                     # T59 (k), rework: down to the tip of her hair (the boxes had stopped at row 63 and the tip showed in the sleeve)
+                     paint=ILINCA_YAWN_PAINT,                              # T59 rework: her hand, wrist and cuff drawn whole, in front of her hair
                      fix=[('recolour', 7, 57, 13, 63, {'#5f4030': '#292423', '#6f4b3a': '#292423', '#9a6f50': '#292423', '#bd8e5d': '#292423', '#d9ae71': '#292423'})]),   # (her own hair peeked through it there)   # T23: only the hand (the 'diff' box left a pale rectangle by her hair)
         # hands and sleeves that are in front of her hair
         'talk': dict(front=(-16, 28, 14, 64), front_mode='limb'),
@@ -763,6 +860,20 @@ def fix(spr, ox, oy, edits, pal_key):
             _, x0, y0, x1, y1, m = e
             for a, b in m.items(): s.replace(a, b, (max(0, x0 - ox), max(0, y0 - oy), min(s.w - 1, x1 - ox), min(s.h - 1, y1 - oy))) if a in s.pal else None
     return s
+
+
+def paint(ops, body, fr, fb, ox, oy, hdy, key):
+    """T59 (k), rework: pixel maps (rows of palette letters, '.' keeps, '_' clears) drawn on a pose's finished layers, in
+    the coordinates where the scene draws them: ('body' | 'front_body' | 'front', x, y, rows). The face's front is drawn
+    headDy rows lower than the body, so its maps are moved up by that much; a layer the pose lacks is made. Hands at the
+    face that the reduced picture drew as clumps are drawn whole this way (the DS grip, the laptop and the plane passed
+    with Cole drawn so). Returns (body, front, front_body) as the build keeps them."""
+    lay = {'body': (body.copy(), ox, oy), 'front': (fr[0].copy(), fr[1], fr[2]) if fr else None, 'front_body': (fb[0].copy(), fb[1], fb[2]) if fb else None}
+    for name, x, y, rows in ops:
+        if lay[name] is None: lay[name] = (Sprite(-np.ones(body.idx.shape, np.int16), list(body.pal)), ox, oy)
+        s, sx, sy = lay[name]; s.rows(x - sx, y - sy - (hdy if name == 'front' else 0), rows, key)
+    f, b = (l_ if l_ is not None and (l_[0].idx >= 0).any() else None for l_ in (lay['front'], lay['front_body']))
+    return lay['body'][0], f, b
 
 
 def _cat_clear(s, ox, oy, x0, y0, skin):
@@ -1111,7 +1222,12 @@ def wave_from(c, act, wave, seam):
 # the others had higher, wider ones. Those take the rest pose's shoulder line: from his collar down, left of his neck (L)
 # and right of it (R), the outline is the rest pose's, then over BLEND rows it eases out to the pose's own (its arms
 # may be further out) by `end`; his own arm, hand and anything held stay in front. Sides with a raised arm keep theirs.
-SHOULDERS = {'cole': {'think': {'L': 66, 'R': 64}, 'yawn': {'L': 66, 'R': 62}, 'facepalm': {'L': 66}, 'sip': {'R': 56},
+# T59 (k), rework: 'arm' boxes where a raised wrist beside his neck is his own arm, and 'fix' (fix ops after the cap): the
+# yawn's forearm keeps its own outline where the rest pose's shoulder had shown a dark sliver beyond it
+YAWN_FOREARM_EDGE = [('rows', 61, 54 + i, [r]) for i, r in enumerate(['.k_', '..k_', '...k_', '...k__', '...k___', '....k__', '.....k__', '......k__', '.......kk_'])]
+# and in both, the capped left shoulder line closed where it stepped two pixels (a shirt pixel touched the wall)
+SHOULDER_STEP = [('rows', 7, 56, ['k'])]
+SHOULDERS = {'cole': {'think': {'L': 66, 'R': 64, 'arm': [(46, 44, 53, 53)], 'fix': SHOULDER_STEP}, 'yawn': {'L': 66, 'R': 62, 'arm': [(46, 36, 53, 53)], 'fix': YAWN_FOREARM_EDGE + SHOULDER_STEP}, 'facepalm': {'L': 66}, 'sip': {'R': 56},
                       'solder': {'L': 66, 'R': 66}, 'solder1': {'L': 66, 'R': 66}, 'petedge': {'L': 70, 'R': 66}, 'petedge2': {'L': 70, 'R': 66},
                       'petcat': {'L': 70}, 'petcat2': {'L': 70}, 'offer': {'L': 66}, 'offerEmpty': {'L': 66},
                       'surprise': {'L': 58}, 'talk': {'L': 70, 'R': 70}}}   # T58 (j): talking arms in a conversation took narrower, lower shoulders
@@ -1130,13 +1246,16 @@ def shoulder_cap(c, entry, rest, ends):
     A, R = place(pb, px_, py_), place(rb, rx, ry)
     own = np.isin(A, [i for i, col in enumerate(out.pal) if col in set(SOFTEN[who][0][0]) | set(PS.PROPS)]) & (A >= 0)
     Yg = np.arange(A.shape[0])[:, None] + y0; Xg = np.arange(A.shape[1])[None, :] + x0
-    own &= ~((Yg < 54) & (Xg >= NECK[who][0] - 2) & (Xg <= NECK[who][1] + 2))   # the neck is not an arm: the shoulder beside it is the rest pose's
+    neckzone = (Yg < 54) & (Xg >= NECK[who][0] - 2) & (Xg <= NECK[who][1] + 2)
+    for ax0, ay0, ax1, ay1 in ends.get('arm', ()):                        # T59 (k): a raised wrist beside the neck is an arm (the rest pose's
+        neckzone &= ~((Xg >= ax0) & (Xg <= ax1) & (Yg >= ay0) & (Yg <= ay1))   # shirt had been pasted into it: the black block on his wrist)
+    own &= ~neckzone                                                     # the neck is not an arm: the shoulder beside it is the rest pose's
     lab, n = ndimage.label(own, structure=np.ones((3, 3), bool))           # and skin that does not reach down to an arm is a scrap of the picture's own neck
     if n: own &= np.isin(lab, [i for i in range(1, n + 1) if (Yg[:, 0][np.where(lab == i)[0]] >= 52).any()])
     cloth = np.isin(A, [out.color(K['t']), out.color(K['u'])])
     own |= ndimage.binary_dilation(own, structure=np.ones((3, 3), bool)) & (A >= 0) & ~cloth & PS.dark(Sprite(np.where(A >= 0, A, 0).astype(np.int16), out.pal))
     res = A.copy(); ink = out.color(K['k']); collar = 30; x_l, x_r = NECK[who][0] + 2, NECK[who][1] - 2
-    for side, end in ends.items():
+    for side, end in ((k_, v_) for k_, v_ in ends.items() if k_ in ('L', 'R')):
         for yy in range(collar, end + 1):
             r = yy - y0
             if not (0 <= r < A.shape[0]): continue
@@ -1219,6 +1338,8 @@ def build(c):
         for e in man.get('fix', []):                                     # the hole filling took Maker's outline for a hole: clear it again
             if e[0] == 'cat': body = body.copy(); _cat_clear(body, meta['x'], meta['y'], e[1], e[2], e[3])
         body = despeck(body)
+        if man.get('paint'):                                             # T59 (k): hand-drawn maps on the finished layers, where they are drawn
+            body, fr_, fb_ = paint(man['paint'], body, fr_, fb_, meta['x'], meta['y'], hdy, KEYS[who])
         entry = dict(body=(body, meta['x'], meta['y']), front=fr_, front_body=fb_, pts=man.get('pts', {}), props={})
         masks = {}
         for name, (cols, box) in man.get('props', {}).items():
@@ -1265,6 +1386,7 @@ def build(c):
         for pose, ends in capped.items():
             if pose in out:
                 out[pose] = shoulder_cap(c, out[pose], out['rest'], ends); bb, bx, by = out[pose]['body']
+                if ends.get('fix'): bb = fix(bb, bx, by, ends['fix'], KEYS[who])   # T59 (k): fixes where the capped line meets his own arm
                 out[pose]['body'] = (pinholes(bb, bx, by, head, out[pose]['front'], desk=c.desk), bx, by)   # no gap where the line eased out
     if 'wave' in out:
         for act, seam in WAVE_FROM.get(who, {}).items():
