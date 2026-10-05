@@ -838,10 +838,10 @@ MANUAL = {
         # T49 (a, rework): the hands, the phone and the blazer round them are hand-authored maps (phone_paint); what the picture drew
         # where her hair hangs takes a hair colour first ('hairlock': its blazer, skin-toned scraps and a gold patch had
         # covered her locks), the picture's wider neckline goes under her hair as blazer; phone1 is the same grip a row higher
-        'phone': dict(keep_chest=True, front=(4, 44, 50, 80), front_mode='limb', paint_fix=phone_paint(0),
+        'phone': dict(keep_chest=True, front=(4, 44, 50, 80), front_mode='limb', paint_fix=phone_paint(0) + [('recolour', 45, 68, 58, 73, {'#010100': '#191718', '#0b0503': '#191718', '#0e0c0b': '#191718'})],   # re-audit: a black clump in her blazer below the arm becomes a fold
                       fix=[('recolour', 9, 50, 17, 63, {'#f9e2d2': '#191718', '#faebe1': '#191718', '#f1a49b': '#191718', '#e1cec4': '#191718', '#e0b3a2': '#191718'}),
                            ('hairlock', -4, 44, 60, 70, '#9a6f50')]),
-        'phone1': dict(base='phone', keep_chest=True, front=(4, 44, 50, 80), front_mode='limb', paint_fix=phone_paint(1),
+        'phone1': dict(base='phone', keep_chest=True, front=(4, 44, 50, 80), front_mode='limb', paint_fix=phone_paint(1) + [('recolour', 45, 68, 58, 73, {'#010100': '#191718', '#0b0503': '#191718', '#0e0c0b': '#191718'})],   # re-audit: a black clump in her blazer below the arm becomes a fold
                        fix=[('recolour', 9, 50, 17, 63, {'#f9e2d2': '#191718', '#faebe1': '#191718', '#f1a49b': '#191718', '#e1cec4': '#191718', '#e0b3a2': '#191718'}),
                             ('hairlock', -4, 44, 60, 70, '#9a6f50')]),
         'carry': dict(keep_chest=True),
@@ -856,7 +856,8 @@ MANUAL = {
                      fix=[('recolour', 7, 57, 13, 63, {'#5f4030': '#292423', '#6f4b3a': '#292423', '#9a6f50': '#292423', '#bd8e5d': '#292423', '#d9ae71': '#292423'})]),   # (her own hair peeked through it there)   # T23: only the hand (the 'diff' box left a pale rectangle by her hair)
         # hands and sleeves that are in front of her hair
         'talk': dict(front=(-16, 28, 14, 64), front_mode='limb'),
-        'call': dict(keep_chest=True, front=(4, 24, 15, 46), front_mode='notface', front_face=True, frames={'call1': ((0, 68, 27, 82), 1, 0)}),   # T7: her free hand shifts as she talks
+        # re-audit: the phone at her ear in the held phone's blue (its edge showed grey)
+        'call': dict(keep_chest=True, fix=[('recolour', 14, 30, 16, 37, {'#5f6368': '#3d5f99'})], front=(4, 24, 15, 46), front_mode='notface', front_face=True, frames={'call1': ((0, 68, 27, 82), 1, 0)}),   # T7: her free hand shifts as she talks
         'surprise': dict(keep_chest=True, front=(48, 24, 68, 58), front_mode='limb'),
         # the bottle came out in her skin colours
         'take': dict(fix=[('erase', -12, 12, 4, 50, BOTTLE), ('under', -11, 14, shaker('ilinca'), SKIN_ILINCA, True)]),   # T35: a picture made with this shaker in her hand; her fingers wrap it

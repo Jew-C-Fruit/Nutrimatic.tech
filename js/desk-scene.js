@@ -153,7 +153,7 @@
     deskTop: "#6b4a30", deskTopL: "#8a6442", deskTopD: "#4e3522", deskFront: "#3b2817", deskFrontD: "#2a1b0f", plate: "#efe9dc", plateS: "#b7ad99",
     green: "#2d6a3c", greenL: "#6fb57f", leaf: "#3f8f55", stem: "#4b7a3a", petalR: "#e4002b", petalW: "#ffffff", petalY: "#f2c744",
     pot: "#a3603c", potS: "#7c4428", board: "#2f6b3a", boardS: "#1f4a28", copper: "#d9a650",
-    iron: "#9a9a9e", ironHot: "#ff6a3d", smoke: "#c9c6bf", smoke2: "#dedbd4", phone: "#111111", phoneScreen: "#dfe9f5",
+    iron: "#9a9a9e", ironHot: "#ff6a3d", smoke: "#c9c6bf", smoke2: "#dedbd4", phone: "#3d5f99", phoneTop: "#6f93cf", phoneScreen: "#dfe9f5",
     paper: "#fbfaf5", paperLine: "#d9d5c8", mug: "#e4002b", mugS: "#a3001f", mugL: "#ff4d6a",
     laptop: "#cfd2d4", laptopS: "#9a9ea2", laptopL: "#eaeced", ds: "#d6162f", dsS: "#9d0f22", dsScreen: "#cfe3d4",
     lampBody: "#1b1b1b", lampShade: "#f2efe6", lampShadeOn: "#ffe9a8", bulb: "#fff1b8", pendant: "#1f1f22", pendantIn: "#ffe6a0", pendantOff: "#6d6d70", cord: "#2a2a2c",
@@ -493,7 +493,7 @@
   }
   // Where Ilinca's phone lies when she isn't holding it: on her right, clear of her laptop and her arm.
   function phoneSpot() { return ilinca.x + 40; }
-  function propPhoneOnDesk(x) { var y = deskAt(0.5); rect(x - 5, y - 2, 10, 2, C.phone); hline(x - 4, y - 2, 8, C.ink3); }
+  function propPhoneOnDesk(x) { var y = deskAt(0.5); rect(x - 5, y - 2, 10, 2, C.phone); hline(x - 4, y - 2, 8, C.phoneTop); }   // face down, its blue back up: the phone in her hand
   // A paper airplane seen from above at a slant, nose in dir (1 = right), its middle at x, y: the near wing white, the
   // far wing in shade, the crease between (T42: the old one read as a paper football; T57: as long as the folded one). The
   // same map as tools/desk/poses.py PLANE.
