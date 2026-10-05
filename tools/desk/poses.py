@@ -538,6 +538,41 @@ REST_HAND_ILINCA = [   # rows from y 74, columns from x 28
     '________________________',
     '________________________',
 ]
+# T60 (l) ("at rest, cole's hands are badly drawn"; the 'mitten' redraw had left blank stumps with no thumb, a spur and an
+# outline break): his left-hand-side resting hand (his right hand) drawn by hand, x 4-29, rows 86-97, seen from the front
+# and a little above, loosely closed: the forearm's shaded band runs on into the pinky side (rows 86-90, the heel rounded),
+# the back of the hand (rows 86-89) slopes down to the knuckles (row 90 in mid tone), the knuckles lit with dips over the
+# finger divisions (row 91), the fingers bending down (row 92), four finger fronts with three divisions in dark skin (rows
+# 93-95) ending in rounded tips with a black notch between them, the pinky a row shorter; the thumb on the inner side, lit,
+# angled toward the middle, apart from the index finger by a V notch, its tip on the fingertips' row (a row lower read as a
+# pointing hook). One black outline wherever it meets the desk or the shirt. Drawn after the softening ('post'), so every
+# outline pixel stays as drawn. The other hand is its mirror (REST_MIRROR: x + x' = 72, where the two forearms meet the desk).
+REST_HAND = ['aasssssssssssssssss.......',   # 86
+             'aaaassssssssssssssss......',   # 87
+             'aaaamsssssssssssssssssk...',   # 88
+             'aaaamssssssssssssssmkk____',   # 89
+             'kkaammmmmmmmmmmmmmmmk_____',   # 90
+             '__kammmsssmsssmssdsmk_____',   # 91
+             '___kammmmmmmmmmmmdsssk____',   # 92
+             '___kmadmmadmmadmadsssmk___',   # 93
+             '___kmadmmadmmadmakksssmk__',   # 94
+             '____kkkaaakaaakaak_kaaak__',   # 95
+             '_______kkk_kkk_kk___kkk___',   # 96
+             '__________________________']   # 97
+# the fidget frame (rest1): the same hand from the knuckle slope down lifted a pixel (the back of the hand a row shorter),
+# the heel still rounded
+REST_HAND_LIFT = REST_HAND[:3] + ['aaaa' + REST_HAND[4][4:20] + 'kk____', 'kk' + REST_HAND[5][2:]] + REST_HAND[6:] + ['_' * 26]
+REST_MIRROR = 72
+
+
+def rest_hands():
+    """T60 (l): the fix ops that draw both resting hands (REST_HAND and its mirror) over what the picture had there"""
+    m, x0, w = REST_MIRROR, 4, len(REST_HAND[0]); xr = m - (x0 + w - 1)
+    return [('clear', x0, 89, 34, 99), ('rows', -1, 89, ['kkkkk']), ('rows', x0, 86, REST_HAND),
+            ('clear', m - 34, 89, m - x0, 99), ('rows', m - 3, 89, ['kkkkk']), ('rows', xr, 86, [r[::-1] for r in REST_HAND]),
+            ('rows', 69, 86, ['aaa']),                                   # the right forearm's shaded band joined to the hand's
+            ('rows', 45, 84, ['.....kkkk..', '.....kksss.', '.kkkk......', '.kkk.......'])]   # its top edge outlined against the shirt, as the left's is
+
 
 # By eye, per pose: the box (base coordinates) whose pixels go over the face, and named points.
 MANUAL = {
@@ -596,8 +631,9 @@ MANUAL = {
         'hide': dict(fix=[('clear', -24, 89, 110, 104)]),                # hands in his lap: nothing of them below the desk line (note 9b)
         # note 9a, motion in every activity: frames the scene cycles through (a forearm typing behind the screen, a hand to
         # the trackpad, thumbs on the console, a fidgeting hand)
-        # T60 ("at rest, cole's hands are badly drawn"): each hand one closed relaxed shape with three finger lines
-        'rest': dict(fix=[('mitten', 2, 86, 36, 99), ('mitten', 42, 86, 76, 99)], frames={'rest1': ((4, 84, 30, 99), 0, -1)}),
+        # T60 (l) ("at rest, cole's hands are badly drawn"): both hands drawn by hand (REST_HAND), after the softening; the
+        # fidget frame lifts the left hand's fingers a pixel (REST_HAND_LIFT; a box shift had stepped the forearm and the hem)
+        'rest': dict(post=rest_hands(), frames={'rest1': {'edits': [('clear', 4, 89, 34, 99), ('rows', 4, 86, REST_HAND_LIFT)]}}),
         # petting Maker lying beside him: the picture had a grey cat under his hand; it goes, and the scene lays Maker in
         # its place (RIG below), so the hand lies exactly on her back; the hand moves a little as it strokes
         'petcat': dict(fix=[('erase', 28, 60, 86, 93, CAT_GREYS)], frames={'petcat2': ((46, 56, 80, 82), -2, 0)}),
@@ -1528,6 +1564,9 @@ def build(c):
         body = despeck(body)
         if man.get('paint'):                                             # T59 (k): hand-drawn maps on the finished layers, where they are drawn
             body, fr_, fb_ = paint(man['paint'], body, fr_, fb_, meta['x'], meta['y'], hdy, KEYS[who])
+        # T60 (l): pixel maps drawn last, after the softening and the hole filling, so a hand-authored hand keeps every
+        # outline pixel as drawn (softening had turned outline beside a fingertip into skin)
+        if man.get('post'): body = fix(body, meta['x'], meta['y'], man['post'], KEYS[who])
         entry = dict(body=(body, meta['x'], meta['y']), front=fr_, front_body=fb_, pts=man.get('pts', {}), props={})
         masks = {}
         for name, (cols, box) in man.get('props', {}).items():
