@@ -662,6 +662,17 @@
     blit(d.pose.body, d.o.x, d.o.y + d.jig); g.restore();
   }
 
+  // His raised arm in a wave is in front of his lamp's shade (re-audit: the shade cut across his elbow); the box is the
+  // pose's upper left, where the red lamp leans in, in sprite coordinates.
+  var WAVE_ARM = { cole: [-40, -20, 34, 84] };
+  function drawWaveArm(p) {
+    var d = p.drawn, box = d && WAVE_ARM[p.name]; if (!box || p.hidden || !/Wave$|^wave2?$/.test(d.name)) { return; }
+    g.save(); g.beginPath(); g.rect(d.o.x + box[0], d.o.y + box[1], box[2] - box[0], box[3] - box[1]); g.clip();
+    blit(d.pose.body, d.o.x, d.o.y + d.jig);
+    if (d.pose.frontBody) { blit(d.pose.frontBody, d.o.x, d.o.y + d.jig); }
+    g.restore();
+  }
+
   /* ---------- desk set per visit ---------- */
   var SETS = [
     ["vase0", "plant", "papers", "mug"], ["plant", "bottle", "vase1", "cartridge"], ["bottle", "vase2", "plant", "mug"],
@@ -1282,6 +1293,7 @@
     if (art) { g.drawImage(ENV.img["desk-" + layoutName], 0, 0); } else { drawDesk(); }
     people.forEach(drawOnDesk); people.forEach(drawLaptopOut);
     if (art) { drawLampsArt(h); } else { drawLampBase(); }
+    people.forEach(drawWaveArm);
     drawProps(f);
     if (!art) { drawLampCone(); drawLamp(); }
     people.forEach(drawNamePlate);
