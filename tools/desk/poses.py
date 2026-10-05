@@ -302,6 +302,48 @@ THROW_HAND = ['...........kk',
               'ak']
 THROW_PLANE = (66, 22)
 
+# R30 wave (1, audit: the raised hand "has an open outline on the thumb side ..., skin touching the wall ... and finger
+# strokes drawn in black"; Cole, T33: "he should raise his hand in a casual wave"): his raised right hand drawn by hand, as
+# the DS grip and the resting hands were, over the picture's: an open hand, palm to the viewer, upright on the forearm;
+# four fingers (the middle one longest, the pinky shortest) with a black notch between their tips and finger lines in dark
+# skin below, the thumb out toward his head with a V of wall between it and the index finger, the crease round the
+# thumb's root in mid skin, the shaded edge on the thumb's side as on his forearm; one black outline, the wrist (row 30)
+# as wide as the forearm it joins. 21 px wide at most (his resting hands are 20). Columns from x -3, rows from 2.
+WAVE_HAND = [
+    '........kkk..........',   # 2
+    '.......ksssk.........',   # 3
+    '....kkkkssskkkk......',   # 4
+    '...ksssksssksssk.....',   # 5
+    '...ksssdsssdsssk.....',   # 6
+    '...ksssdsssdsssk.....',   # 7
+    '.kkksssdsssdsssk.....',   # 8
+    'kssksssdsssdsssk.....',   # 9
+    'kssdsssdsssdsssk.....',   # 10
+    'kssdsssdsssdsssk..kk.',   # 11
+    'kssdsssdsssdsssk.kssk',   # 12
+    'kssdsssdsssdsssk.kssk',   # 13
+    'kssdsssdsssdsssk.kssk',   # 14
+    'kssmsssmsssmssskksssk',   # 15
+    'ksssssssssssssssdssmk',   # 16
+    'ksssssssssssssssmssmk',   # 17
+    'kssssssssssssssmssmk.',   # 18
+    'kssssssssssssssmssmk.',   # 19
+    'ksssssssssssssmssmk..',   # 20
+    'ksssssssssssssmssmk..',   # 21
+    'kssssssssssssmssmk...',   # 22
+    'kssssssssssssmssmk...',   # 23
+    'ksssssssssssmssmk....',   # 24
+    '.ksssssssssssssmk....',   # 25
+    '.kssssssssssssmk.....',   # 26
+    '.kssssssssssssmk.....',   # 27
+    '..kssssssssssmdk.....',   # 28
+    '..kssssssssssmdk.....',   # 29
+    '...ksssssssssmdk.....']   # 30
+WAVE_HAND_AT = (-3, 2)
+# the same hand on the second wave picture (the fanning frame), a pixel to the left so the hand rocks; that picture's
+# forearm is narrower and stands straighter, so its first row under the wrist steps out to meet it
+WAVE2_HAND = [('clear', -12, -5, 19, 30), ('rows', -4, 2, WAVE_HAND), ('rows', 0, 31, ['ks'])]
+
 # T53 (e: "cole's shaker motion still includes parts of the chest and neck, shaker, hands and arms must be isolated"; audit:
 # the cap covered the bottom of his collar every other frame): both hands round the shaker drawn by hand, as the DS grip
 # (DS_HAND): each thumb up beside the shaker, four fingers across its front (finger lines in the darkest skin, a notch
@@ -792,6 +834,12 @@ MANUAL = {
         'yawn': dict(front=(30, 29, 60, 48), front_mode='arm', keep_neck=True, paint=COLE_YAWN_PAINT + [('body', 77, 88, ['k'])]),   # (re-audit: a gap in the desk hand's outline)   # T59 rework: the hand at his mouth drawn whole
         # T38 (the spark: "instead of looking frustrated or surprised I do a little dance"): a hand to his head, frustrated
         'facepalm': dict(front=[(34, -8, 64, 21), (54, 21, 68, 42)], front_mode='notface'),   # the hand on his head and the arm beside his face; never the picture's own face or glasses
+        # R30 wave (1): the raised hand in every greeting (the *Wave poses take it from here) and the fanning frame drawn by
+        # hand (WAVE_HAND), after the softening so every outline pixel stays as drawn
+        'wave': dict(post=[('clear', -12, -5, 19, 30), ('rows', WAVE_HAND_AT[0], WAVE_HAND_AT[1], WAVE_HAND),
+                           # and the near-black pixels inside the forearm's outline (a doubled, ragged edge) take its edge shades
+                           ('recolour', -12, 31, 3, 45, {'#090507': '#ee947c'}), ('recolour', 4, 31, 13, 45, {'#090507': '#f6af8d'})]),
+        'wave2': dict(post=WAVE2_HAND + [('recolour', -12, 31, 12, 45, {'#0f0503': '#f6af8d'})]),
         # a chair back stood behind the elbow in the generated picture
         'fist': dict(fix=[('clear', 80, 64, 83, 64), ('clear', 73, 65, 83, 65), ('clear', 74, 66, 83, 66), ('clear', 75, 67, 83, 67), ('clear', 76, 68, 83, 69),
                           ('clear', 77, 70, 83, 70), ('clear', 78, 71, 83, 72), ('clear', 79, 73, 83, 73), ('clear', 80, 74, 83, 75), ('clear', 81, 76, 83, 77),
@@ -1478,7 +1526,13 @@ def chest_patch(c, torso):
 # A seam is a column, or ('arm', [(row from, row to, column), ...], column): in those rows the left edge of the first skin
 # right of that column (the chin-on-fist arm and its elbow: the shirt left of it is the wave picture's, with no shade
 # boundary down his chest), elsewhere the column
-WAVE_FROM = {'cole': {'rest': 36, 'type': 30, 'write': 49, 'solder': 40, 'mug': 40, 'think': ('arm', [(44, 76, 38), (76, 100, 55)], 36)}}
+# R30 wave (2, audit: "thinkWave does not match think outside the raised arm: it has a crew collar, a lighter shirt ... and
+# different neck shading"): think's seam runs along his chin-on-fist arm only below his collar (row 57 on); above it, at
+# column 24 (WAVE_COLLAR), so his collar and neck are think's own
+WAVE_FROM = {'cole': {'rest': 36, 'type': 30, 'write': 49, 'solder': 40, 'mug': 40, 'think': ('arm', [(57, 76, 38), (76, 100, 55)], 24)}}
+# R30 wave (2): above row 57 (his collar and the shirt just under it) every greeting's seam is at most column 24, so the
+# collar and neck are always the activity's own (the wave picture's collar had shown in writeWave, solderWave, mugWave)
+WAVE_COLLAR = {'cole': (57, 24)}
 
 
 def wave_from(c, act, wave, seam):
@@ -1503,6 +1557,7 @@ def wave_from(c, act, wave, seam):
                 sx[r, 0] = (xs.min() + x0 - 1) if len(xs) else xm
     else: sx = np.full(Y.shape, seam)
     sx = np.broadcast_to(sx, (H, 1)) if sx.shape[1] == 1 else sx
+    sx = np.where(Y < WAVE_COLLAR[who][0], np.minimum(sx, WAVE_COLLAR[who][1]), sx)   # R30 wave (2): his collar is the activity's
     left = X < sx
     props = np.isin(A, [i for i, col in enumerate(out.pal) if col in PS.PROPS]) & (A >= 0)
     lab, n = ndimage.label(props, structure=np.ones((3, 3), bool))   # only whole things (a laptop, paper, board, mug), not specks of a pen or an iron
@@ -1518,13 +1573,45 @@ def wave_from(c, act, wave, seam):
     res[left & ~keep_a] = -1
     take = left & (Wv >= 0) & ~other & ~keep_a & (Y <= c.desk - 1 + 0 * Y)
     res[take] = Wv[take]
+    # R30 wave (2): only the raised arm and his side under it are the wave picture's. Right of WAVE_COLLAR's column, where
+    # both pictures have shirt, the activity's own shirt stays (its shades: the wave picture's are lighter, so thinkWave's
+    # chest had jumped), and where the activity's lowered arm lay there (skin, its outline, a pen) the activity's shirt
+    # carries on down from the row above, so its shading runs on unbroken
+    shirt = out.color(K['t']); tu = [shirt, out.color(K['u'])]
+    ash, wsh = np.isin(A, tu), np.isin(Wv, tu)
+    # the wave picture's own fold strokes inside its shirt (dark, touching neither skin nor the wall) count as its shirt
+    wfree = (Wv < 0) | np.isin(Wv, [i for i, col in enumerate(out.pal) if col in skin])
+    wdark = np.isin(Wv, [i for i, col in enumerate(out.pal) if PS.dark(Sprite(np.array([[i]], np.int16), out.pal))[0, 0]])
+    wsh |= wdark & ~ndimage.binary_dilation(wfree, structure=np.ones((3, 3), bool))
+    ash |= dark & (Y < WAVE_COLLAR[who][0] + 3) & ~ndimage.binary_dilation((A < 0) | askin, structure=np.ones((3, 3), bool))   # and the activity's just under the collar
+    mid = take & wsh & (X >= WAVE_COLLAR[who][1])
+    both = mid & ash; res[both] = A[both]
+    refill = mid & ~ash
+    for r in range(H):
+        for xx in np.where(refill[r])[0]:
+            near = [v for v in (res[r - 1, max(0, xx - 2):xx + 3] if r else []) if v in tu]   # the shade most of the five above has: a broad
+            res[r, xx] = max(set(near), key=near.count) if near else Wv[r, xx]               # band runs on, a one-pixel crease does not streak
+    # and the shadow the lowered arm cast on the shirt beside it (a blot of the darker shade once the arm is gone) is
+    # evened out: within two pixels of where that arm was, a pixel takes the shade most of its eight neighbours have
+    zone = ndimage.binary_dilation(refill, structure=np.ones((3, 3), bool), iterations=2) & mid
+    for _ in range(3):
+        for r, xx in zip(*np.where(zone[1:-1, 1:-1])):
+            nb = [v for i, v in enumerate(res[r:r + 3, xx:xx + 3].ravel()) if i != 4 and v in tu]
+            if len(nb) >= 5 and res[r + 1, xx + 1] in tu:
+                top = max(set(nb), key=nb.count)
+                if nb.count(top) >= 5: res[r + 1, xx + 1] = top
     # the shirt goes on down to the desk where the wave picture's other arm was: between its side and the seam
-    shirt = out.color(K['t'])
     for yy in range(max(46, y0), min(c.desk, y1)):
         r = yy - y0; xs = np.where((res[r] >= 0) & left[r])[0]
         if not len(xs): continue
         for xx in range(xs.min(), int(sx[r, 0]) - x0):
-            if res[r, xx] < 0: res[r, xx] = shirt
+            if res[r, xx] < 0: res[r, xx] = res[r - 1, xx] if (res[r - 1, xx] in tu and xx + x0 >= WAVE_COLLAR[who][1]) else shirt   # (R30 wave: the shade above carries on)
+    for r, xx in zip(*np.where(left[1:-1, 1:-1] & (res[1:-1, 1:-1] >= 0) & ~np.isin(res[1:-1, 1:-1], tu))):   # R30 wave (2): a fold stroke the seam cut
+        nb = res[r:r + 3, xx:xx + 3].ravel(); nb = [v for i, v in enumerate(nb) if i != 4]                      # down to one pixel in the shirt goes
+        if all(v in tu for v in nb) and dark[r + 1, xx + 1] | wdark[r + 1, xx + 1]: res[r + 1, xx + 1] = max(set(nb), key=nb.count)
+    for r, xx in zip(*np.where(left[1:-1, 1:-1] & np.isin(res[1:-1, 1:-1], tu) & (res[1:-1, 1:-1] != A[1:-1, 1:-1]))):   # and a lone pixel of the other shade (not the activity's own)
+        nb = res[r:r + 3, xx:xx + 3].ravel(); nb = [v for i, v in enumerate(nb) if i != 4]
+        if len(set(nb)) == 1 and nb[0] in tu: res[r + 1, xx + 1] = nb[0]
     lab, n = ndimage.label(res >= 0, structure=np.ones((3, 3), bool))   # crumbs the cut left behind
     if n > 1:
         sizes = ndimage.sum(res >= 0, lab, index=np.arange(1, n + 1)); res[np.isin(lab, [i + 1 for i, s_ in enumerate(sizes) if s_ < 12])] = -1
