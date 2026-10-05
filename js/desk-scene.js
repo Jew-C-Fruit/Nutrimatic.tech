@@ -890,13 +890,15 @@
       update: function (t, f) {
         var pl = actors.plane; if (!pl || pl.gone) { return; }
         var k = f - pl.t0, dir = ilinca.x > cole.x ? 1 : -1;
-        // (on a phone she sits closer: the plane climbs in four frames instead of nine, clear of her hair)
+        // it climbs to its height in six frames (four on a phone, where she sits closer), clear of her hair and soon level
         var cruise = DESK_Y - 95, past = dir > 0 ? pl.x > L.art.win.x - 6 : pl.x < 40;   // level between the two shelves (clear of the books above and the photo below), then a slow sink past the window
-        pl.x = pl.x0 + dir * (k < 4 ? 7 : 5) * k; pl.y = Math.round(pl.y0 + (cruise - pl.y0) * Math.sin(Math.min(1, k / (L === LAYOUTS.narrow ? 4 : 9)) * Math.PI / 2)) + (past ? Math.round((k - 18) * 0.4) : 0);
+        pl.x = pl.x0 + dir * (k < 4 ? 7 * k : 28 + 5 * (k - 4)); pl.y = Math.round(pl.y0 + (cruise - pl.y0) * Math.sin(Math.min(1, k / (L === LAYOUTS.narrow ? 4 : 6)) * Math.PI / 2)) + (past ? Math.round((k - 18) * 0.4) : 0);   // 7 px a frame off the hand, then 5 (the old formula stepped back a pixel at the change)
         if (pl.x < -20 || pl.x > W + 20) { pl.gone = true; return; }
         [cole, ilinca].forEach(function (p) { if (k > 1) { lookAt(p, pl.x, pl.y); } });
       },
-      drawFront: function (t, f) { var pl = actors.plane; if (pl && !pl.gone) { propPlane(Math.round(pl.x), Math.round(pl.y), ilinca.x > cole.x ? 1 : -1); } }
+      // leaving his hand it is behind him (his open fingers in front of its tail), then in front of everyone
+      drawBack: function (t, f) { var pl = actors.plane; if (pl && !pl.gone && f - pl.t0 < 3) { propPlane(Math.round(pl.x), Math.round(pl.y), ilinca.x > cole.x ? 1 : -1); } },
+      drawFront: function (t, f) { var pl = actors.plane; if (pl && !pl.gone && f - pl.t0 >= 3) { propPlane(Math.round(pl.x), Math.round(pl.y), ilinca.x > cole.x ? 1 : -1); } }
     },
     // A pigeon lands on the sill, pecks about, and leaves. Both watch it.
     pigeon: {

@@ -692,9 +692,9 @@ MANUAL = {
         'highfive': dict(pts={'hand': (67, 24)}),
         # T42: the plane in his hand is the plane that flies (PLANE); T57 (i): the generated hand goes, his hand-drawn forearm and
         # pinching hand (THROW_HAND) take its place, the whole plane in it. 'hand' is where the flying plane's middle starts:
-        # level with the held one, 17 px on (a flight step is 7), its tail just off the open hand the release pose raises
-        # (started where it was held, it was drawn over that palm for three frames; further on, it grazed Ilinca's head)
-        'throw': dict(pts={'hand': (THROW_PLANE[0] + len(PLANE[0]) // 2 + 17, THROW_PLANE[1] + len(PLANE) // 2)},
+        # exactly where it was held (the scene draws it behind his open hand for its first frames, so the fingers stay in
+        # front of its tail; started 17 px on, it lurched off the hand and grazed Ilinca's head on a phone: re-audit)
+        'throw': dict(pts={'hand': (THROW_PLANE[0] + len(PLANE[0]) // 2, THROW_PLANE[1] + len(PLANE) // 2)},
                       fix=[('erase', 74, 18, 98, 38, PAPER), ('clear', 64, 20, 95, 67), ('rows', 62, 30, THROW_HAND),
                            ('under', THROW_PLANE[0], THROW_PLANE[1], PLANE, SKIN_COLE, True)]),
         # T42: he folds it in three steps, the paper getting smaller each time (the generated sheet goes)
