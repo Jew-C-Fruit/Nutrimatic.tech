@@ -649,7 +649,8 @@ PHONE_DESK_HAND = ['.............kkkkkkkkkkWkjjjjjj',
 def phone_paint(lift=0):
     """T49 rework: the phone pose's hand-authored maps, the grip `lift` rows higher (phone1: she lifts it a little as she scrolls)"""
     return [('rows', 4, 43, PHONE_SHOULDER), ('rows', 24, 48, PHONE_NECK), ('rows', 12, 50, PHONE_BACK), ('rows', 12, 50 - lift, PHONE_GRIP),
-            ('rows', -5, 72, PHONE_TORSO), ('rows', 14, 77, PHONE_DESK_HAND)]
+            ('rows', -5, 72, PHONE_TORSO), ('rows', 14, 77, PHONE_DESK_HAND),
+            ('rows', 57, 85, ['__'])]   # re-audit: the blazer's lower outline steps from row 85 to 84 in one pixel (it was a 2x2 block)
 
 
 # By eye, per pose: the box (base coordinates) whose pixels go over the face, and named points.
