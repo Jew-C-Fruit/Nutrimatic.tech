@@ -330,12 +330,17 @@
     }
     if (overlay) { g.restore(); }
   }
-  function drawLampsArt(h) {
+  // The lamps stand behind the figures (part "back": everything above the desk line, drawn before them), their feet on the
+  // desk top in front (part "front", after the desk): on a phone the red lamp's shade was drawn over Cole's shoulder, and
+  // in any layout over a raised arm (final round-30 audit).
+  function drawLampsArt(h, part) {
     for (var i = 0; i < 2; i++) {
-      var q = lampGeom(i), im = ENV.img[i === 0 ? "lamp-red" : "lamp-white"], on = lampIsOn(i, h);
-      if (on && !isDark(h)) { g.save(); g.beginPath(); g.rect(0, DESK_Y, W, H - DESK_Y); g.clip(); slantCone(q, 0.10, false, 20); g.restore(); }   // by day a working lamp shows only faintly, on the desk (over his shirt it read as a third arm: T56)
-      if (q.flip) { g.save(); g.translate(q.x + im.width, q.y); g.scale(-1, 1); g.drawImage(im, 0, 0); g.restore(); } else { g.drawImage(im, q.x, q.y); }
-      if (on) { drawBulb(q); }
+      var q = lampGeom(i), im = ENV.img[i === 0 ? "lamp-red" : "lamp-white"], on = lampIsOn(i, h), back = part === "back";
+      if (!back && on && !isDark(h)) { g.save(); g.beginPath(); g.rect(0, DESK_Y, W, H - DESK_Y); g.clip(); slantCone(q, 0.10, false, 20); g.restore(); }   // by day a working lamp shows only faintly, on the desk (over his shirt it read as a third arm: T56)
+      g.save(); g.beginPath(); if (back) { g.rect(0, 0, W, DESK_Y); } else { g.rect(0, DESK_Y, W, H - DESK_Y); } g.clip();
+      if (q.flip) { g.translate(q.x + im.width, q.y); g.scale(-1, 1); g.drawImage(im, 0, 0); } else { g.drawImage(im, q.x, q.y); }
+      g.restore();
+      if (back && on) { drawBulb(q); }
     }
   }
   function drawBulb(q) { for (var k = 0; k < BULB.length; k++) { px(q.flip ? q.x + 42 - BULB[k][0] : q.x + BULB[k][0], q.y + BULB[k][1], C.bulb); } }
@@ -387,9 +392,9 @@
     } else {
       var sx = WIN.x + 4 + Math.round(Math.min(1, Math.max(0, (h - 6) / 13)) * (WIN.w - 14)), sy = WIN.y + 5 + Math.round(Math.abs((h - 12.5) / 6.5) * 20);
       rect(sx, sy, 6, 6, C.sun); px(sx, sy, sky[0]); px(sx + 5, sy, sky[0]); px(sx, sy + 5, sky[0]); px(sx + 5, sy + 5, sky[0]);
-      for (var c = 0; c < clouds.length; c++) {                            // a cloud drifting in or out passes behind the frame: cut, not shrunk (a shrunk stub read as a white speck)
+      for (var c = 0; c < clouds.length; c++) {                            // a cloud drifting in or out passes behind the frame: cut, not shrunk, and no piece under four pixels (a stub read as a speck)
         var cl = clouds[c], fx = WIN.x + ((cl.x + f / 20) % (WIN.w + cl.w)) - cl.w;
-        [[1, cl.w - 2, C.cloud], [0, cl.w, C.cloud], [0, cl.w, C.cloudS]].forEach(function (r, k) { var x0 = Math.max(WIN.x, Math.round(fx) + r[0]), x1 = Math.min(WIN.x + WIN.w - 1, Math.round(fx) + r[0] + r[1] - 1); if (x1 >= x0) { hline(x0, WIN.y + cl.y + k, x1 - x0 + 1, r[2]); } });
+        [[1, cl.w - 2, C.cloud], [0, cl.w, C.cloud], [0, cl.w, C.cloudS]].forEach(function (r, k) { var x0 = Math.max(WIN.x, Math.round(fx) + r[0]), x1 = Math.min(WIN.x + WIN.w - 1, Math.round(fx) + r[0] + r[1] - 1); if (x1 - x0 >= 3) { hline(x0, WIN.y + cl.y + k, x1 - x0 + 1, r[2]); } });
       }
     }
     if (ENV.ready) { drawSkylineArt(h, f); return; }
@@ -666,17 +671,6 @@
     blit(d.pose.body, d.o.x, d.o.y + d.jig); g.restore();
   }
 
-  // His raised arm in a wave is in front of his lamp's shade (re-audit: the shade cut across his elbow); the box is the
-  // pose's upper left, where the red lamp leans in, in sprite coordinates.
-  var WAVE_ARM = { cole: [-40, -20, 34, 84] };
-  function drawWaveArm(p) {
-    var d = p.drawn, box = d && WAVE_ARM[p.name]; if (!box || p.hidden || !/Wave$|^wave2?$/.test(d.name)) { return; }
-    g.save(); g.beginPath(); g.rect(d.o.x + box[0], d.o.y + box[1], box[2] - box[0], box[3] - box[1]); g.clip();
-    blit(d.pose.body, d.o.x, d.o.y + d.jig);
-    if (d.pose.frontBody) { blit(d.pose.frontBody, d.o.x, d.o.y + d.jig); }
-    g.restore();
-  }
-
   /* ---------- desk set per visit ---------- */
   var SETS = [
     ["vase0", "plant", "papers", "mug"], ["plant", "bottle", "vase1", "cartridge"], ["bottle", "vase2", "plant", "mug"],
@@ -912,7 +906,7 @@
         [cole, ilinca].forEach(function (p) { if (k > 1) { lookAt(p, pl.x, pl.y); } });
       },
       // leaving his hand it is behind him (his open fingers in front of its tail), then in front of everyone
-      drawBack: function (t, f) { var pl = actors.plane; if (pl && !pl.gone && f - pl.t0 < 3) { propPlane(Math.round(pl.x), Math.round(pl.y), ilinca.x > cole.x ? 1 : -1); } },
+      drawBack: function (t, f) { var pl = actors.plane; if (pl && !pl.gone && f - pl.t0 >= 1 && f - pl.t0 < 3) { propPlane(Math.round(pl.x), Math.round(pl.y), ilinca.x > cole.x ? 1 : -1); } },
       drawFront: function (t, f) { var pl = actors.plane; if (pl && !pl.gone && f - pl.t0 >= 3) { propPlane(Math.round(pl.x), Math.round(pl.y), ilinca.x > cole.x ? 1 : -1); } }
     },
     // A pigeon lands on the sill, pecks about, and leaves. Both watch it.
@@ -1291,13 +1285,13 @@
       drawPendantArt(dark);
     }
     else { drawRoom(h); drawWindowView(h, f); if (scenario && scenario.drawOutside) { scenario.drawOutside(t, f); } drawWindowFrame(); drawSunPatch(h); drawPendant(dark); drawLampArm(); }
+    if (art) { drawLampsArt(h, "back"); }
     if (scenario && scenario.drawBack) { scenario.drawBack(t, f); }
     for (var i = 0; i < people.length; i++) { drawCharacter(people[i], f); }
     if (scenario && scenario.drawMid) { scenario.drawMid(t, f); }        // between them and the desk: a cat on a keyboard
     if (art) { g.drawImage(ENV.img["desk-" + layoutName], 0, 0); } else { drawDesk(); }
     people.forEach(drawOnDesk); people.forEach(drawLaptopOut);
-    if (art) { drawLampsArt(h); } else { drawLampBase(); }
-    people.forEach(drawWaveArm);
+    if (art) { drawLampsArt(h, "front"); } else { drawLampBase(); }
     drawProps(f);
     if (!art) { drawLampCone(); drawLamp(); }
     people.forEach(drawNamePlate);
