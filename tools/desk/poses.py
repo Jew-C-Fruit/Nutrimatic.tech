@@ -208,6 +208,95 @@ DS_HAND = ['tttttttttttttttttt........',
            'tkssssssssmmmaakkkkttttttt',
            'kssssssssmmmaakttttttttttt']
 
+# T60 (n, "while petting maker, cole's hands disconnects"; o, the hole beside her): Cole's petting arm, drawn by hand over
+# the rest pose (rows from y 57, columns from x -9; '.' keeps the rest pose, '_' clears). The generated picture's hand
+# had no wrist or forearm and ran into his shirt, his other forearm ended in a black block, and the shirt stopped short
+# of the desk (the picture was made with a stand-in cat bigger than Maker). Now: the rest pose's sleeve, his elbow on the
+# desk where the rest pose has it, the forearm rising from it to the wrist, one outline round arm and hand, the hand
+# cupped over Maker's head with four fingers (finger lines in dark skin, the tips in shade) resting between her ears, and
+# the rest pose's shirt down to the desk under the arm and behind her. His other arm is the rest pose's, resting behind her.
+PET_ARM_COLE = [
+    '..........................ttttttkkkkkkkkkkkttuuuuuuttttt',
+    '.........................ttttttkssssssssssskkkkttttttttttt',
+    '........................ttttttksssssssssssssssskkktttttttttt',
+    '.......................ttttttksssssssssssssssssssskkkttttttttt',   # row 60
+    '......................ttttttksssssssssssssssssssssssskkttttttttt',
+    '.....................ttttttkssssssssssssssssssssssssssskktttttttt',
+    '....................ttttttkssssssssssssssssssssssdmsssssskktttttt',
+    '...................ttttttkssssssssssssssssssssssssdmssssssskktttt',
+    '..................ttttttkssssssssssssssssssssssdmssddmssssssskttt',   # row 65
+    '.................ttttttkssssssssmsssssssssssssssdmsssdmsssssssktt',
+    '................ttttttkssssssssmmmmsssssmmmmmdmssdmsssdmssssssskt',
+    '...............ttttttkssssssssmmaaammmmmaaaaasdmssdmsssdmsssssskt',
+    '......__kuutttttttttkssssssssmmaaaaaaaaakkkkkasdmssdmsssddmsssakt',
+    '....____kutttttttttkssssssssmmaakkkkkkkktttttkssdmssdmssssdmsaktt',   # row 70
+    '.._____kuuutttttttkssssssssmmaakuttttttttttttkassdmssdmssssdakttt',
+    '..____kkkkkkkktttkssssssssmmaakuttttttttttttttksssdassdasssaktttt',
+    '._____ksssssssktkssssssssmmaakutttttttttttttttkassakmsakaaakttttt',
+    '.____ksssssssskkssssssssmmaakutttttt......tttttkaakkaaktkkktttttt',
+    '_____ksssssssskssssssssmmaakutttttt........tttttkkttkktttttttttt',   # row 75
+    '____kasssssssdssssssssmmaakutttttt.........tttttttttttttttttttt',
+    '____kassssssdssssssssmmaakutttttt...........tttttttttttttttttt',
+    '____kasssssdssssssssmmaakuttttttt............tttttttttttt',
+    '___kaasssssssssssssmmaakuttttttttt',
+    '___kaassssssssssssmmaakuttttttttttt',   # row 80
+    '___kaasssssssssssmmaakuttttttttttttt',
+    '___kaassssssssssmmaakutttttttttttttttttt',
+    '___kaasssssssssmmaakuttttttttttttttttttt',
+    '___kaassssssssmmaakutttttttttttttttttttt',
+    '___kmmmmmmmmsmmaakuttttttttttttttttttttt',   # row 85
+    '____kaaaaaaaaaaakuttttttttttttttttttttttt',
+    '_____kaaaaaaaaakkkkkkkkkkkkkkkkkkkkkkkkkk',
+    '______kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk',   # (to x 36: beside Maker's chin the rest pose's shirt edge was closed only by the hole filling)
+]
+
+# T60 (her petting frames, the audit after note o): Ilinca's petting arm as drawn by hand where the picture failed: her
+# sleeve outlined down its left side and carried down onto Maker's back (clearing the stand-in cat had left the wall
+# showing between them, and a ragged cuff); the hand on Maker's back with one outline, its fingertip no longer hanging
+# below it, single finger lines in dark skin, no white speck at the cuff. ('.' keeps the picture, '_' clears.)
+PET_ARM_ILINCA = [   # rows from y 62, columns from x -11
+    'kjjjjjj',
+    'kjjjjj',
+    'kjjjjj..d',
+    'kjjjjjkkdssdsssdsssskk',
+    'kjjjjjkkdsssdssdsssdsskkk',
+    'kJJJJJJJkkssdsssdsssdsssak',
+    'kJJJJJJJJJkssdsssdsssdssaak',
+    'kJJJJJJJJJJkssdsssdsssdaaak',
+    '............kaadaaadakkkkk',
+    '.............kkkkkkkk',
+    '..................__',
+]
+# and her white top carried on down beside Maker's rump to the desk (clearing the stand-in cat had left a column of wall
+# showing between them)
+TOP_ILINCA = ['WW', '.WW', '..WW', '...WW', '....W', '....WW', '.....WW', '......W', '......WW', '.......W', '.......W',   # rows from y 68, columns from x 16
+              '.......gg', '........g', '........g', '........g', '........k']
+# and her other hand, resting on the desk: one closed relaxed hand (the generated one had a loose fingertip with a white
+# pixel in it and pale specks), the thumb toward her middle, three short finger lines in dark skin
+REST_HAND_ILINCA = [   # rows from y 74, columns from x 28
+    '...............k',
+    '.............kksskk',
+    '............kssssssk',
+    '.........kkssssssssak',
+    '........ksssssssssssak',
+    '......kkesssssssssssak',
+    '...kkkesssssssssssssak',
+    '..keeessssssssssssssakJ',
+    '.kesssdsssssssssssssak',
+    '.kasssdssssssssssssak',
+    '..kaadsssssssssssssak',
+    '___kkessssssdsssssak____',
+    '____kasssdssdssdssak____',
+    '_____kassdssdssdsak_____',
+    '______kasdssdssdak______',
+    '_______kadaadaaak_______',
+    '________kkkkkkkk________',
+    '________________________',
+    '________________________',
+    '________________________',
+    '________________________',
+]
+
 # By eye, per pose: the box (base coordinates) whose pixels go over the face, and named points.
 MANUAL = {
     'cole': {
@@ -272,7 +361,14 @@ MANUAL = {
         'petcat': dict(fix=[('erase', 28, 60, 86, 93, CAT_GREYS)], frames={'petcat2': ((46, 56, 80, 82), -2, 0)}),
         # note 12: Maker lies at the desk's front edge now; this picture was made with her pasted there (work folder
         # petedge/), so the hand lands on her back; everything of the stand-in cat but the hand goes
-        'petedge': dict(fix=[('cat', 31, 66, SKIN_COLE)], frames={'petedge2': ((26, 58, 56, 84), 1, 0)}),   # T62: the hand on her head moves as it strokes
+        # T60 (n, o): built on the rest picture (the shoulders, the sleeves, the shirt to the desk, the other arm), the petting
+        # arm drawn over it (PET_ARM_COLE); the forearms on the desk go (the right hand would peek out under her belly); the
+        # map again after the softening (it had opened the outline between the fingertips); inside the scene's petting box
+        # and her footprint only the hand ('maker'). T62: the stroke moves the hand on her head a pixel, the arm stays.
+        'petedge': dict(base='rest', fix=[('mitten', 2, 86, 36, 99), ('mitten', 42, 86, 76, 99), ('rows', -9, 57, PET_ARM_COLE),
+                                          ('clear', -10, 89, 70, 100), ('late', [('rows', -9, 57, PET_ARM_COLE)]),
+                                          ('maker', 31, 66, (31, 66, 56, 104), 78)],
+                        frames={'petedge2': {'box': (28, 57, 56, 78), 'dx': 1, 'edits': [('rows', 36, 57, ['u.....t']), ('maker', 31, 66, (31, 66, 57, 104), 78)]}}),   # (the shirt's crease beside the hand stays put)
         'stretch': dict(fix=[('clear', -8, 54, 7, 92), ('clear', 8, 53, 8, 53)]),   # a chair's edge behind him in the generated picture
         # props the scene also draws on their own: the laptop (the cat sits on it), the paper, the bottle being handed over
         # T31 (2026-10-04: "Typing arms still look really weird", "Writing arms are good"): typing is the writing picture
@@ -343,7 +439,14 @@ MANUAL = {
         'wave': dict(frames={'wave2': ((-12, 12, 12, 38), 1, 0)}),          # a casual wave: the hand rocks a pixel
         # her reaching sleeve ended in a spike up into her hair: its top is cut level at the shoulder, under the hair
         'petcat': dict(fix=[('erase', -38, 60, 32, 94, CAT_GREYS), ('clear', 0, 30, 16, 45), ('rows', 4, 46, ['kkkkkk'])], frames={'petcat2': ((-18, 54, 14, 76), 2, 0)}),
-        'petedge': dict(fix=[('cat', -29, 62, SKIN_ILINCA)], frames={'petedge2': ((-12, 52, 14, 76), 2, 0)}),   # as Cole's: Maker at the front edge
+        # as Cole's: Maker at the front edge. T60: the stand-in cat cleared once (not again after the hole filling, which
+        # would open the sleeve again), the maps drawn and drawn again after the softening, only the hand over Maker
+        # ('maker'). The stroke moves the hand a pixel; the sleeve, shoulders and torso stay (the whole arm had moved, and its
+        # old outline stayed behind as a loose sliver)
+        'petedge': dict(fix=[('cat', -29, 62, SKIN_ILINCA, False), ('rows', -11, 62, PET_ARM_ILINCA), ('rows', 28, 74, REST_HAND_ILINCA), ('rows', 16, 68, TOP_ILINCA),
+                             ('late', [('rows', -11, 62, PET_ARM_ILINCA), ('rows', 28, 74, REST_HAND_ILINCA), ('rows', 16, 68, TOP_ILINCA)]),
+                             ('maker', -29, 62, (-29, 62, 24, 100), 74)],
+                        frames={'petedge2': {'box': (-6, 58, 16, 72), 'dx': 1, 'edits': [('maker', -29, 62, (-29, 52, 24, 100), 74)]}}),
         'stretch': dict(fix=[('clear', 63, 38, 67, 84)]),                # a chair's edge behind her
         'rest': dict(fix=[('recolour', 56, 55, 64, 66, {'#5f6368': '#191718', '#9a9ea2': '#292423'})],   # a grey chair corner by her shoulder
                      frames={'rest1': ((6, 72, 36, 88), 0, -1)}),
@@ -391,7 +494,7 @@ HANDS = {
     'ilinca': {
         'rest': [(5, 71, 41, 91)], 'mug': [(-8, 67, 41, 85)], 'sip': [(-2, 25, 14, 63), (19, 72, 41, 86)], 'write': [(-6, 71, 17, 87), (26, 73, 52, 88)],
         'call': [(2, 69, 25, 80), (5, 25, 16, 47)], 'yawn': [(8, 75, 29, 87)], 'talk': [(-18, 30, 7, 62), (18, 72, 44, 89)],
-        'petedge': [(28, 73, 50, 94)], 'petcat': [(-15, 53, 6, 69), (15, 66, 39, 85)], 'wave': [(-11, 13, 11, 50), (4, 71, 28, 85)],
+        'petcat': [(-15, 53, 6, 69), (15, 66, 39, 85)], 'wave': [(-11, 13, 11, 50), (4, 71, 28, 85)],   # (T60: petedge's hands are drawn by hand: PET_ARM_ILINCA, REST_HAND_ILINCA)
         'surprise': [(-9, 10, 13, 49), (49, 10, 65, 49)],
         'take': [(-14, 20, 4, 56), (10, 71, 34, 89)], 'drink': [(1, 36, 13, 48), (12, 76, 36, 88)], 'phone': [(14, 56, 42, 80), (4, 76, 40, 90)],
         'carry': [(1, 68, 11, 77), (43, 69, 52, 77)], 'think': [(17, 31, 34, 48), (10, 73, 36, 91)],
@@ -583,7 +686,11 @@ def fix(spr, ox, oy, edits, pal_key):
     s = spr.copy()
     for e in edits:
         if e[0] == 'cat':                                                # Maker's own outline where she was pasted into the picture: all of it goes
-            _, x0, y0, skin = e; _cat_clear(s, ox, oy, x0, y0, skin)    # but the hand on her, redrawn clean
+            x0, y0, skin = e[1:4]; _cat_clear(s, ox, oy, x0, y0, skin)  # but the hand on her, redrawn clean
+            continue
+        if e[0] == 'late': continue                                      # T60 (n): applied after the softening and the hole filling (build)
+        if e[0] == 'maker':                                              # T60 (n, o): only the hand where the scene draws the pose again over Maker
+            who = 'ilinca' if pal_key is KEYS['ilinca'] else 'cole'; _maker_clear(s, ox, oy, who, *e[1:])
             continue
         if e[0] == 'mitten':                                             # a relaxed hand redrawn closed: one outline, even skin, short finger lines
             who = 'ilinca' if pal_key is KEYS['ilinca'] else 'cole'; _mitten(s, ox, oy, e[1:5], who, *(e[5:] or ()))
@@ -672,6 +779,33 @@ def _cat_clear(s, ox, oy, x0, y0, skin):
     s.idx[box & sk & ~whole] = -1
     s.idx[whole & ~hand] = s.color(dark_skin)
     s.idx[line] = s.color(ink)
+
+
+def _maker_clear(s, ox, oy, who, x0, y0, box, hand_below):
+    """T60 (n, o): while she is petted Maker lies at the desk's front edge in front of the figure, and the scene draws the
+    pose, then Maker, then the pose again inside the petting hand's box (desk-scene.js PET_HAND: x0, y0, x1, y1, the ends
+    not included) so the hand lies on her. The pose may now be whole behind her (the shirt down to the desk: no wall
+    showing beside her), but inside that box and her exact footprint (pasted at x0, y0, as the scene lays her) it keeps
+    only the hand: skin above row `hand_below` and the outline touching it; everything else there is hidden by her in the
+    first pass and must not be drawn over her in the second. In place."""
+    from scipy import ndimage as nd
+    m = _maker_footprint(); foot = np.zeros(s.idx.shape, bool)
+    ys, xs = np.where(m); yy, xx = ys + y0 - oy, xs + x0 - ox; ok = (yy >= 0) & (yy < s.h) & (xx >= 0) & (xx < s.w); foot[yy[ok], xx[ok]] = True
+    inb = np.zeros(s.idx.shape, bool); bx0, by0, bx1, by1 = box
+    inb[max(0, by0 - oy):max(0, by1 - oy), max(0, bx0 - ox):max(0, bx1 - ox)] = True
+    sk = np.isin(s.idx, [i for i, c in enumerate(s.pal) if c in SOFTEN[who][0][0]]); sk[max(0, hand_below - oy):, :] = False
+    ink = np.isin(s.idx, [i for i, c in enumerate(s.pal) if c in LINES[who] | {KEYS[who]['k']}])
+    keep = sk | (ink & nd.binary_dilation(sk, structure=np.ones((3, 3), bool)))
+    s.idx[inb & foot & ~keep] = -1
+
+
+def _maker_ops(who, pose):
+    """the 'maker' fix ops of a pose, or of the frame of that name (in its edits)"""
+    for p, man in MANUAL.get(who, {}).items():
+        if p == pose: return [e for e in man.get('fix', []) if e[0] == 'maker']
+        spec = man.get('frames', {}).get(pose)
+        if isinstance(spec, dict): return [e for e in spec.get('edits', []) if e[0] == 'maker']
+    return []
 
 
 def _face_guard(who, shape, ox, oy):
@@ -1100,7 +1234,12 @@ def build(c):
             body = body.copy(); body.idx[fr_[0].idx >= 0] = -1
             body = pinholes(body, meta['x'], meta['y'], head, [(fr_[0], fr_[1], fr_[2] + hdy), fb_], desk=c.desk)
         for e in man.get('fix', []):                                     # the hole filling took Maker's outline for a hole: clear it again
-            if e[0] == 'cat': body = body.copy(); _cat_clear(body, meta['x'], meta['y'], e[1], e[2], e[3])
+            if e[0] == 'cat' and (len(e) < 5 or e[4]): body = body.copy(); _cat_clear(body, meta['x'], meta['y'], e[1], e[2], e[3])   # (T60: not again where a map closes the arm against her: 'maker' instead)
+            if e[0] == 'late':                                           # T60 (n): an authored map exactly as drawn (the softening had opened its outline)
+                body = fix(body, meta['x'], meta['y'], e[1], KEYS[who])
+                if fb_:                                                  # and in her layer in front of the hair, where it has pixels
+                    fbn = fix(fb_[0], meta['x'], meta['y'], e[1], KEYS[who]); fbn.idx[fb_[0].idx < 0] = -1; fb_ = (fbn, fb_[1], fb_[2])
+            if e[0] == 'maker': body = body.copy(); _maker_clear(body, meta['x'], meta['y'], who, *e[1:])   # T60 (n, o): and here
         body = despeck(body)
         entry = dict(body=(body, meta['x'], meta['y']), front=fr_, front_body=fb_, pts=man.get('pts', {}), props={})
         masks = {}
@@ -1139,6 +1278,7 @@ def build(c):
             vfront = (vf, meta['x'], meta['y']) if vf is not None and (vf.idx >= 0).any() else None
             vfbody = (vfb, meta['x'], meta['y']) if vfb is not None and (vfb.idx >= 0).any() else None
             moved = pinholes(moved, meta['x'], meta['y'], head, [(vfront[0], vfront[1], vfront[2] + hdy) if vfront else None, vfbody], desk=c.desk)
+            for e in _maker_ops(who, variant): moved = moved.copy(); _maker_clear(moved, meta['x'], meta['y'], who, *e[1:])   # T60 (n, o)
             out[variant] = dict(body=(moved, meta['x'], meta['y']), front=vfront, front_body=vfbody, pts=entry['pts'], props=entry['props'])
     if 'rest' in out:
         capped = dict(SHOULDERS.get(who, {}))
@@ -1149,6 +1289,7 @@ def build(c):
             if pose in out:
                 out[pose] = shoulder_cap(c, out[pose], out['rest'], ends); bb, bx, by = out[pose]['body']
                 out[pose]['body'] = (pinholes(bb, bx, by, head, out[pose]['front'], desk=c.desk), bx, by)   # no gap where the line eased out
+                for e in _maker_ops(who, pose): bb, bx, by = out[pose]['body']; bb = bb.copy(); _maker_clear(bb, bx, by, who, *e[1:]); out[pose]['body'] = (bb, bx, by)   # T60 (n, o)
     if 'wave' in out:
         for act, seam in WAVE_FROM.get(who, {}).items():
             if act in out:
