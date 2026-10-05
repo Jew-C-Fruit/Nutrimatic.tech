@@ -128,6 +128,48 @@ def shaker(who, angle=0):
     lo = min(len(r) - len(r.lstrip('.')) for r in out); hi = max(len(r.rstrip('.')) for r in out)
     return [r[lo:hi] for r in out]
 
+# T51 (c) ("ilinca drinking from shaker looks broken"; T28 one shaker; "Object scale must be consistent"): her drink is
+# drawn by hand, not turned by code (turning the pixels broke the cap, the mark and the outline). SHAKER tipped 45 degrees
+# on clean 1:1 steps, its spout at her lips: the same red cap with the flip tab and the spout, the black band, the white
+# body with its grey side, the rounded bottom (no mark), 30 px long and 12 wide as upright; her fist round its lower
+# end, four fingers across the near side parted by dark-skin lines, the thumb up its side, the wrist and the sleeve
+# below. Composite coordinates (her head already 3 rows down); drawn over the body and again in front of her head.
+DRINK_HAND = ['....................kk.......',
+              '...................krrk......',
+              '...................krrk......',
+              '..................krrrk......',
+              '.................krrrrk......',
+              '................krrrrrk......',
+              '................krrrrrrk...k.',
+              '................kkrrrrrrk.krk',
+              '...............kWWkrrrrrrkrrk',
+              '..............kWWWWkrrrrrrrRk',
+              '.............kWWWWWWkrrrrrRRk',
+              '............kWWWWWWWWkrrrRRRk',
+              '........kkkkWWWWWWWWWWkrRRRRk',
+              '......kksakWWWWWWWWWWWWkRRRk.',
+              '.....kssakWWWWWWWWWWWWggkRk..',
+              '....kssakWWWWWWWWWWWWgggkk...',
+              '...kssakWWWWWWWWWWWWgggk.....',
+              '..kssakkkkkkkWWWWWWgggk......',
+              '.kssssssssssakWWWWgggk.......',
+              'ksssssssssssakWWWgggk........',
+              'ksssssdddddddkWWgggk.........',
+              'kssssssssssssakgggk..........',
+              'kssssssssssssakggk...........',
+              'kssssddddddddkggk............',
+              'ksssssssssssakgk.............',
+              'kssssssssssssak..............',
+              'ksssssdddddddk...............',
+              'kssssssssssaak...............',
+              '.ksssssssaaak................',
+              '.kssssssaaaak................',
+              '.kssssssaa...................',
+              '.kssssssaa...................',
+              'kkkkkkkkkk...................',
+              'kjjjjjjjjj...................',
+              'kjjjjjJJJ....................']
+
 SKIN_COLE = {'#dc7f6d', '#ee947c', '#f6af8d', '#f8cda6', '#f9eee0'}
 SKIN_ILINCA = {'#f9e2d2', '#faebe1', '#e1cec4', '#e0b3a2', '#f1a49b', '#d18881', '#b5705f'}
 SLEEVE_ILINCA = {'#292423', '#191718'}
@@ -677,8 +719,10 @@ MANUAL = {
                            ('recolour', 9, 50, 17, 63, {'#f9e2d2': '#191718', '#faebe1': '#191718', '#f1a49b': '#191718', '#e1cec4': '#191718', '#e0b3a2': '#191718'}),   # the picture's wider neckline: her blazer, under her hair
                            ('recolour', 16, 70, 27, 76, {'#f9e2d2': '#fbfaf5', '#faebe1': '#fbfaf5', '#e1cec4': '#ddd6cf'})]),   # her white top under the phone (shrunk to skin colour)
         'carry': dict(keep_chest=True),
-        'drink': dict(front=(-6, 16, 25, 56), front_mode='notface', front_face=True,   # T51: out to her mouth (the cap had stopped at her jaw)                  # T28: the same shaker, tipped to her lips
-                      fix=[('erase', -6, 16, 24, 52, BOTTLE), ('under', 2, 23, shaker('ilinca', 38), SKIN_ILINCA, True)]),   # T51: its spout at her lips   # its spout at her mouth's corner
+        # T51 (c): the generated bottle, hand and raised forearm all go; the hand-drawn shaker in her fist (DRINK_HAND) goes on
+        'drink': dict(fix=[('clear', -8, 14, 14, 59), ('erase', 15, 14, 27, 42, BOTTLE),
+                           ('recolour', 21, 54, 22, 54, {'#a19c9c': '#0b0503'}), ('recolour', 21, 55, 21, 55, {'#a19c9c': '#fbfaf5'})],   # a grey scrap of the picture at her neckline: outline and top, as in her rest pose
+                      stamp=[(-2, 25, DRINK_HAND)]),
         'yawn': dict(front=(12, 24, 36, 42), front_mode='notface', keep_neck=True, front_face=True,
                      arm_front=[(2, 42, 27, 63), (-6, 63, 14, 66)],   # T59: the sleeve of the arm reaching up is in front of her hair
                      # T59 (k), rework: down to the tip of her hair (the boxes had stopped at row 63 and the tip showed in the sleeve)
@@ -709,7 +753,7 @@ HANDS = {
         'call': [(2, 69, 25, 80), (5, 25, 16, 47)], 'yawn': [(8, 75, 29, 87)], 'talk': [(-18, 30, 7, 62), (18, 72, 44, 89)],
         'petcat': [(-15, 53, 6, 69), (15, 66, 39, 85)], 'wave': [(-11, 13, 11, 50), (4, 71, 28, 85)],   # (T60: petedge's hands are drawn by hand: PET_ARM_ILINCA, REST_HAND_ILINCA)
         'surprise': [(-9, 10, 13, 49), (49, 10, 65, 49)],
-        'take': [(-14, 20, 4, 56), (10, 71, 34, 89)], 'drink': [(1, 36, 13, 48), (12, 76, 36, 88)], 'phone': [(14, 56, 42, 80), (4, 76, 40, 90)],
+        'take': [(-14, 20, 4, 56), (10, 71, 34, 89)], 'drink': [(12, 76, 36, 88)], 'phone': [(14, 56, 42, 80), (4, 76, 40, 90)],   # T51 (c): drink's shaker hand is drawn (DRINK_HAND), not cleaned
         'carry': [(1, 68, 11, 77), (43, 69, 52, 77)], 'think': [(17, 31, 34, 48), (10, 73, 36, 91)],
     },
 }
@@ -1441,6 +1485,8 @@ def build(c):
                     if not (0 <= sx < body.w and 0 <= sy < body.h and 0 <= y < torso.h and 0 <= x < torso.w): continue
                     if torso.idx[y, x] < 0 or (body.idx[sy, sx] >= 0 and body.pal[body.idx[sy, sx]] in skin): continue
                     body.idx[sy, sx] = body.color(torso.pal[torso.idx[y, x]])
+        for sx_, sy_, rows_ in man.get('stamp', []):                     # T51 (c): a hand-authored limb and what it holds, drawn whole over the cut pose
+            body.rows(sx_ - meta['x'], sy_ - meta['y'], rows_, KEYS[who])
         front_body = None
         if hdy:                                                          # her face's front goes with the head; the rest is the body's
             if not man.get('front_face'): front_body, front = front, None
@@ -1456,6 +1502,10 @@ def build(c):
                 for y_, x_ in zip(*np.where(arm)): fbm.idx[y_, x_] = fbm.color(spr.pal[spr.idx[y_, x_]])
                 gaps = _nd.binary_fill_holes(arm) & ~arm                 # her own hair peeking through the sleeve: sleeve there too
                 for y_, x_ in zip(*np.where(gaps)): fbm.idx[y_, x_] = fbm.color(SOFTEN[who][1][0] and '#292423')
+            front_body = fbm
+        if hdy and man.get('stamp'):                                     # T51 (c): and the same map in front of her head and hair, unshifted
+            fbm = front_body.copy() if front_body is not None else Sprite(-np.ones(spr.idx.shape, np.int16), list(spr.pal))
+            for sx_, sy_, rows_ in man['stamp']: fbm.rows(sx_ - meta['x'], sy_ - meta['y'], rows_, KEYS[who])
             front_body = fbm
         if man.get('fill_holes', True):                                  # repeated: a slit wider than a pixel closes from both sides in turn
             for _ in range(4):
