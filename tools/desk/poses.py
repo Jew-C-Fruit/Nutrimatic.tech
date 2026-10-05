@@ -870,7 +870,9 @@ MANUAL = {
                              ('maker', -29, 62, (-29, 62, 24, 100), 74)],
                         frames={'petedge2': {'box': (-6, 58, 16, 72), 'dx': 1, 'edits': [('maker', -29, 62, (-29, 52, 24, 100), 74),
                                                                                         ('rows', 8, 60, ['k']), ('rows', 8, 62, ['k']),
-                                                                                        ('rows', 16, 61, ['W'])]}}),   # (final audit: the moved box had turned this pixel of her top to blazer)   # re-audit: the stroked hand's edge outlined where it slides under her hair
+                                                                                        ('rows', 16, 61, ['W']), ('rows', 16, 60, ['k']), ('rows', 8, 58, ['_', '_', '_'])],
+                                     # last audit: the hand's edge by her hair lock stays where it is in petedge (only the inner hand strokes)
+                                     'fb_edits': [('rows', 7, 58, ['k', 'k', 'k', 'k']), ('rows', 8, 58, ['_', '_', '_'])]}}),   # (final audit: the moved box had turned this pixel of her top to blazer)   # re-audit: the stroked hand's edge outlined where it slides under her hair
         'stretch': dict(fix=[('clear', 63, 38, 67, 84)]),                # a chair's edge behind her
         'rest': dict(fix=[('recolour', 56, 55, 64, 66, {'#5f6368': '#191718', '#9a9ea2': '#292423'})],   # a grey chair corner by her shoulder
                      frames={'rest1': ((6, 72, 36, 88), 0, -1)}),
@@ -1797,6 +1799,7 @@ def build(c):
                     vfb = (shifted(fb0, meta['x'], meta['y'], box, dx, dy) if box else fb0.copy()) if fb0 is not None else None
                     vfb = hair_front(moved, meta['x'], meta['y'], HAIR_FRONT_ROW[who], who, vfb)
                 else: vf = hair_front(moved, meta['x'], meta['y'], HAIR_FRONT_ROW[who], who, vf)
+            if isinstance(spec, dict) and spec.get('fb_edits') and vfb is not None: vfb = fix(vfb, meta['x'], meta['y'], spec['fb_edits'], KEYS[who])   # her layer in front of the hair, edited directly (last audit)
             vfront = (vf, meta['x'], meta['y']) if vf is not None and (vf.idx >= 0).any() else None
             vfbody = (vfb, meta['x'], meta['y']) if vfb is not None and (vfb.idx >= 0).any() else None
             moved = pinholes(moved, meta['x'], meta['y'], head, [(vfront[0], vfront[1], vfront[2] + hdy) if vfront else None, vfbody], desk=c.desk)

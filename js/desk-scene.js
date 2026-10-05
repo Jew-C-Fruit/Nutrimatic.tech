@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.20.3
+ * Version 0.20.4
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -95,7 +95,9 @@
  *   mouth drawn under a yawning hand, no looking-down head in a yawn; Ilinca's stroke frame redraws only her hand (v0.20.2)
  * Modified: 2026-10-05 - Final round-30 audit: the lamps stand behind the figures (their feet on the desk in front; the
  *   phone layout's red lamp had covered Cole's shoulder), so his waving arm needs no redraw; the plane is not drawn in its
- *   release frame; no cloud piece under four pixels; one phone: blue on the desk, and buzzing it hops in place (v0.20.3)
+ *   release frame; no cloud piece under four pixels; one phone: blue on the desk, and buzzing it hops in place (v0.20.3);
+ *   a bulb glows at night only where no figure covers it; the plane first shows clear of his fingers; the soldering
+ *   station stays on the desk while he greets from soldering (v0.20.4)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(i),
@@ -345,6 +347,22 @@
       g.restore();
       if (back && on) { drawBulb(q); }
     }
+  }
+  // The bulb pixels not covered by a figure (sampled before the night falls; a bulb behind his shoulder must not glow
+  // through him: last round-30 audit)
+  function bulbsShowing(h) {
+    var out = [], want = C.bulb.toLowerCase();
+    for (var k = 0; k < 2; k++) {
+      if (!lampIsOn(k, h)) { continue; }
+      var q = lampGeom(k);
+      for (var i = 0; i < BULB.length; i++) {
+        var x = q.flip ? q.x + 42 - BULB[i][0] : q.x + BULB[i][0], y = q.y + BULB[i][1];
+        if (x < 0 || y < 0 || x >= W || y >= H) { continue; }
+        var d = g.getImageData(x, y, 1, 1).data, hx = "#" + [d[0], d[1], d[2]].map(function (v) { return (v < 16 ? "0" : "") + v.toString(16); }).join("");
+        if (hx === want) { out.push([x, y]); }
+      }
+    }
+    return out;
   }
   function drawBulb(q) { for (var k = 0; k < BULB.length; k++) { px(q.flip ? q.x + 42 - BULB[k][0] : q.x + BULB[k][0], q.y + BULB[k][1], C.bulb); } }
 
@@ -692,7 +710,7 @@
         var kind = set[j].indexOf("vase") === 0 ? "vase" : set[j] === "cartridge" ? "papers" : set[j];
         var sy = deskAt(kind === "mug" ? 0.45 : 0.35) + 1; propArt(kind, L.art.slots[j], sy); if (kind === "mug") { steam(L.art.slots[j] - 1, sy - 12, f); }
       }
-      if ((cole.activity === "solder" || cole.benchFrom) && !cole.hidden) { propSolderStation(cole.x - 32); }
+      if ((cole.activity === "solder" || cole.benchFrom || (cole.react && cole.greetAct === "solder")) && !cole.hidden) { propSolderStation(cole.x - 32); }
       if (ilinca.phoneOnDesk && !ilinca.hidden && !actors.buzz) { propPhoneOnDesk(phoneSpot()); }   // (buzzing, the call draws it)
       for (var m = 0; m < extras.length; m++) {
         var e2 = extras[m];
@@ -706,7 +724,7 @@
       if (k === "plant") { propPlant(x); } else if (k === "papers") { propPapers(x); } else if (k === "bottle") { propBottle(x, DESK_Y); }
       else if (k === "cartridge") { propCartridge(x); } else if (k === "mug") { propMug(x, DESK_Y, false, f); } else if (k.indexOf("vase") === 0) { propVase(x, +k[4]); }
     }
-    if ((cole.activity === "solder" || cole.benchFrom) && !cole.hidden) { propSolderStation(cole.x - 50); }
+    if ((cole.activity === "solder" || cole.benchFrom || (cole.react && cole.greetAct === "solder")) && !cole.hidden) { propSolderStation(cole.x - 50); }
     if (ilinca.phoneOnDesk && !ilinca.hidden && !actors.buzz) { propPhoneOnDesk(phoneSpot()); }   // (buzzing, the call draws it)
     for (var e = 0; e < extras.length; e++) { var ex = extras[e]; if (ex.kind === "plane") { propPlane(ex.x, deskAt(0.7), ex.dir); } else if (ex.kind === "bottle") { propBottle(ex.x, DESK_Y); } else if (ex.kind === "mug") { propMug(ex.x, DESK_Y, ex.steam, f); } }
   }
@@ -908,8 +926,9 @@
         if (pl.x < -20 || pl.x > W + 20) { pl.gone = true; return; }
         [cole, ilinca].forEach(function (p) { if (k > 1) { lookAt(p, pl.x, pl.y); } });
       },
-      // leaving his hand it is behind him (his open fingers in front of its tail), then in front of everyone
-      drawBack: function (t, f) { var pl = actors.plane; if (pl && !pl.gone && f - pl.t0 >= 1 && f - pl.t0 < 3) { propPlane(Math.round(pl.x), Math.round(pl.y), ilinca.x > cole.x ? 1 : -1); } },
+      // leaving his hand it is out of sight for two frames (only slivers showed round and between his fingers), behind
+      // his fingers for one, then in front of everyone
+      drawBack: function (t, f) { var pl = actors.plane; if (pl && !pl.gone && f - pl.t0 >= 2 && f - pl.t0 < 3) { propPlane(Math.round(pl.x), Math.round(pl.y), ilinca.x > cole.x ? 1 : -1); } },
       drawFront: function (t, f) { var pl = actors.plane; if (pl && !pl.gone && f - pl.t0 >= 3) { propPlane(Math.round(pl.x), Math.round(pl.y), ilinca.x > cole.x ? 1 : -1); } }
     },
     // A pigeon lands on the sill, pecks about, and leaves. Both watch it.
@@ -1300,9 +1319,10 @@
     people.forEach(drawNamePlate);
     if (scenario && scenario.drawFront) { scenario.drawFront(t, f); }
     people.forEach(drawPetHand);
+    var glow = dark && art ? bulbsShowing(h) : [];                       // (the lamps stand behind them now: only what still shows)
     drawNight(h, f);
     if (art) { g = back; g.drawImage(fg, 0, 0); }
-    if (dark) { if (art) { for (var k = 0; k < 2; k++) { if (lampIsOn(k, h)) { drawBulb(lampGeom(k)); } } } else { drawPendant(true); drawLamp(); } }   // the bulbs glow through the dark
+    if (dark) { if (art) { glow.forEach(function (q) { px(q[0], q[1], C.bulb); }); } else { drawPendant(true); drawLamp(); } }   // the bulbs glow through the dark
     blit2();
   }
   function blit2() { ctx.imageSmoothingEnabled = false; ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.drawImage(off, 0, 0, canvas.width, canvas.height); }
