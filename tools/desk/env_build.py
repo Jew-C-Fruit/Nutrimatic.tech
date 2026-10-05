@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - env_build.py
-Version 1.8.0
+Version 1.9.0
 
 Created: 2026-10-02 - The room, the skyline and the two anglepoise lamps as generated pictures reduced to the scene's
   pixels, written to assets/desk/ (v1.0.0)
@@ -14,6 +14,7 @@ Modified: 2026-10-04 - A ceiling light (to-do T15): a generated pendant reduced 
 Modified: 2026-10-04 - The narrow room's leftover poster frame painted out (round-29 audit) (v1.6.0)
 Modified: 2026-10-05 - The narrow room's own desk top above the desk line becomes wall (T52: the figures looked seated in the desk) (v1.7.0)
 Modified: 2026-10-05 - The narrow room's desk runs on to the right edge like the left (round-30 audit: it stopped 10 px short, lopsided, its lamp on the very end) (v1.8.0)
+Modified: 2026-10-05 - The desk bottle in the shaker's own colours (the one in their hands): one shaker (re-audit) (v1.9.0)
 
 The environment was drawn in code until v0.7 and looked low-fi next to the figures, so it is made the same way as they
 are now: pictures generated on the GPU machine (FLUX.2 klein 4B, see sources/PROVENANCE.md) and reduced with
@@ -288,6 +289,11 @@ PROPS = {'bottle': ('prop-bottle-seed9967.png', 30), 'mug': ('prop-mug-seed9933.
          'vase': ('prop-vase-seed9944.png', 30), 'plant': ('prop-plant-seed9956.png', 18)}
 
 
+# Round-30 re-audit ("one and the same shaker"): the reduced bottle came out in its own reds, white and grey; these are the
+# shaker's in the figures' hands (its red, its shade, its white, its grey side; the highlight plain red, as in Ilinca's).
+ONE_SHAKER = {'#ec0303': '#e4002b', '#820000': '#a3001f', '#f2f2f3': '#fbfaf5', '#b5b5b8': '#cfd2d4', '#fb413f': '#e4002b'}
+
+
 def props():
     """small things on the desk, each reduced to a set height; a grey drop shadow or steam in the picture is left out"""
     out = {}
@@ -310,6 +316,8 @@ def props():
             for r, row in enumerate(['kkk..', 'k.k..', 'k.k.k', 'k.k.k', '..kkk']):
                 for c, ch in enumerate(row):
                     if ch == 'k': sp.idx[my + r, mx + c] = ink
+        if name == 'bottle':                                                    # one shaker: the colours of the one in their hands (poses.SHAKER)
+            sp.pal = [ONE_SHAKER.get(c, c) for c in sp.pal]
         if name == 'papers':                                                    # the desk is seen flat from the front: papers lie edge-on
             sp = edge_on_papers()
         sp.save(os.path.join(OUT, 'prop-%s.png' % name)); out[name] = [sp.w, sp.h]

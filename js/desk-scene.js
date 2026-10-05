@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.20.2
+ * Version 0.20.3
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -93,6 +93,9 @@
  *   greeting; the phone layout's lamp in frame; clouds pass behind the window frame; the thrown plane leaves his hand
  *   where he held it, behind his fingers, and climbs clear of Ilinca's head; his waving arm in front of his lamp; no
  *   mouth drawn under a yawning hand, no looking-down head in a yawn; Ilinca's stroke frame redraws only her hand (v0.20.2)
+ * Modified: 2026-10-05 - Final round-30 audit: the lamps stand behind the figures (their feet on the desk in front; the
+ *   phone layout's red lamp had covered Cole's shoulder), so his waving arm needs no redraw; the plane is not drawn in its
+ *   release frame; no cloud piece under four pixels; one phone: blue on the desk, and buzzing it hops in place (v0.20.3)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(i),
@@ -690,7 +693,7 @@
         var sy = deskAt(kind === "mug" ? 0.45 : 0.35) + 1; propArt(kind, L.art.slots[j], sy); if (kind === "mug") { steam(L.art.slots[j] - 1, sy - 12, f); }
       }
       if ((cole.activity === "solder" || cole.benchFrom) && !cole.hidden) { propSolderStation(cole.x - 32); }
-      if (ilinca.phoneOnDesk && !ilinca.hidden) { propPhoneOnDesk(phoneSpot()); }
+      if (ilinca.phoneOnDesk && !ilinca.hidden && !actors.buzz) { propPhoneOnDesk(phoneSpot()); }   // (buzzing, the call draws it)
       for (var m = 0; m < extras.length; m++) {
         var e2 = extras[m];
         if (e2.kind === "plane") { propPlane(e2.x, deskAt(0.7), e2.dir); } else if (e2.kind === "bottle") { propArt("bottle", e2.x, deskAt(0.5) + 1); }
@@ -704,7 +707,7 @@
       else if (k === "cartridge") { propCartridge(x); } else if (k === "mug") { propMug(x, DESK_Y, false, f); } else if (k.indexOf("vase") === 0) { propVase(x, +k[4]); }
     }
     if ((cole.activity === "solder" || cole.benchFrom) && !cole.hidden) { propSolderStation(cole.x - 50); }
-    if (ilinca.phoneOnDesk && !ilinca.hidden) { propPhoneOnDesk(phoneSpot()); }
+    if (ilinca.phoneOnDesk && !ilinca.hidden && !actors.buzz) { propPhoneOnDesk(phoneSpot()); }   // (buzzing, the call draws it)
     for (var e = 0; e < extras.length; e++) { var ex = extras[e]; if (ex.kind === "plane") { propPlane(ex.x, deskAt(0.7), ex.dir); } else if (ex.kind === "bottle") { propBottle(ex.x, DESK_Y); } else if (ex.kind === "mug") { propMug(ex.x, DESK_Y, ex.steam, f); } }
   }
 
@@ -1093,7 +1096,7 @@
         [8.6, function () { ilinca.gesture = false; ilinca.mouth = "laugh"; setActivity(cole, "fistpump", 99); cole.mouth = "laugh"; }],
         [10.2, function () { setActivity(cole, "rest", 99); cole.mouth = "smile"; ilinca.mouth = "smile"; }]
       ],
-      drawFront: function (t, f) { var b = actors.buzz; if (b && ilinca.phoneOnDesk) { var x = phoneSpot() + ((f % 2) ? 1 : -1), py = deskAt(0.5) - 1; rect(x - 5, py - 2, 10, 2, C.phone); px(x - 7, py - 5, C.greyLight); px(x + 7, py - 5, C.greyLight); px(x - 9, py - 8, C.greyLight); px(x + 9, py - 8, C.greyLight); } }
+      drawFront: function (t, f) { var b = actors.buzz; if (b && ilinca.phoneOnDesk) { var x = phoneSpot() + ((f % 2) ? 1 : -1), py = deskAt(0.5) - 1; var side = x > ilinca.x ? 1 : -1; rect(x - 5, py - 2, 10, 2, C.phone); hline(x - 4, py - 2, 8, C.phoneTop); px(x + 7 * side, py - 5, C.greyLight); px(x + 9 * side, py - 8, C.greyLight); } }   // the one phone, hopping; its buzz on the side away from her sleeve
     }
   };
   var SCENARIO_NAMES = Object.keys(SCENARIOS);
