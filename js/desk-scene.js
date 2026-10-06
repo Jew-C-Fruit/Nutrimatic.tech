@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.21.0
+ * Version 0.21.1
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -101,6 +101,8 @@
  * Modified: 2026-10-06 - Hook for the hand library (to-do round 31): .patchPoses(who, {pose: layers}) swaps poses in from
  *   candidate art (the same palette), .unpatchPoses(who) puts the originals back; .still(on) holds faces and clouds for
  *   exact captures (v0.21.0)
+ * Modified: 2026-10-06 - Phone layout (T92, "red lamp is behind cole"): the figures a little right (Cole 74, Ilinca 156) and
+ *   the lamps further out (2, 226), so the red lamp stands clear of him in every pose, neither behind nor in front (v0.21.1)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(i),
@@ -136,8 +138,8 @@
   var LAYOUTS = {
     wide:   { W: 360, H: 160, cole: 124, ilinca: 226, poster: { x: 14, y: 20, w: 58, h: 62 }, clock: { x: 88, y: 34 }, win: { x: 280, y: 22, w: 66, h: 74 }, lamp: 177, pendant: 121, slots: [36, 272, 338, 12, 306],
               art: { painting: { x: 7, y: 20 }, clock: { x: 88, y: 34, r: 7 }, win: { x: 262, y: 18, w: 88, h: 84 }, sky: { x: 254, y: 15 }, lamps: [58, 290], slots: [34, 318, 344], catY: 141, pendants: [96, 132, 216, 244] } },
-    narrow: { W: 240, H: 160, cole: 60, ilinca: 150, poster: { x: 1, y: 20, w: 51, h: 50 }, clock: { x: 98, y: 30 }, win: { x: 190, y: 22, w: 46, h: 66 }, lamp: 112, pendant: 126, slots: [226, 10],
-              art: { painting: { x: 1, y: 18 }, clock: { x: 99, y: 31, r: 7 }, win: { x: 192, y: 20, w: 44, h: 70 }, sky: { x: 130, y: 3 }, lamps: [6, 220], slots: [], catY: 141, pendants: [66, 118, 148, 175] } }
+    narrow: { W: 240, H: 160, cole: 74, ilinca: 156, poster: { x: 1, y: 20, w: 51, h: 50 }, clock: { x: 98, y: 30 }, win: { x: 190, y: 22, w: 46, h: 66 }, lamp: 112, pendant: 126, slots: [226, 10],
+              art: { painting: { x: 1, y: 18 }, clock: { x: 99, y: 31, r: 7 }, win: { x: 192, y: 20, w: 44, h: 70 }, sky: { x: 130, y: 3 }, lamps: [2, 226], slots: [], catY: 141, pendants: [66, 118, 148, 175] } }
   };
   // The environment pictures. Until they have loaded (or if they never do) the room is drawn in code as before.
   var ENV = { ready: false, img: {} };
