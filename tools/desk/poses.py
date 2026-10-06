@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - poses.py
-Version 1.11.0
+Version 1.11.1
 
 Created: 2026-10-02 - The figures' body poses, from generated pictures, as layers under the base head; the neck, and
   Ilinca's top, taken from the base so every pose joins the same head; front boxes by eye (v1.0.0)
@@ -72,6 +72,11 @@ Modified: 2026-10-05 - Round-30 audit rework, hands that hold things drawn as pi
   round the shaker moving under his collar (shake_grip), one plane size at his chest and in his pinching hand
   (THROW_HAND), the petting arms joined to the shoulder and the shirt down to the desk (PET_ARM_COLE/ILINCA, 'maker',
   'late'); SHOULDERS take arm boxes and fixes; the talking arms take the rest shoulders (v1.11.0)
+Modified: 2026-10-06 - Round 31, Cole's notes on Ilinca: her typing sleeves drawn by hand, each forearm lying on the desk
+  with one outline, frames sliding the left one (type1, type3) and the right one (type2, typetrack) toward the keyboard
+  (T73); her thinking arm in front of her hair (over_hair: the picture's sleeve, wrist and cuff over her lock), the wall
+  between her elbow and her desk hand closed (T76); the call's two arms down on the desk, her top and blazer down to it,
+  and the wall under her talking elbow closed (T82) (v1.11.1)
 
 Every activity in the scene is drawn with a body pose: the whole torso with arms, hands and whatever they hold, made
 by the image model from the figure's own portrait (pose_sprites.py says how) and reduced to a sprite on the base
@@ -701,6 +706,113 @@ def phone_paint(lift=0):
             ('rows', 57, 85, ['__'])]   # re-audit: the blazer's lower outline steps from row 85 to 84 in one pixel (it was a 2x2 block)
 
 
+# T73 (round 31, Cole on Ilinca typing: "right arm doesn't rest on desk, left arm has messy edge and doesn't appear to
+# move"): her typing sleeves drawn by hand, as Cole's forearms lie (they passed): each forearm lies on the desk, its lower
+# outline flat on row 83 (the row above her desk row, as his on 87), from the elbow in to the laptop's edge, behind which it
+# runs; one black outline against the wall (the picture's had a second dark rim, crease scraps and a lower edge sloping down
+# into the desk); a black line along the forearm's top where it lies in front of her sleeve and side; its underside in the
+# blazer's shade. Left sleeve x -14..3 from row 53 (TYPE_ARM_L), right x 52..71 from row 50 (TYPE_ARM_R); the laptop covers
+# x 4..51. The left elbow is tucked in: in the phone layout her left elbow meets Cole's right forearm (they sit 82 px
+# apart), and a fuller one covered the tip of his resting forearm; this one at most touches it, outline to outline. The
+# frames slide one forearm along x toward the keyboard, its elbow with it: type1 and type3 the left 1 and 2 px, type2 and
+# typetrack the right 1 and 2 px (typetrack also holds a hand on the trackpad); MOTION_HER eases each forearm in a pixel,
+# then two, and back, at her own times (a one-pixel twitch of a black sleeve did not read as moving).
+TYPE_ARM_L = {
+    0: ['_________________k', '_________________k', '________________kj', '_______________kjj', '______________kjjj',   # 53
+        '_____________kjjjj', '____________kjjjjj', '___________kjjjjjj', '__________kjjjjjjj', '_________kjjjjjjjj',      # 58
+        '________kjjjjjjjjj', '______kkjjjjjjjjjj', '_____kjjjjjjjjjjjj', '____kjjjjjjjjjjjjj', '___kjjjjjjjjjjjjjj',      # 63
+        '___kjjjjjjjjjjjjjj', '__kjjjjjjjjjjjjjjj', '__kjjjjjjjjjjjjjjj',                                                 # 68
+        '__kkkkjjjjjjjjjjjj',                                                                                             # 71: the forearm's top line leaves the elbow
+        '__kjjjkkkjjjjjjjjj', '__kjjjjjjkkkjjjjjj', '__kjjjjjjjjjkkkjjj', '__kjjjjjjjjjjjjkkk',                           # 72-75: ... and runs in to the laptop
+        '___kjjjjjjjjjjjjjj', '___kjjjjjjjjjjjjjj', '____kjjjjjjjjjjjjj', '____kjjjjjjjjjjjjj', '_____kjjjjjjjjjjjj',      # 76-80: the elbow, tucked
+        '_____kjjjjjjJJJJJJ', '______kJJJJJJJJJJJ', '_______kkkkkkkkkkk',                                                 # 81-83: the underside, on the desk
+        '__________________', '__________________']}
+TYPE_ARM_L[1] = TYPE_ARM_L[0][:18] + ['__kkkkkjjjjjjjjjjj', '___kjjjkkkjjjjjjjj', '___kjjjjjjkkkjjjjj', '___kjjjjjjjjjkkkjj', '___kjjjjjjjjjjjjkk',
+                                      '____kjjjjjjjjjjjjj', '____kjjjjjjjjjjjjj', '_____kjjjjjjjjjjjj', '_____kjjjjjjjjjjjj', '______kjjjjjjjjjjj',
+                                      '______kjjjjjjJJJJJ', '_______kJJJJJJJJJJ', '________kkkkkkkkkk', '__________________', '__________________']
+# two pixels in: the upper arm's lower end follows the elbow a pixel (no notch where they meet)
+TYPE_ARM_L[2] = TYPE_ARM_L[0][:16] + ['___kjjjjjjjjjjjjjj', '___kjjjjjjjjjjjjjj', '___kkkkkjjjjjjjjjj', '____kjjjkkkjjjjjjj', '____kjjjjjjkkkjjjj',
+                                      '____kjjjjjjjjjkkkj', '____kjjjjjjjjjjjjk', '_____kjjjjjjjjjjjj', '_____kjjjjjjjjjjjj', '______kjjjjjjjjjjj',
+                                      '______kjjjjjjjjjjj', '_______kjjjjjjjjjj', '_______kjjjjjjJJJJ', '________kJJJJJJJJJ', '_________kkkkkkkkk',
+                                      '__________________', '__________________']
+_TYPE_ARM_R_TOP = ['k...................',                                                                           # 50: (a stray laptop-grey pixel at the hair's end)
+                   'jjjjkk______________', 'jjjjjkk_____________', 'jjjjjjk_____________', 'jjjjjJk_____________', 'jjjjjJk_____________',
+                   'jjjjjjk_____________', 'jjjjjjk_____________', 'jjjjjjjk____________', 'jjjjjjjjk___________', 'jjjjjjjjk___________',
+                   'jjjjjjjjjk__________', 'jjjjjjjjjk__________', 'jjjjjjjjjjk_________', 'jjjjjjjjjjjk________', 'jjjjjjjjjjjjk_______',
+                   'jjjjjjjjjjjjk_______', 'jjjjjjjjjjjjjk______', 'jjjjjjjjjjjjjjk_____', 'jjjjjjjjjjjjjjk_____', 'jjjjjjjjjjjjjjjk____']   # -70
+TYPE_ARM_R = {
+    0: _TYPE_ARM_R_TOP + ['jjjjjjjjjjjjjkkkk___', 'jjjjjjjjjjkkkjjjk___', 'jjjjjjjkkkjjjjjjjk__', 'jjjjkkkjjjjjjjjjjk__', 'kkkkjjjjjjjjjjjjjk__'] +
+        ['jjjjjjjjjjjjjjjjjjk_'] * 5 + ['JJJJJJjjjjjjjjjjjk__', 'JJJJJJJJJJJJJJJJk___', 'kkkkkkkkkkkkkkkk____', '_' * 20, '_' * 20],
+    -1: _TYPE_ARM_R_TOP + ['jjjjjjjjjjjjkkkkk___', 'jjjjjjjjjkkkjjjjk___', 'jjjjjjkkkjjjjjjjk___', 'jjjkkkjjjjjjjjjjk___', 'kkkjjjjjjjjjjjjjk___'] +
+        ['jjjjjjjjjjjjjjjjjk__'] * 5 + ['JJJJJjjjjjjjjjjjk___', 'JJJJJJJJJJJJJJJk____', 'kkkkkkkkkkkkkkk_____', '_' * 20, '_' * 20],
+    -2: _TYPE_ARM_R_TOP + ['jjjjjjjjjjjkkkkk____', 'jjjjjjjjkkkjjjjk____', 'jjjjjkkkjjjjjjjk____', 'jjkkkjjjjjjjjjjk____', 'kkjjjjjjjjjjjjjk____'] +
+        ['jjjjjjjjjjjjjjjjk___'] * 5 + ['JJJJjjjjjjjjjjjk____', 'JJJJJJJJJJJJJJk_____', 'kkkkkkkkkkkkkk______', '_' * 20, '_' * 20]}
+
+
+def type_arms(left=0, right=0):
+    """T73: both typing sleeves, the left forearm slid `left` px and the right one `right` px toward the keyboard"""
+    return [('rows', -14, 53, TYPE_ARM_L[left]), ('rows', 52, 50, TYPE_ARM_R[right])]
+
+
+# T82 (round 31, Cole on the phone call: "during call, ilinca's arm rests in midair, wall shows thru her body"): in the
+# picture her free forearm and hand hovered four rows over the desk and the raised arm's elbow six, the wall showing under
+# them. Redrawn from the pose's own pixels (x -10..48, rows 66..85, drawn on the finished layers; '.' keeps): the free
+# forearm, hand and cuff four rows lower, lying on the desk (lower outline on row 83, as the typing forearms); the raised
+# arm's elbow down on the desk too, in a pixel from row 74 and rounded as it was (on phones it meets Cole's soldering arm
+# and must not cover more of it than before); where the forearm was, her white top and blazer carry on down; the free
+# sleeve's top line runs from the lowered cuff up to where it met the elbow; the raised sleeve's inner edge one line (it
+# was a band of dark scraps), and no fold stroke left floating in the free sleeve. CALL_LOW[1]: the free hand a pixel
+# along (call1, she gestures as she talks). The hand on the desk keeps the clean-hand pass's drawing (the hand library
+# redraws it); only its place changed.
+CALL_LOW = {
+    0: [
+        '..J...............kJJJJ....................................',   # 66
+        '..................kJJJJJ...................................',   # 67
+        '..................kJJJJJ...................................',   # 68
+        '..................kJJJJJ...................................',   # 69
+        '_kJJJJJJJJJJJJJJJkJJJJJJJJqWWWWWWWWWWqqJJJJJJJJJJJJJJQQQkkJ',   # 70
+        '_kJJJJJJJJJJJJJJJkJJJJJJJJqWWWWWWWWWWqJJJJJJJJJJJJJJJJqJkJJ',   # 71
+        '_kJJJJJJJJJJJJJJJkJJJJJJJJqWWWWWWWWWWqJJJJJJJJJJJJJJqqJJJJJ',   # 72
+        '_kJJJJJJJJJJJJJJkJJJJJJJJJqWWWWWWWWWWqJJJJJJJJJJqqqqJJJJJJJ',   # 73
+        '__kJJJJJJJJJJJJJkJkkkkQQqqqWWWWWWWWWWqJJJJJJqqqqJJJJJJJJJJJ',   # 74
+        '__kJJJJJJJJJJJJJkJqaasssssqqqWWWWWWWWqJJqqqqJJJJJJJJJJJJJJJ',   # 75
+        '__kJJJJJJJJJJJJkJJdddssssssssqqqqqqqqqqqJJJJJJJJJJJJJJJJJJJ',   # 76
+        '__kJJJJJJJJJJJJJQqddssssssssssssssWWJJJJJJJJJJJJJJJJJJJJJJJ',   # 77
+        '__kJJJJJJJJJJJJQksdsssssssssssssssWqJJJJJJJJJJJJJJJJJJJJJJJ',   # 78
+        '___kJJJJJJJJJJQQddssssssssssssssssWqJJJJJJJJJJJJJJJJJJJJJJJ',   # 79
+        '___kJJJJJJJJJQQssssssssssssssssssWWqJJJJJJJJJJJJJJJJJJJJJJJ',   # 80
+        '____kJJJJJJJkkeskdkessssssssssssaWWqJJJJJJJJJJJJJJJJJJJJJJJ',   # 81
+        '_____kJJJJJJJJkkJJJkkqqssssssssaaWWqJJJJJJJJJJJJJJJJJJJJJJJ',   # 82
+        '______kkkkkkkkkkkkkkkkkkkkkkkkkkkqqkkkkkkkkkkkkkkkJJJJJJJJJ',   # 83
+        '__________________________________________________kkkkkkkkk',   # 84
+        '___________________________________________________________',   # 85
+    ],
+    1: [
+        '..J...............kJJJJ....................................',   # 66
+        '..................kJJJJJ...................................',   # 67
+        '..................kJJJJJ...................................',   # 68
+        '..................kJJJJJ...................................',   # 69
+        '_kJJJJJJJJJJJJJJJkJJJJJJJJqWWWWWWWWWWqqJJJJJJJJJJJJJJQQQkkJ',   # 70
+        '_kJJJJJJJJJJJJJJJkJJJJJJJJqWWWWWWWWWWqJJJJJJJJJJJJJJJJqJkJJ',   # 71
+        '_kJJJJJJJJJJJJJJJkJJJJJJJJqWWWWWWWWWWqJJJJJJJJJJJJJJqqJJJJJ',   # 72
+        '_kJJJJJJJJJJJJJJkJJJJJJJJJqWWWWWWWWWWqJJJJJJJJJJqqqqJJJJJJJ',   # 73
+        '__kJJJJJJJJJJJJJkJJkkkkQQqqqWWWWWWWWWqJJJJJJqqqqJJJJJJJJJJJ',   # 74
+        '__kJJJJJJJJJJJJJkJJqaasssssqqqWWWWWWWqJJqqqqJJJJJJJJJJJJJJJ',   # 75
+        '__kJJJJJJJJJJJJkJJJdddssssssssqqqqqqqqqqJJJJJJJJJJJJJJJJJJJ',   # 76
+        '__kJJJJJJJJJJJJJJQqddssssssssssssssWWJJJJJJJJJJJJJJJJJJJJJJ',   # 77
+        '__kJJJJJJJJJJJJJQksdsssssssssssssssWqJJJJJJJJJJJJJJJJJJJJJJ',   # 78
+        '___kJJJJJJJJJJJQQddssssssssssssssssWqJJJJJJJJJJJJJJJJJJJJJJ',   # 79
+        '___kJJJJJJJJJJQQssssssssssssssssssWWqJJJJJJJJJJJJJJJJJJJJJJ',   # 80
+        '____kJJJJJJJJkkeskdkessssssssssssaWWqJJJJJJJJJJJJJJJJJJJJJJ',   # 81
+        '_____kJJJJJJJJJkkJJJkkqqssssssssaaWWqJJJJJJJJJJJJJJJJJJJJJJ',   # 82
+        '______kkkkkkkkkkkkkkkkkkkkkkkkkkkkqqkkkkkkkkkkkkkkJJJJJJJJJ',   # 83
+        '__________________________________________________kkkkkkkkk',   # 84
+        '___________________________________________________________',   # 85
+    ],
+}
+# nothing of hers needs to be in front of her hair below row 69 (both locks end above it): her body-front layer there goes
+CALL_FB_CLEAR = ('front_body', -10, 70, ['_' * 59] * 16)
+
 # By eye, per pose: the box (base coordinates) whose pixels go over the face, and named points.
 MANUAL = {
     'cole': {
@@ -857,7 +969,11 @@ MANUAL = {
                           ('rows', -5, 73, ['...jjjjjj', '...jjjjjj', '...jjjjjj', '..jjjjjjJ', '.jjjjjjjJ', '.jjjjjjjJ', '.jjjjjjjJ',
                                             'jjjjjjjjJ', 'jjjjjjjjJ', 'kkkkkkkkk', '_________', '_________', '_________', '_________'])],
                      props={'laptop': (LAPTOP, (2, 46, 54, 88))},
-                     frames={'type1': ((-14, 64, 3, 88), 1, 0), 'type2': ((52, 64, 66, 88), -1, 0), 'typetrack': ((52, 64, 66, 88), -2, 0)}),
+                     # T73: both sleeves drawn by hand, after every cleanup pass (post); each frame draws them again, one forearm slid
+                     # (the box shifts had moved the left sleeve's inside but not the right one's outline: no motion showed)
+                     post=type_arms(0, 0),
+                     frames={'type1': {'edits': type_arms(1, 0)}, 'type3': {'edits': type_arms(2, 0)},
+                             'type2': {'edits': type_arms(0, -1)}, 'typetrack': {'edits': type_arms(0, -2)}}),
         'wave': dict(frames={'wave2': ((-12, 12, 12, 38), 1, 0)}),          # a casual wave: the hand rocks a pixel
         # her reaching sleeve ended in a spike up into her hair: its top is cut level at the shoulder, under the hair
         'petcat': dict(fix=[('erase', -38, 60, 32, 94, CAT_GREYS), ('clear', 0, 30, 16, 45), ('rows', 4, 46, ['kkkkkk'])], frames={'petcat2': ((-18, 54, 14, 76), 2, 0)}),
@@ -882,7 +998,14 @@ MANUAL = {
         # T40 (2026-10-04, "the elbow she's resting on should be more towards the middle of her body"): a new picture, the
         # forearm upright down the middle of her chest; the fist under her chin goes in front of her jaw
         'think': dict(keep_neck=True, front=[(17, 31, 34, 48)], front_mode='nothair', front_face=True, frames={'think1': ((8, 72, 38, 92), 1, 0)},   # T7: her fingers drum
-                      fix=[('holes', 20, 50, 34, 80, '#ddd6cf')]),          # her white top in shadow, which the cut-out may take for the grey wall          # her white top in shadow, which the cut-out had taken for the grey wall
+                      fix=[('holes', 20, 50, 34, 80, '#ddd6cf')],           # her white top in shadow, which the cut-out had taken for the grey wall
+                      # T76 ("hair clipping through arm"): her long lock hung over the raised forearm (the picture's own lock was short,
+                      # behind the arm): the picture's sleeve, the hand's left edge, the white cuff and the wrist go over her hair, which
+                      # now ends at the shoulder
+                      over_hair=[(7, 44, 23, 67)],
+                      # and the wall that showed between her elbow and her hand on the desk (closed by the desk) is her blazer, the
+                      # figure's lower outline running on to the hand; two lone black pixels on the desk beside the hand go
+                      post=[('rows', 8, 81, ['...JJ', '..JJJ', 'kkkk']), ('rows', 9, 86, ['_', '_'])]),
         # her phone and both hands are in front of her hair (they were drawn under it), and the phone is blue again (the
         # reduction had snapped the picture's blue phone to grey)
         # T49 (2026-10-05, "phone should be held from the bottom, one handed"): a new picture, the phone resting in one hand
@@ -906,9 +1029,15 @@ MANUAL = {
                      paint=ILINCA_YAWN_PAINT,                              # T59 rework: her hand, wrist and cuff drawn whole, in front of her hair
                      fix=[('recolour', 7, 57, 13, 63, {'#5f4030': '#292423', '#6f4b3a': '#292423', '#9a6f50': '#292423', '#bd8e5d': '#292423', '#d9ae71': '#292423'})]),   # (her own hair peeked through it there)   # T23: only the hand (the 'diff' box left a pale rectangle by her hair)
         # hands and sleeves that are in front of her hair
-        'talk': dict(front=(-16, 28, 14, 64), front_mode='limb'),
+        # T82 (the pose after the call): the wall that showed under her raised arm, between her elbow and her side, closed by the
+        # desk, is her blazer, the lower outline running on along the desk
+        'talk': dict(front=(-16, 28, 14, 64), front_mode='limb', post=[('rows', 3, 80, ['....JJJ', '...JJJJ', '..JJJJJ', 'kkkkkkk'])]),
         # re-audit: the phone at her ear in the held phone's blue (its edge showed grey)
-        'call': dict(keep_chest=True, fix=[('recolour', 14, 30, 16, 37, {'#5f6368': '#3d5f99'})], front=(4, 24, 15, 46), front_mode='notface', front_face=True, frames={'call1': ((0, 68, 27, 82), 1, 0)}),   # T7: her free hand shifts as she talks
+        # T82: both arms on the desk, her blazer and top down to it (CALL_LOW); call1 is the same with the free hand a pixel along
+        'call': dict(keep_chest=True, fix=[('recolour', 14, 30, 16, 37, {'#5f6368': '#3d5f99'})], front=(4, 24, 15, 46), front_mode='notface', front_face=True,
+                     paint=[('body', -10, 66, CALL_LOW[0]), CALL_FB_CLEAR,
+                            ('body', 58, 83, ['kk'])],                     # (and a notch of wall in the blazer's lower outline by her other elbow)
+                     frames={'call1': {'edits': [('rows', -10, 66, CALL_LOW[1])]}}),   # T7: her free hand shifts as she talks
         'surprise': dict(keep_chest=True, front=(48, 24, 68, 58), front_mode='limb'),
         # the bottle came out in her skin colours
         'take': dict(fix=[('erase', -12, 12, 4, 50, BOTTLE), ('under', -11, 14, shaker('ilinca'), SKIN_ILINCA, True)],   # T35: a picture made with this shaker in her hand; her fingers wrap it
@@ -991,7 +1120,8 @@ KEYS = {
                  v='#2f6b3a', V='#1f4a28', B='#3d5f99', i='#5f6368'),
     'ilinca': dict(k='#010100', D='#b5705f', d='#d18881', a='#f1a49b', e='#e0b3a2', x='#e1cec4', s='#f9e2d2', h='#faebe1', j='#292423', J='#191718',
                    w='#fbfbf9', W='#fbfaf5', N='#5f4030', n='#6f4b3a', o='#9a6f50', O='#bd8e5d', y='#d9ae71', r='#e4002b', R='#a3001f', g='#cfd2d4', G='#9a9ea2',
-                   B='#6f93cf', b='#3d5f99', c='#2b4572'),            # T49 rework: her phone's blues (its back, its shaded side, the camera)
+                   B='#6f93cf', b='#3d5f99', c='#2b4572',             # T49 rework: her phone's blues (its back, its shaded side, the camera)
+                   q='#0b0503', Q='#0e0c0b'),                         # T82: the pictures' two near-blacks, so a map redrawn from a pose keeps them
 }
 
 
@@ -1735,6 +1865,14 @@ def build(c):
                 for y_, x_ in zip(*np.where(arm)): fbm.idx[y_, x_] = fbm.color(spr.pal[spr.idx[y_, x_]])
                 gaps = _nd.binary_fill_holes(arm) & ~arm                 # her own hair peeking through the sleeve: sleeve there too
                 for y_, x_ in zip(*np.where(gaps)): fbm.idx[y_, x_] = fbm.color(SOFTEN[who][1][0] and '#292423')
+            front_body = fbm
+        if hdy and man.get('over_hair'):                                 # T76: an arm raised in front of her hair: in these boxes the picture's own drawing
+            fbm = front_body.copy() if front_body is not None else Sprite(-np.ones(spr.idx.shape, np.int16), list(spr.pal))   # (sleeve, outline, cuff, wrist)
+            hix = [i for i, c_ in enumerate(spr.pal) if c_ in (hair or ())]                                                     # goes over her hair, all but the
+            for x0b, y0b, x1b, y1b in man['over_hair']:                                                                         # picture's own hair
+                for y_ in range(max(0, y0b - meta['y']), min(spr.h, y1b + 1 - meta['y'])):
+                    for x_ in range(max(0, x0b - meta['x']), min(spr.w, x1b + 1 - meta['x'])):
+                        if spr.idx[y_, x_] >= 0 and spr.idx[y_, x_] not in hix: fbm.idx[y_, x_] = fbm.color(spr.pal[spr.idx[y_, x_]])
             front_body = fbm
         if hdy and any(len(st_) < 4 or st_[3] for st_ in man.get('stamp', [])):   # T51 (c): and the same map in front of her head and hair, unshifted (unless its 4th item is False)
             fbm = front_body.copy() if front_body is not None else Sprite(-np.ones(spr.idx.shape, np.int16), list(spr.pal))
