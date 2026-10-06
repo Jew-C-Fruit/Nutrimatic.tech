@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.20.4
+ * Version 0.21.0
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -98,10 +98,13 @@
  *   release frame; no cloud piece under four pixels; one phone: blue on the desk, and buzzing it hops in place (v0.20.3);
  *   a bulb glows at night only where no figure covers it; the plane first shows clear of his fingers; the soldering
  *   station stays on the desk while he greets from soldering (v0.20.4)
+ * Modified: 2026-10-06 - Hook for the hand library (to-do round 31): .patchPoses(who, {pose: layers}) swaps poses in from
+ *   candidate art (the same palette), .unpatchPoses(who) puts the originals back; .still(on) holds faces and clouds for
+ *   exact captures (v0.21.0)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(i),
- *   .face(who, {mouth, brows, look}), .poses(who), .step(n), .state(), .review(o)
+ *   .face(who, {mouth, brows, look}), .poses(who), .step(n), .state(), .review(o), .patchPoses(who, poses), .unpatchPoses(who), .still(on)
  */
 
 (function () {
@@ -414,7 +417,7 @@
       var sx = WIN.x + 4 + Math.round(Math.min(1, Math.max(0, (h - 6) / 13)) * (WIN.w - 14)), sy = WIN.y + 5 + Math.round(Math.abs((h - 12.5) / 6.5) * 20);
       rect(sx, sy, 6, 6, C.sun); px(sx, sy, sky[0]); px(sx + 5, sy, sky[0]); px(sx, sy + 5, sky[0]); px(sx + 5, sy + 5, sky[0]);
       for (var c = 0; c < clouds.length; c++) {                            // a cloud drifting in or out passes behind the frame: cut, not shrunk, and no piece under four pixels (a stub read as a speck)
-        var cl = clouds[c], fx = WIN.x + ((cl.x + f / 20) % (WIN.w + cl.w)) - cl.w;
+        var cl = clouds[c], fx = WIN.x + ((cl.x + (still ? 0 : f) / 20) % (WIN.w + cl.w)) - cl.w;
         [[1, cl.w - 2, C.cloud], [0, cl.w, C.cloud], [0, cl.w, C.cloudS]].forEach(function (r, k) { var x0 = Math.max(WIN.x, Math.round(fx) + r[0]), x1 = Math.min(WIN.x + WIN.w - 1, Math.round(fx) + r[0] + r[1] - 1); if (x1 - x0 >= 3) { hline(x0, WIN.y + cl.y + k, x1 - x0 + 1, r[2]); } });
       }
     }
@@ -823,6 +826,7 @@
   /* ---------- scenarios: little scripted scenes ---------- */
   var scenario = null, nextScenarioAt = 22 * FPS, actors = {};
   var review = null;   // the approval page's hold (test hooks): {cole, ilinca, greet, relay, petter, pointer}
+  var still = false;   // test hook: no blinks, no passing expressions, no glancing about, clouds at rest (exact captures)
   function startScenario(name) {
     var sc = SCENARIOS[name]; if (!sc || (sc.when && !sc.when())) { return false; }
     if (scenario && scenario.end) { scenario.end(); }                    // (only the test hooks start one over another)
@@ -1261,14 +1265,14 @@
         if (p.workLook[a]) { p.lookTarget = { x: p.workLook[a][0], y: p.workLook[a][1] }; }
         else if (a === "think") { p.lookTarget = { x: (f >> 5) % 2 ? -1 : 1, y: -1 }; }
         else if (a === "coffee") { p.lookTarget = { x: 0, y: 0 }; }
-        else { p.lookTarget = { x: ((f >> 4) + i) % 3 - 1, y: 0 }; }
+        else { p.lookTarget = still ? { x: 0, y: 0 } : { x: ((f >> 4) + i) % 3 - 1, y: 0 }; }
       }
       p.look.x += (p.lookTarget.x - p.look.x) * 0.6; p.look.y += (p.lookTarget.y - p.look.y) * 0.6;
-      if (p.blink > 0) { p.blink--; } else if (--p.nextBlink <= 0) { p.blink = 2; p.nextBlink = 24 + Math.random() * 48; }
+      if (still) { p.blink = 0; } else if (p.blink > 0) { p.blink--; } else if (--p.nextBlink <= 0) { p.blink = 2; p.nextBlink = 24 + Math.random() * 48; }
       if (!p.react && !(scenario && scenario.name === "spark")) { p.bob = 0; }
       p.tilt = stretching(p) ? 0 : (p.nod > 0 || (p.workLook[p.activity] && !convo && !p.react && !(pointerActive && !scenario))) ? 1 : 0;
       p.lookDown = !!p.headDown && !stretching(p) && p.activity !== "coffee" && p.activity !== "holdcup" && p.activity !== "yawn" && p.activity !== "rubEye" && (p.nod > 0 || (!p.react && p.look.y > 0.5));     // at the work, the cat, a pointer on the desk; never over a coffee (T43)
-      stepExpression(p, f);
+      if (!still) { stepExpression(p, f); }
     }
     if (pointer.inside && pointerActive && !saidHello && !convo && !scenario && f > 4 * FPS) {          // the nearer one glances over and smiles
       saidHello = true; var near = Math.abs(pointer.x - cole.x) < Math.abs(pointer.x - ilinca.x) ? cole : ilinca;
@@ -1385,6 +1389,18 @@
     react: function (n) { react(who(n)); render(frame); },
     scenario: function (name) { var ok = startScenario(name); render(frame); return ok; },
     converse: function (i) { startConvo(EXCHANGES[i | 0] || EXCHANGES[0]); stepConvo(frame); render(frame); },
+    // candidate hands: pose layers in the figure's exported palette ({b, f, fb, p, pts, oh}, as js/desk-sprites.js has them)
+    patchPoses: function (n, list) {
+      var p = who(n), a = p.art; if (!p.poses0) { p.poses0 = {}; Object.keys(p.poses).forEach(function (k) { p.poses0[k] = p.poses[k]; }); }
+      Object.keys(list || {}).forEach(function (k) {
+        var q = list[k], props = {};
+        Object.keys(q.p || {}).forEach(function (m) { props[m] = bake(q.p[m], a.pal); });
+        p.poses[k] = { body: bake(q.b, a.pal), front: q.f ? bake(q.f, a.pal) : null, frontBody: q.fb ? bake(q.fb, a.pal) : null, pts: q.pts || {}, props: props, ownHead: !!q.oh };
+      });
+      render(frame); return Object.keys(list || {}).length;
+    },
+    still: function (on) { still = !!on; people.forEach(function (p) { p.blink = 0; p.mouth = p.restMouth || "neutral"; p.brows = p.activity === "think" ? "down" : null; }); render(frame); },
+    unpatchPoses: function (n) { var p = who(n); if (p.poses0) { p.poses = p.poses0; p.poses0 = null; } render(frame); },
     review: function (o) {
       review = o || null; resetAll();
       if (review) { people.forEach(function (p) { if (review[p.name]) { setActivity(p, review[p.name], 1e4); } }); }
