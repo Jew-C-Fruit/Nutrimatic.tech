@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.21.2
+ * Version 0.21.3
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -108,6 +108,11 @@
  *   where the laptop stands, and the laptop is drawn over her, so she peeks over the screen. On his laptop, after a moment
  *   of looking annoyed, Cole strokes her back, his hand out of sight behind the screen (T88). With the hands off the paper
  *   the whole sheet stays on the desk (T91) (v0.21.2)
+ * Modified: 2026-10-06 - Round-31 audit of T88/T91: hands under the desk end on the desk's back edge in both layouts (the
+ *   wide room draws that edge two rows higher, row 132, than the phone's, row 134: those poses are clipped there, and
+ *   nothing of them is drawn on the desk); stroking Maker behind his laptop screen his arm reaches up to her back (a
+ *   hand-drawn arm, T88); in the visit the laptop or the paper stays on the desk while they stroke her, the stroking arm
+ *   in front of the screen as it reaches round it (or on the paper), the other hand at the keyboard (T91) (v0.21.3)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(i),
@@ -142,9 +147,9 @@
   // those places, `win` etc. are the drawn room's (the fallback when the pictures do not load).
   var LAYOUTS = {
     wide:   { W: 360, H: 160, cole: 124, ilinca: 226, poster: { x: 14, y: 20, w: 58, h: 62 }, clock: { x: 88, y: 34 }, win: { x: 280, y: 22, w: 66, h: 74 }, lamp: 177, pendant: 121, slots: [36, 272, 338, 12, 306],
-              art: { painting: { x: 7, y: 20 }, clock: { x: 88, y: 34, r: 7 }, win: { x: 262, y: 18, w: 88, h: 84 }, sky: { x: 254, y: 15 }, lamps: [58, 290], slots: [34, 318, 344], catY: 141, pendants: [96, 132, 216, 244] } },
+              art: { painting: { x: 7, y: 20 }, clock: { x: 88, y: 34, r: 7 }, win: { x: 262, y: 18, w: 88, h: 84 }, sky: { x: 254, y: 15 }, lamps: [58, 290], slots: [34, 318, 344], catY: 141, pendants: [96, 132, 216, 244], edge: 132 } },
     narrow: { W: 240, H: 160, cole: 74, ilinca: 156, poster: { x: 1, y: 20, w: 51, h: 50 }, clock: { x: 98, y: 30 }, win: { x: 190, y: 22, w: 46, h: 66 }, lamp: 112, pendant: 126, slots: [226, 10],
-              art: { painting: { x: 1, y: 18 }, clock: { x: 99, y: 31, r: 7 }, win: { x: 192, y: 20, w: 44, h: 70 }, sky: { x: 130, y: 3 }, lamps: [2, 226], slots: [], catY: 141, pendants: [66, 118, 148, 175] } }
+              art: { painting: { x: 1, y: 18 }, clock: { x: 99, y: 31, r: 7 }, win: { x: 192, y: 20, w: 44, h: 70 }, sky: { x: 130, y: 3 }, lamps: [2, 226], slots: [], catY: 141, pendants: [66, 118, 148, 175], edge: 134 } }
   };
   // The environment pictures. Until they have loaded (or if they never do) the room is drawn in code as before.
   var ENV = { ready: false, img: {} };
@@ -553,7 +558,7 @@
     Object.keys(a.poses || {}).forEach(function (k) {
       var q = a.poses[k], props = {};
       Object.keys(q.p || {}).forEach(function (n) { props[n] = bake(q.p[n], a.pal); });
-      poses[k] = { body: bake(q.b, a.pal), front: q.f ? bake(q.f, a.pal) : null, frontBody: q.fb ? bake(q.fb, a.pal) : null, pts: q.pts || {}, props: props, ownHead: !!q.oh };
+      poses[k] = { body: bake(q.b, a.pal), front: q.f ? bake(q.f, a.pal) : null, frontBody: q.fb ? bake(q.fb, a.pal) : null, over: q.o ? bake(q.o, a.pal) : null, pts: q.pts || {}, props: props, ownHead: !!q.oh };
     });
     if (!poses.rest) { poses.rest = { body: bake(a.torso, a.pal), front: null, pts: {} }; }
     return {
@@ -576,6 +581,12 @@
   function origin(p) { var a = p.art; return { x: p.x - a.centre + Math.round(p.slide), y: DESK_Y - a.desk + p.bob }; }
   function point(p, name, o) { o = o || origin(p); var q = p.art.points[name]; return { x: o.x + q[0], y: o.y + q[1] + p.headDy }; }
   function eyeY(p) { return point(p, "eye").y; }
+  // Round-31 audit of T88 ("arms supposed to be hidden by table ... Line on arms must coincide with edge of desk"): the desk's
+  // back edge as the room shows it. The wide room picture draws it as a black line at row 132 with a row of its wood under
+  // it (the desk picture starts at row 134); the phone's room has wall down to row 133 and the desk from 134. Hands under
+  // the desk (these poses) end exactly there: the pose is clipped at that row, and nothing of it goes on the desk.
+  var UNDER_DESK = { hide: 1, petlap: 1, petlap2: 1 };
+  function deskEdge() { return ENV.ready && L.art.edge ? L.art.edge : DESK_Y; }
 
   // Which pose an activity is drawn with. A pose the art does not have falls back to resting.
   var POSE_OF = {
@@ -627,7 +638,8 @@
     if (name === "shake" && p.poses.shake2 && (p.actFrame % 2)) { name = "shake2"; }
     if (name === "petcat" && p.poses.petcat2 && ((p.actFrame / 6 | 0) % 2)) { name = "petcat2"; }   // a slow stroke along her back
     if (name === "petedge" && p.poses.petedge2 && ((p.actFrame / 6 | 0) % 2)) { name = "petedge2"; }
-    if (name === "petlap" && p.poses.petlap2 && ((p.actFrame / 6 | 0) % 2)) { name = "petlap2"; }   // T88: the stroke behind the screen
+    if (name === "petlap" && p.poses.petlap2 && ((p.actFrame / 6 | 0) % 2)) { name = "petlap2"; }   // T88: the stroke behind the screen, in and out along the arm
+    if (name === "petedgeLap" && p.poses.petedgeLap2 && ((p.actFrame / 6 | 0) % 2)) { name = "petedgeLap2"; }   // (the visit, the laptop on the desk)
     return p.poses[name] ? name : "rest";
   }
   function posePoint(p, name) { var d = p.drawn; if (!d || !d.pose.pts[name]) { return null; } var q = d.pose.pts[name]; return { x: d.o.x + q[0], y: d.o.y + q[1] + d.jig }; }
@@ -661,12 +673,17 @@
     var o = origin(p), name = poseOf(p, f), pose = p.poses[name];
     var jig = 0;                                                         // the body never jumps under the head (shaking moves only the arms: shake2)
     p.drawn = { o: o, pose: pose, name: name, jig: jig };
+    var under = UNDER_DESK[name];                                        // hands under the desk: nothing below its back edge (round-31 audit)
+    if (under) { g.save(); g.beginPath(); g.rect(0, 0, W, deskEdge()); g.clip(); }
     blit(pose.body, o.x, o.y + jig);
-    if (pose.ownHead) { return; }                                        // the picture brings its own head (leaning back)
-    drawHead(p, o);
-    drawFace(p, o, f);
-    if (pose.frontBody) { blit(pose.frontBody, o.x, o.y + jig); }        // hands and things in front of her hair, where her body has them
-    if (pose.front) { blit(pose.front, o.x, o.y + jig + p.headDy); }      // what is at the face moves with the head
+    if (!pose.ownHead) {                                                 // (a picture that brings its own head: leaning back)
+      drawHead(p, o);
+      drawFace(p, o, f);
+      if (pose.frontBody) { blit(pose.frontBody, o.x, o.y + jig); }      // hands and things in front of her hair, where her body has them
+      if (pose.front) { blit(pose.front, o.x, o.y + jig + p.headDy); }    // what is at the face moves with the head
+    }
+    if (under) { g.restore(); }
+    if (pose.ownHead) { return; }
     if (/^type/.test(name) && pose.props.laptop) { blit(pose.props.laptop, o.x, o.y + jig); }   // the laptop stands in front of the neck and the hair (T29, T45)
     if (p.activity === "solder") {                                       // the iron's tip: a glow, a wisp of smoke, now and then a spark
       var tip = posePoint(p, "tip");
@@ -675,7 +692,7 @@
   }
   // Hands, forearms and what they hold lie on the desk: that part of the pose is drawn again once the desk is there.
   function drawOnDesk(p) {
-    var d = p.drawn; if (p.hidden || !d) { return; }
+    var d = p.drawn; if (p.hidden || !d || UNDER_DESK[d.name]) { return; }   // (hands under the desk: none of it is on the desk)
     g.save(); g.beginPath(); g.rect(0, DESK_Y, W, H - DESK_Y); g.clip();
     blit(d.pose.body, d.o.x, d.o.y + d.jig); if (d.pose.frontBody) { blit(d.pose.frontBody, d.o.x, d.o.y + d.jig); } if (d.pose.front) { blit(d.pose.front, d.o.x, d.o.y + d.jig + p.headDy); }
     g.restore();
@@ -683,18 +700,25 @@
   // The laptop (or the paper) stays on the desk while the hands are off it: lifted for the cat, or petting her.
   // T91 ("cole's paper disappears when maker shows up"): with the hands off the paper its whole sheet ('sheet'); waving from
   // it, the paper as the pose had it under the writing hand ('paper', which has gaps where the fingers lay).
-  function drawLaptopOut(p) {
-    if (p.hidden) { return; }
+  // Round-31 audit (T91 in the visit): a petting arm that reaches past the laptop's screen or lies on the paper is drawn
+  // again over it (the pose's 'over' layer: the arm's skin and its outline).
+  function propsOut(p) {                                                 // the pose whose laptop or paper is on the desk without the hands at it
+    if (p.hidden) { return null; }
     var greetFrom = p.react === "greet" && (p.greetAct === "type" || p.greetAct === "write") ? p.greetAct : null;   // waving hello from the keyboard
     var keep = p.keepProps === "type" || p.keepProps === "write" ? p.keepProps : null;
     var from = p.laptopOut ? "type" : keep || p.benchFrom || ((p.catLift === "type" || p.catLift === "write") ? p.catLift : greetFrom), q = from && p.poses[from];
-    if (!q || (p.activity === from && !p.laptopOut)) { return; }
-    var o = origin(p), off = !!(keep || p.catLift || p.benchFrom || p.laptopOut);
+    return !q || (p.activity === from && !p.laptopOut) ? null : q;
+  }
+  function drawLaptopOut(p) {
+    var q = propsOut(p); if (!q) { return; }
+    var o = origin(p), off = !!(p.keepProps || p.catLift || p.benchFrom || p.laptopOut), d = p.drawn;
     Object.keys(q.props).forEach(function (n) { if (q.props.sheet && n === (off ? "paper" : "sheet")) { return; } blit(q.props[n], o.x, o.y); });
+    if (d && d.pose.over) { blit(d.pose.over, d.o.x, d.o.y + d.jig); }
   }
   // A hand petting the cat lies on her: that part of the pose (a box in the figure's coordinates) goes on again after her.
   var PET_HAND = { cole: { pet: [60, 72, 86, 100], pethead: [28, 60, 52, 82], petcat: [44, 54, 82, 84], petcat2: [44, 54, 82, 84], petedge: [31, 66, 56, 104], petedge2: [31, 66, 57, 104] },   // T62: the hand on her head; the other forearm rests behind her
                    ilinca: { pet: [-20, 66, 2, 88], pethead: [12, 54, 40, 70], petcat: [-20, 52, 16, 78], petcat2: [-20, 52, 16, 78], petedge: [-29, 62, 24, 100], petedge2: [-29, 62, 24, 100] } };   // (petedge2's started at row 52 and redrew her body over her hair: re-audit)
+  ["cole", "ilinca"].forEach(function (n) { var b = PET_HAND[n]; b.petedgeLap = b.petedge; b.petedgeLap2 = b.petedge2; });   // (the visit with the laptop on the desk)
   // Where Maker lies to be petted: the petting pictures were made with a cat under the hand (since erased); she lies
   // where that cat was, facing the same way, so the hand rests exactly on her back. Figure coordinates of her middle.
   var PET_RIG = { cole: { x: 57, dir: -1 }, ilinca: { x: -3, dir: -1 } };
@@ -703,7 +727,7 @@
   function drawPetHand(p) {
     var d = p.drawn, box = d && PET_HAND[p.name][d.name]; if (!box || p.hidden || !actors.cat) { return; }
     g.save(); g.beginPath(); g.rect(d.o.x + box[0], d.o.y + box[1], box[2] - box[0], box[3] - box[1]); g.clip();
-    blit(d.pose.body, d.o.x, d.o.y + d.jig); g.restore();
+    blit(d.pose.over && propsOut(p) ? d.pose.over : d.pose.body, d.o.x, d.o.y + d.jig); g.restore();   // (only the arm, over the laptop: its shirt stays behind it)
   }
 
   /* ---------- desk set per visit ---------- */
@@ -970,9 +994,9 @@
         if (b.state === "walk") { R(-1, 5, 1, 1, C.sun); R(2, 5, 1, 1, C.sun); }
       }
     },
-    // Maker comes along the desk (hands come up as she passes), kneads a spot between them, lies down for a good
-    // while and blinks at them; one of them pets her (eyes shut, content); she sits up, looks at each in turn (they
-    // look back), and goes. Never while Cole is soldering.
+    // Maker comes along the desk (hands go under it as she passes), kneads a spot between them, lies down for a good
+    // while and blinks at them; one of them pets her (eyes shut, content; the laptop or the paper stays on the desk); she
+    // sits up, looks at each in turn (they look back), and goes. Never while Cole is soldering.
     visit: {
       dur: 34, when: function () { return cole.activity !== "solder"; },
       setup: function () {
@@ -982,7 +1006,9 @@
       },
       steps: [
         [1.5, function () { people.forEach(function (p) { p.mouth = "smile"; }); }],
-        [19.0, function () { var p = actors.petter; setActivity(p, "rest", 99); p.held = false; actors.cat.shut = false; }],
+        // (round-31 audit, T91: the hands that came off the laptop or the paper go back under the desk, the laptop or the paper
+        // staying there, and back to work once she has gone)
+        [19.0, function () { var p = actors.petter; if (p.keepProps) { p.catLift = p.keepProps; p.keepProps = null; setActivity(p, "underdesk", 99); } else { setActivity(p, "rest", 99); } p.held = false; actors.cat.shut = false; }],
         [20.5, function () { var c = actors.cat; c.state = "sitside"; c.dir = cole.x < c.x ? -1 : 1; lookAt(cole, c.x, catY() - 30); cole.mouth = "smile"; }],
         [23.0, function () { var c = actors.cat; c.dir = -c.dir; lookAt(ilinca, c.x, catY() - 30); ilinca.mouth = "smile"; }],
         [25.5, function () { var c = actors.cat; c.state = "walk"; c.phase = "out"; c.dir = c.x < W / 2 ? -1 : 1; }],
@@ -994,7 +1020,11 @@
         if (c.phase === "in" && c.state === "walk") { c.x += 3 * c.dir; if ((c.dir > 0 && c.x >= c.spot) || (c.dir < 0 && c.x <= c.spot)) { c.x = c.spot; c.state = "knead"; c.kneadUntil = f + 3 * FPS; } }
         else if (c.state === "knead" && f >= c.kneadUntil) { c.state = "loaf"; c.dir = c.lieDir; c.lyingSince = f; }
         if (c.state === "loaf" && c.lyingSince && f - c.lyingSince === 6 && t < 18) {   // she has settled: the one beside her strokes her
-          var pp = actors.petter; pp.catLift = null; pp.held = true; setActivity(pp, pp.poses.petedge ? "petedge" : "pet", 99); pp.mouth = "smile"; c.shut = true; pp.lookTarget = aimAt(pp, c.x, c.y - 6);
+          // round-31 audit (Cole's T91, "cole's paper disappears when maker shows up", here too): the laptop or the paper
+          // stays on the desk while they stroke her; typing, one hand stays at the keyboard behind the screen (petedgeLap)
+          var pp = actors.petter, keep = pp.catLift === "type" || pp.catLift === "write" ? pp.catLift : null;
+          pp.keepProps = keep; pp.catLift = null; pp.held = true;
+          setActivity(pp, keep === "type" && pp.poses.petedgeLap ? "petedgeLap" : pp.poses.petedge ? "petedge" : "pet", 99); pp.mouth = "smile"; c.shut = true; pp.lookTarget = aimAt(pp, c.x, c.y - 6);
         }
         else if (c.phase === "out") { c.x += 3 * c.dir; }
         if (t >= 1.5 && t < 30 && c.state !== "sitside") { people.forEach(function (p) { if (!p.held) { p.lookTarget = aimAt(p, c.x, catY() - 14); } }); }
@@ -1421,7 +1451,7 @@
       Object.keys(list || {}).forEach(function (k) {
         var q = list[k], props = {};
         Object.keys(q.p || {}).forEach(function (m) { props[m] = bake(q.p[m], a.pal); });
-        p.poses[k] = { body: bake(q.b, a.pal), front: q.f ? bake(q.f, a.pal) : null, frontBody: q.fb ? bake(q.fb, a.pal) : null, pts: q.pts || {}, props: props, ownHead: !!q.oh };
+        p.poses[k] = { body: bake(q.b, a.pal), front: q.f ? bake(q.f, a.pal) : null, frontBody: q.fb ? bake(q.fb, a.pal) : null, over: q.o ? bake(q.o, a.pal) : null, pts: q.pts || {}, props: props, ownHead: !!q.oh };
       });
       render(frame); return Object.keys(list || {}).length;
     },

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - poses.py
-Version 1.12.0
+Version 1.13.0
 
 Created: 2026-10-02 - The figures' body poses, from generated pictures, as layers under the base head; the neck, and
   Ilinca's top, taken from the base so every pose joins the same head; front boxes by eye (v1.0.0)
@@ -77,6 +77,11 @@ Modified: 2026-10-06 - Round 31, Maker on the laptop and the paper (to-do T88, T
   typing pose's arm reaching in behind the screen, the stroke sliding it); the whole paper as a prop ('sheet', drawn from
   its map: the lifted paper had holes where the fingers lay); his forearm in petcat runs on behind her, his shirt down to
   the desk behind it (v1.12.0)
+Modified: 2026-10-06 - Round-31 audit of T88/T91: petting Maker behind his laptop screen, his arm reaches up to her back,
+  drawn by hand on the hands-under-the-desk pose (PETLAP_ARM, PETLAP_ARM2: the stroke in and out along the forearm; it
+  had been his typing arm, sliding sideways); his petting forearm on the paper lies on the desk (PETCAT_FOREARM_COLE: the
+  wall had shown under it in the phone layout); for the visit, petting with the laptop on the desk (petedgeLap: the other
+  hand at the keyboard) and the stroking arm as a layer the scene draws over the laptop or the paper ('over') (v1.13.0)
 
 Every activity in the scene is drawn with a body pose: the whole torso with arms, hands and whatever they hold, made
 by the image model from the figure's own portrait (pose_sprites.py says how) and reduced to a sprite on the base
@@ -549,6 +554,17 @@ PET_ARM_COLE = [
     '______kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk',   # (to x 36: beside Maker's chin the rest pose's shirt edge was closed only by the hole filling)
 ]
 
+# Round-31 audit of T91 (Maker on his paper, phone layout: the wall showed under his petting forearm, x 26-50 on rows 132-133,
+# so it hovered two rows over the desk; only from x 51 on did his shirt run down to the desk): the forearm lies on the desk.
+# Its underside is carried down to the desk line (row 87) from the elbow to where his shirt shows below it, then rises in a
+# slope to its old lower edge; the shaded underside bands go down with it ('a' below the mid tone). Rows from y 84, x from -8.
+PETCAT_FOREARM_COLE = [
+    'kaaaaaaaaaammmmmmmmmmmmmmmmmk',
+    '_kaaaaaaaaammmmmmmmmmmmmmkkkt',
+    '__kaaaaaaaaaaaaaaaaaaakkktttt',
+    '___kkkkkkkkkkkkkkkkkkkkkkkkkk',
+]
+
 # T60 (her petting frames, the audit after note o): Ilinca's petting arm as drawn by hand where the picture failed: her
 # sleeve outlined down its left side and carried down onto Maker's back (clearing the stand-in cat had left the wall
 # showing between them, and a ragged cuff); the hand on Maker's back with one outline, its fingertip no longer hanging
@@ -782,7 +798,8 @@ MANUAL = {
         'petcat': dict(fix=[('erase', 28, 60, 86, 93, CAT_GREYS),
                             ('late', [('clear', 25, 84, 27, 86), ('rows', 25, 72, ['u' * 16] + ['s' * 16] * 8 + ['a' * 16] * 2 + ['k' * 16]),
                                       ('holes', 15, 64, 40, 71, '#211f1f'), ('holes', 15, 84, 40, 86, '#211f1f'),
-                                      ('rows', 14, 85, ['k', 'k']), ('rows', 14, 87, ['k' * 27]), ('holes', 49, 64, 49, 64, '#211f1f')])],   # (and a pinhole of wall between the shirt, the hand and her back)
+                                      ('rows', 14, 85, ['k', 'k']), ('rows', 14, 87, ['k' * 27]), ('holes', 49, 64, 49, 64, '#211f1f'),   # (and a pinhole of wall between the shirt, the hand and her back)
+                                      ('rows', -8, 84, PETCAT_FOREARM_COLE)])],
                        frames={'petcat2': ((46, 56, 80, 82), -2, 0)}),
         # note 12: Maker lies at the desk's front edge now; this picture was made with her pasted there (work folder
         # petedge/), so the hand lands on her back; everything of the stand-in cat but the hand goes
@@ -1646,29 +1663,140 @@ def wave_from(c, act, wave, seam):
 
 
 # T88 (Cole, Maker on his laptop: "Cole should move arm as if to pet maker's back after a moment of looking annoyed. hand
-# should not be visible"): she sits on the keyboard behind the screen, which the scene draws in front of her and of him. The
-# pose is his hands-under-the-desk pose with the arm on the viewer's left reaching in behind the screen as it does to type:
-# the typing pose's arm and shoulder line, left of the laptop's left edge (from his shoulder down); the scene draws the
-# laptop over the rest, so the hand is out of sight behind it. The other arm stays under the desk. The stroke ('petlap2')
-# slides that forearm two pixels further in, as the typing frames slide theirs. (pose: base pose, arm's pose, the box taken
-# from the arm's pose, (stroke frame, its box, dx, dy))
-PET_LAP = {'cole': {'petlap': ('hide', 'type', (-40, 50, 15, 88), ('petlap2', (-16, 70, 15, 87), 2, 0))}}
+# should not be visible"): she sits on the keyboard behind the screen, which the scene draws in front of her and of him, her
+# back to him. Round-31 audit: the first try was his typing arm at keyboard height, its stroke sliding sideways as typing
+# does, so it could read as typing one-handed. Now his arm on the viewer's left reaches up and in behind the screen to her
+# back, drawn by hand on his hands-under-the-desk pose (the other arm stays under the desk): his shoulder and sleeve as in
+# that pose, the sleeve swinging out a little to its hem, the bare upper arm below it, the elbow off the desk (clear of the
+# desk's edge in both layouts), the forearm rising at about 37 degrees to the screen's left edge, as thick as his petting
+# forearm at the desk's edge (PET_ARM_COLE), where the scene's laptop hides the hand; one outline from the sleeve round the
+# elbow and along the forearm, the shirt of his side down to the desk under it. The stroke (petlap2) is the same arm drawn
+# two pixels back along itself (the elbow down and out), so the hand moves in and out along her back instead of sideways.
+# x from -8, rows from 56 ('_' clears; the forearm runs on under the screen's edge, x 16, to x 18).
+PETLAP_ARM = [   # reaching in
+    '________________kttttttttkk',
+    '_______________kuuttttttkss',
+    '______________kuttttttkksss',
+    '_____________kuutttttksssss',
+    '____________kuutttttkssssss',   # 60
+    '___________kuuttttkksssssss',
+    '__________kuuttttksssssssss',
+    '_________kuutttkkssssssssss',
+    '________kuutttkssssssssssss',
+    '_______kuutttkssssssssssssm',   # 65
+    '______kuutttksssssssssssmmm',
+    '_____kkkkkkksssssssssssmmma',
+    '____kasssssssssssssssmmmaak',
+    '____kassssssssssssssmmmakku',
+    '___kassssssssssssmmmmaakuut',   # 70
+    '___kasssssssssssmmmmakkuttt',
+    '___kassssssssssmmmmakuutttt',
+    '___kassssssssmmmmaakutttttt',
+    '___kasssssssmmmmakkuttttttt',
+    '___kasssssssmmmakuutttttttt',   # 75
+    '___kammmmmmmmaakutttttttttt',
+    '____kammmmmmakkuttttttttttt',
+    '_____kaaaaaakuutttttttttttt',
+    '______kkkkkkkuutttttttttttt',
+    '____________kuutttttttttttt',   # 80
+    '____________kuutttttttttttt',
+    '____________kuutttttttttttt',
+    '____________kuutttttttttttt',
+    '____________kuutttttttttttt',
+    '____________kuutttttttttttt',   # 85
+    '____________kuutttttttttttt',
+    '____________kuutttttttttttt',
+]
+PETLAP_ARM2 = [   # drawn back two pixels along the forearm
+    '________________kttttttttks',
+    '_______________kuutttttkkss',
+    '______________kuttttttkssss',
+    '_____________kuuttttkksssss',
+    '____________kuuttttksssssss',   # 60
+    '___________kuuttttkssssssss',
+    '__________kuutttkksssssssss',
+    '_________kuutttksssssssssss',
+    '________kuuttkkssssssssssss',
+    '_______kuuttkssssssssssssmm',   # 65
+    '______kuuttkssssssssssssmmm',
+    '_____kkkkkksssssssssssmmmaa',
+    '___kkasssssssssssssssmmmakk',
+    '__kasssssssssssssssmmmaakuu',
+    '__kassssssssssssssmmmakkutt',   # 70
+    '_kassssssssssssmmmmaakuuttt',
+    '_kasssssssssssmmmmakkuttttt',
+    '_kassssssssssmmmmakuutttttt',
+    '_kassssssssmmmmaakutttttttt',
+    '_kasssssssmmmmakkuttttttttt',   # 75
+    '_kasssssssmmmakuutttttttttt',
+    '_kammmmmmmmaakutttttttttttt',
+    '__kammmmmmakkuttttttttttttt',
+    '___kaaaaaakkkuutttttttttttt',
+    '____kkkkkk__kuutttttttttttt',   # 80
+    '____________kuutttttttttttt',
+    '____________kuutttttttttttt',
+    '____________kuutttttttttttt',
+    '____________kuutttttttttttt',
+    '____________kuutttttttttttt',   # 85
+    '____________kuutttttttttttt',
+    '____________kuutttttttttttt',
+]
+PET_LAP = {'cole': {'petlap': ('hide', -8, 56, PETLAP_ARM), 'petlap2': ('hide', -8, 56, PETLAP_ARM2)}}
+
+# Round-31 audit (Cole's T91 symptom in the visit, "cole's paper disappears when maker shows up": the laptop or the paper
+# went when the stroking began and stayed gone): now it stays on the desk. Typing, one hand stays at the keyboard behind the
+# screen while the other strokes her (petedgeLap: the petting pose with the typing pose's other arm, from these boxes,
+# base coordinates, inclusive, every seam behind the laptop; the resting hand of the petting pose had run out below the
+# laptop and been cut by its edge).
+PET_KEYS = {'cole': [(58, 0, 120, 120), (50, 82, 120, 120)], 'ilinca': [(26, 0, 120, 120)]}
+# The arm that strokes her reaches past the laptop's screen or lies on the paper: its skin and the outline touching it, in
+# these boxes (base coordinates, inclusive), make the pose's 'over' layer, which the scene draws after the prop (so the arm
+# is in front of the laptop's screen as it reaches round it to her at the desk's front edge, and the hands lie on the paper).
+# Over the prop (the pose and prop named) the skin gets one closed black outline of its own: where the hand had met her
+# blazer it had none, and a pixel of outline drawn by her hair lock would have floated on the screen.
+PET_OVER = {'cole': {'petedge': ((-40, 56, 120, 110), 'write', 'sheet'), 'petedgeLap': ((-40, 56, 57, 81), 'type', 'laptop')},
+            'ilinca': {'petedge': ((-40, 56, 120, 110), 'write', 'sheet'), 'petedgeLap': ((-40, 56, 16, 80), 'type', 'laptop')}}
 
 
-def graft(base, donor, box):
-    """the built pose `base` with what the built pose `donor` has inside the box (base coordinates, inclusive; its empty
-    pixels too) in place of base's own there"""
-    (bb, bx, by), (db, dx_, dy_) = base['body'], donor['body']
-    x0, y0 = min(bx, dx_), min(by, dy_); x1, y1 = max(bx + bb.w, dx_ + db.w), max(by + bb.h, dy_ + db.h)
-    out = Sprite(-np.ones((y1 - y0, x1 - x0), np.int16), list(bb.pal))
-    def place(s, sx, sy):
-        a = -np.ones(out.idx.shape, np.int16); src = np.array([out.color(col) for col in s.pal] + [-1], np.int16)
-        a[sy - y0:sy - y0 + s.h, sx - x0:sx - x0 + s.w] = src[s.idx]; return a
-    A, D = place(bb, bx, by), place(db, dx_, dy_)
-    X = np.arange(A.shape[1])[None, :] + x0; Y = np.arange(A.shape[0])[:, None] + y0
+def graft(base, donor, boxes):
+    """the built pose `base` with what the built pose `donor` has inside the boxes (base coordinates, inclusive; its empty
+    pixels too) in place of base's own there, in the body and the body-front layers; the face-front layer is base's"""
+    def merged(a, d):
+        if a is None and d is None: return None
+        ref = a if a is not None else d
+        (bb, bx, by) = a if a is not None else (Sprite(-np.ones((1, 1), np.int16), list(ref[0].pal)), ref[1], ref[2])
+        (db, dx_, dy_) = d if d is not None else (Sprite(-np.ones((1, 1), np.int16), list(bb.pal)), bx, by)
+        x0, y0 = min(bx, dx_), min(by, dy_); x1, y1 = max(bx + bb.w, dx_ + db.w), max(by + bb.h, dy_ + db.h)
+        out = Sprite(-np.ones((y1 - y0, x1 - x0), np.int16), list(bb.pal))
+        def place(s, sx, sy):
+            q = -np.ones(out.idx.shape, np.int16); src = np.array([out.color(col) for col in s.pal] + [-1], np.int16)
+            q[sy - y0:sy - y0 + s.h, sx - x0:sx - x0 + s.w] = src[s.idx]; return q
+        A, D = place(bb, bx, by), place(db, dx_, dy_)
+        X = np.arange(A.shape[1])[None, :] + x0; Y = np.arange(A.shape[0])[:, None] + y0
+        inbox = np.zeros(A.shape, bool)
+        for box in boxes: inbox |= (X >= box[0]) & (X <= box[2]) & (Y >= box[1]) & (Y <= box[3])
+        out.idx = np.where(inbox, D, A).astype(np.int16)
+        return (out, x0, y0) if (out.idx >= 0).any() else None
+    return dict(base, body=merged(base['body'], donor['body']), front_body=merged(base.get('front_body'), donor.get('front_body')), props={})
+
+
+def over_layer(who, entry, box, prop):
+    """the arm the scene draws again over a prop: the pose's skin inside the box (base coordinates, inclusive) and the
+    outline touching it (as _maker_clear keeps a hand); where the prop (sprite, x, y) lies, the skin's own closed outline
+    instead (the pixels next to it, edge to edge, black unless the pose has an outline colour there)"""
+    from scipy import ndimage as nd
+    s, ox, oy = entry['body']; o = s.copy()
+    Y, X = np.mgrid[0:s.h, 0:s.w]; X = X + ox; Y = Y + oy
     inbox = (X >= box[0]) & (X <= box[2]) & (Y >= box[1]) & (Y <= box[3])
-    out.idx = np.where(inbox, D, A).astype(np.int16)
-    return dict(body=(out, x0, y0), front=None, front_body=None, pts={}, props={})
+    ps, px_, py_ = prop; under = np.zeros(s.idx.shape, bool)
+    yy, xx = np.nonzero(ps.idx >= 0); yy, xx = yy + py_ - oy, xx + px_ - ox; ok = (yy >= 0) & (yy < s.h) & (xx >= 0) & (xx < s.w); under[yy[ok], xx[ok]] = True
+    sk = np.isin(s.idx, [i for i, c in enumerate(s.pal) if c in SOFTEN[who][0][0]]) & inbox
+    ink = np.isin(s.idx, [i for i, c in enumerate(s.pal) if c in LINES[who] | {KEYS[who]['k']}])
+    ring = nd.binary_dilation(sk, structure=np.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]], bool)) & ~sk & inbox
+    keep = sk | (ink & nd.binary_dilation(sk, structure=np.ones((3, 3), bool)) & inbox & ~under) | (ring & under)
+    o.idx[ring & under & ~ink] = o.color(KEYS[who]['k'])
+    o.idx[~keep] = -1
+    return (o, ox, oy) if keep.any() else None
 
 
 # T30 (2026-10-04, "My shoulders change shape and size frequently"): ten of his poses share the rest pose's shoulders;
@@ -1872,10 +2000,15 @@ def build(c):
             if act in out:
                 e = wave_from(c, out[act], out['wave'], seam); bb, bx, by = e['body']
                 e['body'] = (pinholes(bb, bx, by, head, e['front'], desk=c.desk), bx, by); out[act + 'Wave'] = e
-    for pose, (base, arm, box, (frame, sbox, sdx, sdy)) in PET_LAP.get(who, {}).items():   # T88: petting Maker behind the screen
-        if base in out and arm in out:
-            e = graft(out[base], out[arm], box); bb, bx, by = e['body']
-            e['body'] = (pinholes(bb, bx, by, head, None, desk=c.desk), bx, by); out[pose] = e
-            mv = shifted(e['body'][0], bx, by, sbox, sdx, sdy)
-            out[frame] = dict(e, body=(pinholes(mv, bx, by, head, None, desk=c.desk), bx, by))
+    for pose, (base, mx, my, arm) in PET_LAP.get(who, {}).items():     # T88 rework: petting Maker behind the screen, the arm drawn by hand
+        if base in out:
+            bb, bx, by = out[base]['body']; bb = bb.copy()
+            if mx < bx: bb = bb.pad(left=bx - mx); bx = mx
+            bb.rows(mx - bx, my - by, arm, KEYS[who])
+            out[pose] = dict(out[base], body=(pinholes(bb, bx, by, head, None, desk=c.desk), bx, by), front=None, front_body=None, pts={}, props={})
+    for pose in ('petedge', 'petedge2'):                                 # round-31 audit: the visit keeps the laptop (one hand at the keyboard)
+        if pose in out and 'type' in out and who in PET_KEYS: out[pose.replace('petedge', 'petedgeLap')] = graft(out[pose], out['type'], PET_KEYS[who])
+    for pose, (box, src, prop) in PET_OVER.get(who, {}).items():         # and the stroking arm goes over the laptop or the paper
+        for name in (pose, pose + '2'):
+            if name in out and src in out: out[name] = dict(out[name], over=over_layer(who, out[name], box, out[src]['props'][prop]))
     return out
