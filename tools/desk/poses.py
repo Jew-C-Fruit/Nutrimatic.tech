@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - poses.py
-Version 1.11.0
+Version 1.11.1
 
 Created: 2026-10-02 - The figures' body poses, from generated pictures, as layers under the base head; the neck, and
   Ilinca's top, taken from the base so every pose joins the same head; front boxes by eye (v1.0.0)
@@ -72,6 +72,10 @@ Modified: 2026-10-05 - Round-30 audit rework, hands that hold things drawn as pi
   round the shaker moving under his collar (shake_grip), one plane size at his chest and in his pinching hand
   (THROW_HAND), the petting arms joined to the shoulder and the shirt down to the desk (PET_ARM_COLE/ILINCA, 'maker',
   'late'); SHOULDERS take arm boxes and fixes; the talking arms take the rest shoulders (v1.11.0)
+Modified: 2026-10-06 - Round 31, to-do T68-T70: his neck and crew collar while thinking are the rest pose's, behind the
+  chin-on-fist arm (COLE_THINK_COLLAR); the neck patch stops above the mug in the sip ('neck_to') and the mug's right side
+  is his own against the shoulder line; in the stretch his forearms run on behind his head and the shirt reaches his neck
+  (STRETCH_BEHIND_HEAD), so no ring of wall shows round the head; the palette letter 'n' for the portrait's line colour (v1.11.1)
 
 Every activity in the scene is drawn with a body pose: the whole torso with arms, hands and whatever they hold, made
 by the image model from the figure's own portrait (pose_sprites.py says how) and reduced to a sprite on the base
@@ -458,6 +462,89 @@ COLE_THINK_HAND = [
     '........_____________________________']
 # the drumming frame: his index and middle fingers a row up
 COLE_THINK_TAP = [('rows', 43, 92, ['mm']), ('rows', 39, 93, ['mmmkkk_']), ('rows', 39, 94, ['kkk___']), ('rows', 39, 95, ['___'])]
+# T68 (round 31: "neck of shirt is broken"): thinking kept its picture's own neck, all in shade, and a dark wedge of shirt
+# that ran up into the neck and cut the T-shirt's round neckline off at a slant. His neck and crew collar are now his rest
+# pose's (the base portrait's neck with its shadow under the jaw, the round neckline in the portrait's line colour 'n', the
+# collar band's lower edge in the shirt's shade), left of his chin-on-fist arm: his thumb, fist and wrist stay in front, a
+# dark-skin line where the fist meets the neck. Below the collar the arm's shadow on the shirt starts at the forearm and
+# widens to the picture's own (it had started at the neck). x from 30, rows 39-61, where the scene draws it ('.' keeps).
+COLE_THINK_COLLAR = [
+    'd',                      # 39
+    'dd',
+    'dddn',
+    'mdddn',
+    'mddddd',
+    'msddddd',
+    'mssdddd',                # 45
+    'mssmmddd',
+    'msssmmdddd',
+    'mssssmmmddd',
+    'ssssssmmmmdd',
+    'sssssssmmmmssdd',        # 50: the two 'd' at 43-44 close the fist's lower edge against the neck
+    'sssssssssssssss',
+    'nnssssssssssssnt',
+    'ttnnssssssmmnntt',
+    'ttttnnnnnnnnuttt',
+    'ttttttttttttttutt',      # 55
+    'tttuttttttttuuttt',
+    'ttttttuuuuuutttttt',
+    '....ttttttttttt',        # 58-61: the shadow's top, narrow at the forearm
+    '....tttttttt',
+    '.....tttt',
+    '......t']
+# and the front layer left of his thumb and fist, rows 36-50 from x 30: the picture's own shaded neck and jaw line go (they
+# were drawn over his jaw), so the base head's jaw and the rest pose's neck show there
+COLE_THINK_NECK_CLEAR = ['_' * n for n in (12, 10, 10, 11, 7, 6, 5, 6, 7, 7, 8, 10, 11, 12, 15)]
+# T70 (round 31: "odd halo of gap around head during stretch so that background shows through wrists"): his hands are
+# clasped behind his head, but the cut that takes the picture's own head out (with a margin) had left two or three pixels
+# of wall between his arms and the base head all the way round, a light ring. The forearms run on behind his head in their
+# shade, a darker pixel against the head's outline (one outline: the head's), their top and bottom edges carried to the
+# head's outline; on his right (left in the picture) the shaded inside of the arm reaches his cheek and the shirt his jaw
+# and neck, as on his other side (a pocket of wall had stayed there), the neck with its own outline. The wedges above the
+# forearms and the space under his left forearm stay: they read as space. Placed after the cleanup passes ('post').
+STRETCH_BEHIND_HEAD = [
+    ('rows', 17, 10, ['.kkk',         # 10: the forearm's top edge runs into the head's outline
+                      '.ssm',
+                      '.sm',
+                      'ssm',
+                      'ssm',
+                      'sm',           # 15
+                      'sm',
+                      'ma',           # 17-21: its underside
+                      'ma',
+                      'ma',
+                      'mma',          # 20
+                      'mma',
+                      '.aa',          # 22-30: the shaded inside of the arm, to the cheek
+                      '.aa',
+                      '.aa',
+                      '.aa',          # 25
+                      '.aaa',
+                      '.aaa',
+                      '..aa',
+                      '..aaa',
+                      '..aaa',        # 30
+                      '...kku',       # 31: the arm's lower edge, then the shirt up to the jaw and the neck
+                      '...uuuu',
+                      '....uuu',
+                      '....uuuuuu',
+                      '.....uuuuuk',  # 35: the neck's own outline (x 27), as in the portrait
+                      '......uuuuk',
+                      '......uuuuk',
+                      '.......uuuk',
+                      '........uuk']),
+    ('rows', 53, 7, ['...kk',         # 7: his left forearm's top edge runs into the head's outline
+                     '...ms',
+                     '...ms',
+                     '...ms',         # 10
+                     '...ms',
+                     '...ms',
+                     '...ms',
+                     '..amm',         # 14-17: its underside
+                     '.ammm',         # 15
+                     '.amm',
+                     '.am',
+                     'kkkk'])]        # 18: its lower edge, to the head
 # Ilinca's yawn, x from 10, rows 27-55, where the scene draws it (her head is 3 rows lower than her picture had it): the
 # back of her right hand over her mouth, four fingers up toward her nose, the wrist down into the sleeve's cuff, all in
 # front of her hair (the wrist had been under it: the hair crossed her arm)
@@ -704,7 +791,13 @@ def phone_paint(lift=0):
 # By eye, per pose: the box (base coordinates) whose pixels go over the face, and named points.
 MANUAL = {
     'cole': {
-        'sip': dict(front=(30, 26, 58, 48), front_mode='armprops'),        # the fingers round the mug and the mug, in front of the chin (not the picture's own face: T44)
+        'sip': dict(front=(30, 26, 58, 48), front_mode='armprops',        # the fingers round the mug and the mug, in front of the chin (not the picture's own face: T44)
+                    # T69 (round 31: "part of shading on neck stands out in front of other superimposed objects"): below the
+                    # front box the base neck had been pasted over the mug's lower left corner, the hand's outline and the shirt
+                    # under the forearm (skin and the shadow under the jaw in front of the mug); the patch stops at the box's
+                    # last row, and below it the picture's own mug, hand and shirt stay, the hand's outline against the mug
+                    # closed in black (the softening had taken it for a finger line: dark skin, a skin crumb under it)
+                    neck_to=48, post=[('rows', 38, 49, ['.k', '.k', 'ku'])]),
         'drink': dict(front=(40, 28, 61, 58), front_mode='limb'),
         # note 9d: the boards lie edge-on on the desk line (they were drawn in perspective over the desk's front); the
         # irons reach down to them
@@ -753,7 +846,8 @@ MANUAL = {
                         ('recolour', 12, 50, 26, 59, {c_: '#211f1f' for c_ in SKIN_COLE}), ('recolour', 52, 50, 66, 59, {c_: '#211f1f' for c_ in SKIN_COLE}),
                         ('rows', 8, 60, DS_HAND), ('rows', 44, 60, [r[::-1][:-4] + '....' for r in DS_HAND])]),   # (his right side ends where his shirt does)
         'think': dict(neck_fill=False, keep_neck=True, front=(30, 32, 58, 50), front_mode='arm',   # the fist under his chin, in front of the jaw
-                      paint=[('body', 20, 84, COLE_THINK_HAND), ('front', 54, 46, ['_'])],   # T59 rework: the hand on the desk drawn whole; a shirt pixel outside his forearm's outline
+                      paint=[('body', 20, 84, COLE_THINK_HAND), ('front', 54, 46, ['_']),   # T59 rework: the hand on the desk drawn whole; a shirt pixel outside his forearm's outline
+                             ('front', 30, 36, COLE_THINK_NECK_CLEAR), ('body', 30, 39, COLE_THINK_COLLAR)],   # T68: the rest pose's neck and collar behind the fist
                       frames={'think1': {'edits': COLE_THINK_TAP}}),            # T7: the fingers on the desk drum (two lift a row; a box shift had doubled a finger line)
         'hide': dict(fix=[('clear', -24, 89, 110, 104)]),                # hands in his lap: nothing of them below the desk line (note 9b)
         # note 9a, motion in every activity: frames the scene cycles through (a forearm typing behind the screen, a hand to
@@ -774,7 +868,8 @@ MANUAL = {
                                           ('clear', -10, 89, 70, 100), ('late', [('rows', -9, 57, PET_ARM_COLE)]),
                                           ('maker', 31, 66, (31, 66, 56, 104), 78)],
                         frames={'petedge2': {'box': (28, 57, 56, 78), 'dx': 1, 'edits': [('rows', 36, 57, ['u.....t']), ('maker', 31, 66, (31, 66, 57, 104), 78)]}}),   # (the shirt's crease beside the hand stays put)
-        'stretch': dict(fix=[('clear', -8, 54, 7, 92), ('clear', 8, 53, 8, 53)]),   # a chair's edge behind him in the generated picture
+        'stretch': dict(fix=[('clear', -8, 54, 7, 92), ('clear', 8, 53, 8, 53)],    # a chair's edge behind him in the generated picture
+                        post=STRETCH_BEHIND_HEAD),                       # T70: no ring of wall between his arms and his head
         # props the scene also draws on their own: the laptop (the cat sits on it), the paper, the bottle being handed over
         # T31 (2026-10-04: "Typing arms still look really weird", "Writing arms are good"): typing is the writing picture
         # with the laptop (LID, T29) standing in front of the hands, so the forearms run in behind it from the elbows as
@@ -988,7 +1083,8 @@ SOFT_MAX = 6                                                         # the longe
 KEYS = {
     'cole': dict(k='#010101', b='#623e32', d='#dc7f6d', a='#ee947c', m='#f6af8d', s='#f8cda6', h='#f9eee0', t='#211f1f', u='#100f13',
                  w='#fbfaf5', r='#e4002b', R='#a3001f', g='#cfd2d4', G='#9a9ea2', p='#ff5a72', c='#d9a650', C='#7d6230',
-                 v='#2f6b3a', V='#1f4a28', B='#3d5f99', i='#5f6368'),
+                 v='#2f6b3a', V='#1f4a28', B='#3d5f99', i='#5f6368',
+                 n='#0f0503'),                                        # T68: the base portrait's line colour (his rest pose's neckline)
     'ilinca': dict(k='#010100', D='#b5705f', d='#d18881', a='#f1a49b', e='#e0b3a2', x='#e1cec4', s='#f9e2d2', h='#faebe1', j='#292423', J='#191718',
                    w='#fbfbf9', W='#fbfaf5', N='#5f4030', n='#6f4b3a', o='#9a6f50', O='#bd8e5d', y='#d9ae71', r='#e4002b', R='#a3001f', g='#cfd2d4', G='#9a9ea2',
                    B='#6f93cf', b='#3d5f99', c='#2b4572'),            # T49 rework: her phone's blues (its back, its shaded side, the camera)
@@ -1634,7 +1730,7 @@ def wave_from(c, act, wave, seam):
 YAWN_FOREARM_EDGE = [('rows', 61, 54 + i, [r]) for i, r in enumerate(['.k_', '..k_', '...k_', '...k__', '...k___', '....k__', '.....k__', '......k__', '.......kk_'])]
 # and in both, the capped left shoulder line closed where it stepped two pixels (a shirt pixel touched the wall)
 SHOULDER_STEP = [('rows', 7, 56, ['k'])]
-SHOULDERS = {'cole': {'think': {'L': 66, 'R': 64, 'arm': [(46, 44, 53, 53)], 'fix': SHOULDER_STEP}, 'yawn': {'L': 66, 'R': 62, 'arm': [(46, 36, 53, 53)], 'fix': YAWN_FOREARM_EDGE + SHOULDER_STEP}, 'facepalm': {'L': 66}, 'sip': {'R': 56},
+SHOULDERS = {'cole': {'think': {'L': 66, 'R': 64, 'arm': [(46, 44, 53, 53)], 'fix': SHOULDER_STEP}, 'yawn': {'L': 66, 'R': 62, 'arm': [(46, 36, 53, 53)], 'fix': YAWN_FOREARM_EDGE + SHOULDER_STEP}, 'facepalm': {'L': 66}, 'sip': {'R': 56, 'arm': [(49, 36, 56, 53)]},   # T69: the mug's right side is his own (the line had notched it)
                       'solder': {'L': 66, 'R': 66}, 'solder1': {'L': 66, 'R': 66}, 'petedge': {'L': 70, 'R': 66}, 'petedge2': {'L': 70, 'R': 66},
                       'petcat': {'L': 70}, 'petcat2': {'L': 70}, 'offer': {'L': 66}, 'offerEmpty': {'L': 66},
                       'surprise': {'L': 58}, 'talk': {'L': 70, 'R': 70}}}   # T58 (j): talking arms in a conversation took narrower, lower shoulders
@@ -1705,7 +1801,10 @@ def build(c):
         # T49 (a, rework, "phone should be held from the bottom, one handed"): hand-authored pixel maps ('paint_fix', fix ops) go on
         # over the softened picture, so the automatic softening leaves their outlines and finger lines as drawn
         if man.get('paint_fix'): spr = fix(spr, meta['x'], meta['y'], man['paint_fix'], KEYS[who])
-        body, front = PS.split(spr, meta['x'], meta['y'], hm | hm0, jaw, man.get('front'), hair, None if man.get('keep_neck') else neck, man.get('front_mode', 'all'),   # the picture's own head goes too
+        nk = None if man.get('keep_neck') else neck
+        if nk is not None and man.get('neck_to') is not None:           # T69: the neck patch stops at a row (a mug held below it stays as drawn)
+            nk = (nk[0], nk[1] & (np.arange(nk[1].shape[0])[:, None] <= man['neck_to']))
+        body, front = PS.split(spr, meta['x'], meta['y'], hm | hm0, jaw, man.get('front'), hair, nk, man.get('front_mode', 'all'),   # the picture's own head goes too
                                base_head=head, chest=None if man.get('keep_chest') else chest,
                                limb=set().union(*[cols for cols, _ in SOFTEN[who]]) | set(PS.PROPS), face_pt=FACE_PT.get(who), own_head=hm0,
                                hands_touch={c_ for c_ in SOFTEN[who][1][0]} | {'#e4002b', '#a3001f', '#ff5a72'})
