@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.22.0
+ * Version 0.22.1
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -106,6 +106,10 @@
  * Modified: 2026-10-06 - Round 31: soldering, every two or three seconds both hands and their tools move a pixel along
  *   the board and back (to-do T67: solderR, solderL and their lifted frames); after the spark, while his hands are off
  *   the board, his lamp's beam at night falls on the desk only, as by day (T84: over his shirt it read as an arm) (v0.22.0)
+ * Modified: 2026-10-06 - Round-31 audit rework: while his hands are off the board (the spark's start and facepalm, a wave
+ *   hello from soldering) his lamp stays on, the iron rests in the station's holder and the pick on the board, so the
+ *   tools never vanish (restingIron, restingPick); at night the beam is kept off his own pixels only (figureMask), so the
+ *   station and the board stay lit exactly as while he solders (the row cut had left the station half lit) (v0.22.1)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(i),
@@ -166,7 +170,7 @@
     deskTop: "#6b4a30", deskTopL: "#8a6442", deskTopD: "#4e3522", deskFront: "#3b2817", deskFrontD: "#2a1b0f", plate: "#efe9dc", plateS: "#b7ad99",
     green: "#2d6a3c", greenL: "#6fb57f", leaf: "#3f8f55", stem: "#4b7a3a", petalR: "#e4002b", petalW: "#ffffff", petalY: "#f2c744",
     pot: "#a3603c", potS: "#7c4428", board: "#2f6b3a", boardS: "#1f4a28", copper: "#d9a650",
-    iron: "#9a9a9e", ironHot: "#ff6a3d", smoke: "#c9c6bf", smoke2: "#dedbd4", phone: "#3d5f99", phoneTop: "#6f93cf", phoneScreen: "#dfe9f5",
+    iron: "#9a9a9e", ironHot: "#ff6a3d", ironBlue: "#68aaf2", steel: "#cfd2d4", steelS: "#9a9ea2", pick: "#d9a650", smoke: "#c9c6bf", smoke2: "#dedbd4", phone: "#3d5f99", phoneTop: "#6f93cf", phoneScreen: "#dfe9f5",
     paper: "#fbfaf5", paperLine: "#d9d5c8", mug: "#e4002b", mugS: "#a3001f", mugL: "#ff4d6a",
     laptop: "#cfd2d4", laptopS: "#9a9ea2", laptopL: "#eaeced", ds: "#d6162f", dsS: "#9d0f22", dsScreen: "#cfe3d4",
     lampBody: "#1b1b1b", lampShade: "#f2efe6", lampShadeOn: "#ffe9a8", bulb: "#fff1b8", pendant: "#1f1f22", pendantIn: "#ffe6a0", pendantOff: "#6d6d70", cord: "#2a2a2c",
@@ -333,8 +337,11 @@
   // The picture is 43x47: base centred at x 9.5, the inside of the shade at (34..36, 10..13), its mouth at (39, 14).
   var BULB = [[36, 10], [35, 11], [36, 11], [35, 12], [36, 12], [34, 13], [35, 13], [36, 13]];
   function lampGeom(i) { var bx = L.art.lamps[i], flip = i === 1; return { x: flip ? bx - 33 : bx - 9, y: DESK_Y - 43, mx: flip ? bx - 30 : bx + 30, my: DESK_Y - 29, flip: flip }; }
-  function lampIsOn(i, h) { var p = people[i]; return !p.hidden && (isDark(h) || p.activity === "solder" || p.activity === "write"); }
-  function handsOffWork(p) { return p.activity === "startle" || p.activity === "facepalm"; }   // the spark: his hands up and away from the board (T84)
+  function lampIsOn(i, h) { var p = people[i]; return !p.hidden && (isDark(h) || p.activity === "solder" || p.activity === "write" || solderPaused(p)); }
+  // T84/T67 (round-31 audit): his hands off the board for a moment (the spark's start and facepalm, a wave hello from
+  // soldering): the lamp stays on and the tools rest on the bench (restingIron, restingPick); at night its beam keeps off him
+  function solderPaused(p) { return p === cole && (!!p.benchFrom || (p.react === "greet" && p.greetAct === "solder")); }
+  function handsOffWork(p) { return p.activity === "startle" || p.activity === "facepalm" || (p.activity === "wave" && p.react === "greet" && p.greetAct === "solder"); }
   function slantCone(q, strength, overlay, w1) {
     var y0 = q.my, y1 = DESK_FRONT + 3, x1 = q.mx + (q.flip ? -24 : 24);
     if (overlay) { g.save(); g.globalCompositeOperation = "overlay"; }
@@ -374,6 +381,23 @@
     return out;
   }
   function drawBulb(q) { for (var k = 0; k < BULB.length; k++) { px(q.flip ? q.x + 42 - BULB[k][0] : q.x + BULB[k][0], q.y + BULB[k][1], C.bulb); } }
+  // T84 (round-31 audit, "mask by the figure, not by a row"): while his hands are off the board his lamp's beam at night
+  // must not lie across him (over his shirt it read as an arm reaching for the board), and everything else under it stays
+  // lit as while he solders (the station, the board, the desk). figMask holds his own pixels as they show in the frame:
+  // his figure drawn alone, less what the scene drew over it later (the desk, the station, the bench) and less what his
+  // pose holds as a prop (the board in a wave from soldering); drawNightArt puts those pixels back as they were before
+  // the lamps' light.
+  var figMask = document.createElement("canvas"), figMaskX = figMask.getContext("2d"), beamTmp = document.createElement("canvas"), beamTmpX = beamTmp.getContext("2d");
+  var shadeFig = false;
+  function figureMask(p, f) {
+    figMask.width = W; figMask.height = H;
+    var keep = g; g = figMaskX; drawCharacter(p, f); var d = p.drawn;
+    if (d) { g.globalCompositeOperation = "destination-out"; Object.keys(d.pose.props || {}).forEach(function (n) { blit(d.pose.props[n], d.o.x, d.o.y + d.jig); }); g.globalCompositeOperation = "source-over"; }
+    g = keep;
+    var m = figMaskX.getImageData(0, 0, W, H), a = m.data, b = g.getImageData(0, 0, W, H).data;
+    for (var i = 0; i < a.length; i += 4) { if (a[i + 3] && (a[i] !== b[i] || a[i + 1] !== b[i + 1] || a[i + 2] !== b[i + 2])) { a[i + 3] = 0; } }
+    figMaskX.putImageData(m, 0, 0);
+  }
 
   /* ---------- window with a New York skyline ---------- */
   var stars = [], clouds = [{ x: 0, y: 14, w: 14 }, { x: 30, y: 26, w: 9 }, { x: 52, y: 8, w: 11 }];
@@ -526,6 +550,29 @@
     rect(x - 10, b - 8, 20, 8, C.ink3); outline(x - 10, b - 8, 20, 8, C.ink); px(x - 7, b - 5, C.red); px(x - 4, b - 5, C.greenL); rect(x, b - 6, 6, 3, C.greyLight);
     rect(x + 6, b - 20, 2, 12, C.grey); hline(x + 3, b - 20, 8, C.grey);
   }
+  // T67 (round-31 audit, "the tools never disappear"): what his hands are not holding rests on the bench, at the size it
+  // has in his hand (the same blue, silver and yellow): the iron in the station's holder, passing behind its crossbar,
+  // its silver tip down by the station and its handle up towards him; the pick lying on the board. Both while the spark
+  // has his hands up, the iron alone while he waves hello from soldering (his other hand keeps the pick).
+  function toolsResting() { var n = cole.drawn && cole.drawn.name; return { iron: !!cole.benchFrom || n === "solderWave", pick: !!cole.benchFrom }; }
+  function restingIron(x) {                                              // drawn before the station: its holder is in front of it
+    if (!toolsResting().iron) { return; }
+    var b = deskAt(0.35) + 1, y, cx, x0;
+    for (var pass = 0; pass < 2; pass++) {                               // an outline first, so it reads over his arm and the wall too
+      for (y = b - 9; y >= b - 36; y--) {
+        cx = x + 7 + 0.75 * (b - 20 - y);
+        if (y > b - 14) { x0 = Math.round(cx); if (pass) { px(x0, y, y === b - 13 ? C.steelS : C.steel); } else { px(x0 - 1, y, C.ink); px(x0 + 1, y, C.ink); } }   // the silver tip, a grey collar at its top
+        else { x0 = Math.floor(cx - 0.5); if (pass) { px(x0, y, C.ironBlue); px(x0 + 1, y, C.ironBlue); } else { px(x0 - 1, y, C.ink); px(x0 + 2, y, C.ink); } }
+      }
+      if (!pass) { x0 = Math.floor(x + 7 + 0.75 * 16 - 0.5); hline(x0, b - 37, 2, C.ink); }   // its end
+    }
+  }
+  function restingPick() {
+    if (!toolsResting().pick) { return; }
+    var o = origin(cole);
+    hline(o.x + 30, o.y + 84, 12, C.pick); hline(o.x + 30, o.y + 85, 12, C.pick); hline(o.x + 42, o.y + 85, 5, C.steel);   // its handle, its point
+  }
+
   // Where Ilinca's phone lies when she isn't holding it: on her right, clear of her laptop and her arm.
   function phoneSpot() { return ilinca.x + 40; }
   function propPhoneOnDesk(x) { var y = deskAt(0.5); rect(x - 5, y - 2, 10, 2, C.phone); hline(x - 4, y - 2, 8, C.phoneTop); }   // face down, its blue back up: the phone in her hand
@@ -722,7 +769,7 @@
         var kind = set[j].indexOf("vase") === 0 ? "vase" : set[j] === "cartridge" ? "papers" : set[j];
         var sy = deskAt(kind === "mug" ? 0.45 : 0.35) + 1; propArt(kind, L.art.slots[j], sy); if (kind === "mug") { steam(L.art.slots[j] - 1, sy - 12, f); }
       }
-      if ((cole.activity === "solder" || cole.benchFrom || (cole.react && cole.greetAct === "solder")) && !cole.hidden) { propSolderStation(cole.x - 32); }
+      if ((cole.activity === "solder" || cole.benchFrom || (cole.react && cole.greetAct === "solder")) && !cole.hidden) { restingIron(cole.x - 32); propSolderStation(cole.x - 32); restingPick(); }
       if (ilinca.phoneOnDesk && !ilinca.hidden && !actors.buzz) { propPhoneOnDesk(phoneSpot()); }   // (buzzing, the call draws it)
       for (var m = 0; m < extras.length; m++) {
         var e2 = extras[m];
@@ -736,7 +783,7 @@
       if (k === "plant") { propPlant(x); } else if (k === "papers") { propPapers(x); } else if (k === "bottle") { propBottle(x, DESK_Y); }
       else if (k === "cartridge") { propCartridge(x); } else if (k === "mug") { propMug(x, DESK_Y, false, f); } else if (k.indexOf("vase") === 0) { propVase(x, +k[4]); }
     }
-    if ((cole.activity === "solder" || cole.benchFrom || (cole.react && cole.greetAct === "solder")) && !cole.hidden) { propSolderStation(cole.x - 50); }
+    if ((cole.activity === "solder" || cole.benchFrom || (cole.react && cole.greetAct === "solder")) && !cole.hidden) { restingIron(cole.x - 50); propSolderStation(cole.x - 50); restingPick(); }
     if (ilinca.phoneOnDesk && !ilinca.hidden && !actors.buzz) { propPhoneOnDesk(phoneSpot()); }   // (buzzing, the call draws it)
     for (var e = 0; e < extras.length; e++) { var ex = extras[e]; if (ex.kind === "plane") { propPlane(ex.x, deskAt(0.7), ex.dir); } else if (ex.kind === "bottle") { propBottle(ex.x, DESK_Y); } else if (ex.kind === "mug") { propMug(ex.x, DESK_Y, ex.steam, f); } }
   }
@@ -1239,13 +1286,16 @@
         pool(x, PENDANT_RIM, DESK_FRONT + 3, 9, 50, n * 0.12); pool(x, PENDANT_RIM, DESK_FRONT + 3, 7, 36, n * 0.12); pool(x, PENDANT_RIM, DESK_FRONT + 3, 5, 22, n * 0.14);   // nested, so the edges stay soft
       });
     }
+    if (shadeFig) { beamTmp.width = W; beamTmp.height = H; beamTmpX.drawImage(fg, 0, 0); }   // T84: the layer before the lamps' light
     for (var i = 0; i < 2; i++) {
       if (!lampIsOn(i, h)) { continue; }
-      var q = lampGeom(i), offWork = handsOffWork(people[i]);
-      if (offWork) { g.save(); g.beginPath(); g.rect(0, DESK_Y, W, H - DESK_Y); g.clip(); }   // T84: his hands off the work, the beam over his shirt read as an arm: on the desk only, as by day
+      var q = lampGeom(i);
       slantCone(q, n * 0.34, true, 34); slantCone(q, n * 0.30, true, 22); slantCone(q, n * 0.26, true, 12);
       slantCone(q, n * 0.05, false, 30);
-      if (offWork) { g.restore(); }
+    }
+    if (shadeFig) {                                                      // his own pixels as they were before it (figureMask)
+      beamTmpX.globalCompositeOperation = "destination-in"; beamTmpX.drawImage(figMask, 0, 0); beamTmpX.globalCompositeOperation = "source-over";
+      g.drawImage(beamTmp, 0, 0);
     }
     g.save(); g.globalCompositeOperation = "destination-in"; g.drawImage(fgCopy, 0, 0); g.restore();   // light falls on things, not into the window
   }
@@ -1334,6 +1384,8 @@
     people.forEach(drawNamePlate);
     if (scenario && scenario.drawFront) { scenario.drawFront(t, f); }
     people.forEach(drawPetHand);
+    shadeFig = art && dark && lampIsOn(0, h) && handsOffWork(cole) && !cole.hidden;   // T84: his figure keeps out of his lamp's beam
+    if (shadeFig) { figureMask(cole, f); }
     var glow = dark && art ? bulbsShowing(h) : [];                       // (the lamps stand behind them now: only what still shows)
     drawNight(h, f);
     if (art) { g = back; g.drawImage(fg, 0, 0); }

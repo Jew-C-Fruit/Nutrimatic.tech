@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - poses.py
-Version 1.12.0
+Version 1.12.1
 
 Created: 2026-10-02 - The figures' body poses, from generated pictures, as layers under the base head; the neck, and
   Ilinca's top, taken from the base so every pose joins the same head; front boxes by eye (v1.0.0)
@@ -78,6 +78,9 @@ Modified: 2026-10-06 - Round 31, to-do T84 (the solder spark: "3 arm problem sti
   ... "Blue iron with silver tip, yellow and silver pick"): the grey backdrop under both forearms becomes his shirt; a
   blue iron with a silver tip and a yellow pick with a silver point are drawn over the finished hands (tools_on); frames
   move both hands and their tools a pixel along the board (slide: only the hand moves, the shirt and board stay) (v1.12.0)
+Modified: 2026-10-06 - Round-31 audit rework (T67): the iron is one straight tool (its end above his hand on the line of
+  the shaft) in a light blue, e (#68aaf2: 3.9:1 against his shirt at night on desktops, 3.4:1 on phones, 6.7:1 by
+  day; the first blue had dropped to 1.8:1 at night); the old tip's two black pixels are off the chip (v1.12.1)
 
 Every activity in the scene is drawn with a body pose: the whole torso with arms, hands and whatever they hold, made
 by the image model from the figure's own portrait (pose_sprites.py says how) and reduced to a sprite on the base
@@ -711,7 +714,7 @@ def phone_paint(lift=0):
 # circuitboard along X axis, small changes only. Tools need contrasting colors so as to stand out from shirt. Blue iron with
 # silver tip, yellow and silver pick, perhaps"). The picture's grey backdrop under both forearms (his left hand's frame
 # moved it up and down with the hand, and left a slit of wall under it) becomes his shirt in shadow; the black iron, lost
-# against his black T-shirt, goes, and the tools are drawn over the finished hands (tools_on): a blue iron with a silver
+# against his black T-shirt, goes, and the tools are drawn over the finished hands (tools_on): a light blue iron with a silver
 # tip (its glow is the scene's, at the pose's 'tip') and, in his left hand, a yellow pick with a silver point, each map
 # holding only the pixels that show (in front of the shirt and the board; behind his fingers nothing is drawn). Every few
 # seconds both hands and their tools move a pixel along the board (frames: slide moves only a hand, what it uncovers
@@ -720,11 +723,13 @@ SOLDER_POST = [('rows', 16, 57, ['ttttt', '.ttttt', '..ttttt', '..ttttt']),     
                ('rows', 31, 75, ['tttt', '.tttt', '.tttt', '..tttt', '...ttt', '....tt', '.....tt', '......t', '......t',
                                  '......tt', '', '.....kiik']),                      # its shaft and tip (the chip under the tip again)
                ('rows', 60, 83, ['o']), ('rows', 58, 84, ['u' * 8, 'u' * 9, 'u' * 12]),   # the backdrop under his left forearm
-               ('rows', 8, 84, ['uu']), ('rows', 6, 85, ['uuuu']), ('rows', 4, 86, ['u' * 7])]   # and under his right one
-SOLDER_IRON = (17, 56, ['BB', 'BB', '.BB', '..BB', '..BB'] + [''] * 11 + ['.............BB', '.............BB', '',
-               '...............BB', '................BB', '................BB', '.................BB', '.................BB',
-               '..................BB', '...................G', '...................g', '....................g',
-               '....................g', '.....................g'])                  # blue, the silver tip down to (38, 86)
+               ('rows', 8, 84, ['uu']), ('rows', 6, 85, ['uuuu']), ('rows', 4, 86, ['u' * 7]),   # and under his right one
+               ('rows', 37, 85, ['tt'])]                                           # the two black pixels the old tip left on the chip
+SOLDER_IRON = (21, 55, ['ee', 'ee', '.ee', '.ee', '..ee', '...ee', '....e'] + [''] * 10 + ['.........ee', '.........ee', '',
+               '...........ee', '............ee', '............ee', '.............ee', '.............ee', '..............ee',
+               '...............G', '...............g', '................g', '................g', '.................g'])
+# (one straight tool, about 0.54 px right per row: its end above his hand on the line of the shaft below his fingers and the
+# silver tip down to (38, 86); a light blue, 'e', that reads against his shirt at night as well as by day)
 SOLDER_PICK = (46, 62, ['.............cc', '............cc', '............cc', '...........cc', '...........cc',
                '..........cc', '.........cc'] + [''] * 14 + ['.g', '.g', 'g', 'g'])   # yellow above his hand, its silver point below
 # the hands' boxes: each cuts its forearm where both its edges run level (a hand moved along the board then stretches or
@@ -1028,7 +1033,8 @@ SOFT_MAX = 6                                                         # the longe
 KEYS = {
     'cole': dict(k='#010101', b='#623e32', d='#dc7f6d', a='#ee947c', m='#f6af8d', s='#f8cda6', h='#f9eee0', t='#211f1f', u='#100f13',
                  w='#fbfaf5', r='#e4002b', R='#a3001f', g='#cfd2d4', G='#9a9ea2', p='#ff5a72', c='#d9a650', C='#7d6230',
-                 v='#2f6b3a', V='#1f4a28', B='#3d5f99', i='#5f6368', o='#0f0503', q='#090507'),   # o, q: the pictures' near-black lines (T84)
+                 v='#2f6b3a', V='#1f4a28', B='#3d5f99', i='#5f6368', o='#0f0503', q='#090507',   # o, q: the pictures' near-black lines (T84)
+                 e='#68aaf2'),                                                    # e: the soldering iron's blue (T67)
     'ilinca': dict(k='#010100', D='#b5705f', d='#d18881', a='#f1a49b', e='#e0b3a2', x='#e1cec4', s='#f9e2d2', h='#faebe1', j='#292423', J='#191718',
                    w='#fbfbf9', W='#fbfaf5', N='#5f4030', n='#6f4b3a', o='#9a6f50', O='#bd8e5d', y='#d9ae71', r='#e4002b', R='#a3001f', g='#cfd2d4', G='#9a9ea2',
                    B='#6f93cf', b='#3d5f99', c='#2b4572'),            # T49 rework: her phone's blues (its back, its shaded side, the camera)
