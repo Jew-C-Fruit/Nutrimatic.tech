@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.22.1
+ * Version 0.22.2
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -110,6 +110,10 @@
  *   hello from soldering) his lamp stays on, the iron rests in the station's holder and the pick on the board, so the
  *   tools never vanish (restingIron, restingPick); at night the beam is kept off his own pixels only (figureMask), so the
  *   station and the board stay lit exactly as while he solders (the row cut had left the station half lit) (v0.22.1)
+ * Modified: 2026-10-06 - Round-31 second audit rework (T67, T84): the resting iron stands in the holder socket at the
+ *   station's top-right corner and leans over his shirt towards him (in the crossbar, leaning either way, it crossed the
+ *   forearm he throws up in the start, his arm down in his lap in facepalm, or the lamp); the resting pick lies on the
+ *   desk in front of the board at the length it has in his hand, 28 px (it was 17 on the board) (v0.22.2)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(i),
@@ -551,26 +555,39 @@
     rect(x + 6, b - 20, 2, 12, C.grey); hline(x + 3, b - 20, 8, C.grey);
   }
   // T67 (round-31 audit, "the tools never disappear"): what his hands are not holding rests on the bench, at the size it
-  // has in his hand (the same blue, silver and yellow): the iron in the station's holder, passing behind its crossbar,
-  // its silver tip down by the station and its handle up towards him; the pick lying on the board. Both while the spark
-  // has his hands up, the iron alone while he waves hello from soldering (his other hand keeps the pick).
+  // has in his hand (the same blue, silver and yellow). Both while the spark has his hands up, the iron alone while he
+  // waves hello from soldering (his other hand keeps the pick).
   function toolsResting() { var n = cole.drawn && cole.drawn.name; return { iron: !!cole.benchFrom || n === "solderWave", pick: !!cole.benchFrom }; }
-  function restingIron(x) {                                              // drawn before the station: its holder is in front of it
+  // Second audit rework (T67/T84): passing behind the station's crossbar, the iron lay across his arms (the forearm he
+  // throws up in the start and his arm down in his lap in facepalm both stand right in front of that crossbar), and leaned
+  // the other way, away from him, it met that forearm and the lamp. It stands instead in the holder socket at the station's
+  // top-right corner (its silver tip sunk a pixel into it, behind the station's top), leaning over his shirt towards him,
+  // where his hand held it: clear of both arms in the start, in facepalm and in a wave. 35 px from the end of its handle to
+  // its tip as in his hand (28 rows at 0.75 px a row): 23 rows of blue, a grey collar, the silver tip.
+  function restingIron(x) {                                              // drawn before the station: the socket is inside it
     if (!toolsResting().iron) { return; }
-    var b = deskAt(0.35) + 1, y, cx, x0;
-    for (var pass = 0; pass < 2; pass++) {                               // an outline first, so it reads over his arm and the wall too
-      for (y = b - 9; y >= b - 36; y--) {
-        cx = x + 7 + 0.75 * (b - 20 - y);
-        if (y > b - 14) { x0 = Math.round(cx); if (pass) { px(x0, y, y === b - 13 ? C.steelS : C.steel); } else { px(x0 - 1, y, C.ink); px(x0 + 1, y, C.ink); } }   // the silver tip, a grey collar at its top
+    var b = deskAt(0.35) + 1, y0 = b - 8, y, cx, x0, pass;               // y0: its lowest row, behind the station's top edge
+    for (pass = 0; pass < 2; pass++) {                                   // an outline first, so it reads over his shirt
+      for (y = y0; y >= y0 - 27; y--) {
+        cx = x + 8 + 0.75 * (b - 9 - y);
+        if (y > y0 - 5) { x0 = Math.round(cx); if (pass) { px(x0, y, y === y0 - 4 ? C.steelS : C.steel); } else { px(x0 - 1, y, C.ink); px(x0 + 1, y, C.ink); } }   // the silver tip, a grey collar at its top
         else { x0 = Math.floor(cx - 0.5); if (pass) { px(x0, y, C.ironBlue); px(x0 + 1, y, C.ironBlue); } else { px(x0 - 1, y, C.ink); px(x0 + 2, y, C.ink); } }
       }
-      if (!pass) { x0 = Math.floor(x + 7 + 0.75 * 16 - 0.5); hline(x0, b - 37, 2, C.ink); }   // its end
+      if (!pass) { x0 = Math.floor(x + 8 + 0.75 * (b - 9 - (y0 - 28)) - 0.5); hline(x0, y0 - 28, 2, C.ink); }   // the end of its handle
     }
   }
+  // Second audit rework (T67, "Object scale must be consistent"): the pick lay on the board at 17 px, 60% of the pick in
+  // his hand. In his hand it runs 28 px from the end of its handle to its point, through his fist (sprite (60, 62) to
+  // (46, 86)): it lies on the desk in front of the board at that length, 20 px of yellow handle and 8 of steel point (the
+  // point towards the station), outlined so it reads against the wood.
+  var PICK_FLAT = ['.........kkkkkkkkkkkkkkkkkkkkk',
+                   'kkkkkkkkkcccccccccccccccccccck',
+                   'kggggggggcccccccccccccccccccck',
+                   'kkkkkkkkkkkkkkkkkkkkkkkkkkkkkk'];
   function restingPick() {
     if (!toolsResting().pick) { return; }
-    var o = origin(cole);
-    hline(o.x + 30, o.y + 84, 12, C.pick); hline(o.x + 30, o.y + 85, 12, C.pick); hline(o.x + 42, o.y + 85, 5, C.steel);   // its handle, its point
+    var o = origin(cole), x0 = o.x + 25, y0 = deskAt(0.7) - 2, col = { k: C.ink, g: C.steel, c: C.pick };
+    for (var j = 0; j < PICK_FLAT.length; j++) { for (var i = 0; i < PICK_FLAT[j].length; i++) { var ch = PICK_FLAT[j][i]; if (col[ch]) { px(x0 + i, y0 + j, col[ch]); } } }
   }
 
   // Where Ilinca's phone lies when she isn't holding it: on her right, clear of her laptop and her arm.

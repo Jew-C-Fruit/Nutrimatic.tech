@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - poses.py
-Version 1.12.1
+Version 1.12.2
 
 Created: 2026-10-02 - The figures' body poses, from generated pictures, as layers under the base head; the neck, and
   Ilinca's top, taken from the base so every pose joins the same head; front boxes by eye (v1.0.0)
@@ -81,6 +81,9 @@ Modified: 2026-10-06 - Round 31, to-do T84 (the solder spark: "3 arm problem sti
 Modified: 2026-10-06 - Round-31 audit rework (T67): the iron is one straight tool (its end above his hand on the line of
   the shaft) in a light blue, e (#68aaf2: 3.9:1 against his shirt at night on desktops, 3.4:1 on phones, 6.7:1 by
   day; the first blue had dropped to 1.8:1 at night); the old tip's two black pixels are off the chip (v1.12.1)
+Modified: 2026-10-06 - Round-31 second spark audit (T67, an old problem): a greeting from soldering keeps the board's
+  lower edge (its dark copper and its outline) as in the soldering frames; wave_from had cleared them left of the seam
+  and filled the gap with the copper above, a two-tone, stepped edge (v1.12.2)
 
 Every activity in the scene is drawn with a body pose: the whole torso with arms, hands and whatever they hold, made
 by the image model from the figure's own portrait (pose_sprites.py says how) and reduced to a sprite on the base
@@ -1640,7 +1643,10 @@ def wave_from(c, act, wave, seam):
     sx = np.broadcast_to(sx, (H, 1)) if sx.shape[1] == 1 else sx
     sx = np.where(Y < WAVE_COLLAR[who][0], np.minimum(sx, WAVE_COLLAR[who][1]), sx)   # R30 wave (2): his collar is the activity's
     left = X < sx
-    props = np.isin(A, [i for i, col in enumerate(out.pal) if col in PS.PROPS]) & (A >= 0)
+    # round-31 spark audit (3, an old problem): the board's lower edge, its dark copper ('C', not one of PS.PROPS), was
+    # cleared left of the seam and pinholes filled it with the yellow above, and its outline under it went too: a two-tone,
+    # stepped edge. The soldering board's own colours (BOARD) count as the thing on the desk, so it is the soldering one.
+    props = np.isin(A, [i for i, col in enumerate(out.pal) if col in PS.PROPS or col in BOARD]) & (A >= 0)
     lab, n = ndimage.label(props, structure=np.ones((3, 3), bool))   # only whole things (a laptop, paper, board, mug), not specks of a pen or an iron
     if n:                                                             # or anything lying on the desk (an iron stand), however small
         low = ndimage.maximum(np.broadcast_to(Y, props.shape), lab, index=np.arange(1, n + 1))
