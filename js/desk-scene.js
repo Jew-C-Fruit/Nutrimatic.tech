@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.22.2
+ * Version 0.22.3
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -114,6 +114,12 @@
  *   station's top-right corner and leans over his shirt towards him (in the crossbar, leaning either way, it crossed the
  *   forearm he throws up in the start, his arm down in his lap in facepalm, or the lamp); the resting pick lies on the
  *   desk in front of the board at the length it has in his hand, 28 px (it was 17 on the board) (v0.22.2)
+ * Modified: 2026-10-06 - Round-31 third spark rework (T67, T84): anywhere in or on the station the iron crossed his body,
+ *   and in a wave the holder's crossbar is right under his raised elbow; the puff now makes him drop both tools on the
+ *   desk, and in a wave he lays the iron down at the same place: flat, right of the board, 2 px of desk all round it in
+ *   every frame and both layouts, its tip still pulsing (IRON_FLAT); the pick's handle end tapers as in his hand and it
+ *   lies 9 px further left; at night the station's holder darkens to the station's own grey, so under the lamp it no
+ *   longer melts into his hand behind it (v0.22.3)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(i),
@@ -552,41 +558,51 @@
   function propSolderStation(x) {
     var b = deskAt(0.35) + 1;                                              // standing on the desk's top, beside the board
     rect(x - 10, b - 8, 20, 8, C.ink3); outline(x - 10, b - 8, 20, 8, C.ink); px(x - 7, b - 5, C.red); px(x - 4, b - 5, C.greenL); rect(x, b - 6, 6, 3, C.greyLight);
-    rect(x + 6, b - 20, 2, 12, C.grey); hline(x + 3, b - 20, 8, C.grey);
+    // Third spark rework (T84, the night clump): under the lamp at night the grey holder took the colour of his unlit hand
+    // behind it (lit 196,167,120 against 175,149,116), one beige mass in facepalm and in the start. At night it darkens to
+    // the station's own dark grey (ink3), lit a warm dark grey (119,95,72) against his hand lit or unlit, in every frame
+    // the station shows (soldering too), so it never changes between them; by day it stays as it was.
+    var tc = mix(C.grey, C.ink3, nightAmount(hourNow()));
+    rect(x + 6, b - 20, 2, 12, tc); hline(x + 3, b - 20, 8, tc);
   }
   // T67 (round-31 audit, "the tools never disappear"): what his hands are not holding rests on the bench, at the size it
   // has in his hand (the same blue, silver and yellow). Both while the spark has his hands up, the iron alone while he
-  // waves hello from soldering (his other hand keeps the pick).
+  // waves hello from soldering (his other hand keeps the pick): exactly the frames whose pose holds neither or one of them.
   function toolsResting() { var n = cole.drawn && cole.drawn.name; return { iron: !!cole.benchFrom || n === "solderWave", pick: !!cole.benchFrom }; }
-  // Second audit rework (T67/T84): passing behind the station's crossbar, the iron lay across his arms (the forearm he
-  // throws up in the start and his arm down in his lap in facepalm both stand right in front of that crossbar), and leaned
-  // the other way, away from him, it met that forearm and the lamp. It stands instead in the holder socket at the station's
-  // top-right corner (its silver tip sunk a pixel into it, behind the station's top), leaning over his shirt towards him,
-  // where his hand held it: clear of both arms in the start, in facepalm and in a wave. 35 px from the end of its handle to
-  // its tip as in his hand (28 rows at 0.75 px a row): 23 rows of blue, a grey collar, the silver tip.
-  function restingIron(x) {                                              // drawn before the station: the socket is inside it
+  // Third spark rework (T67/T84): anywhere in or on the station a 35 px iron crossed his body (the station stands in front
+  // of him, where his arms go when he jumps back: in its holder it lay along the forearm he throws up and through his arm
+  // in his lap; in a corner socket its outline met his lap hand's and at night it blended with them), and in a wave hello
+  // the holder's crossbar lies on his raised elbow's outline and the whole T is within 3 px of him, so it cannot take the
+  // iron there either. When the puff startles him he drops both tools on the desk, and in a wave he lays the iron down at
+  // the same place: flat, right of the board, at its size in his hand (35 px: 29 of blue, the grey collar, 5 of silver
+  // tip, as in SOLDER_IRON), its tip towards the board and the station. Hand-drawn maps (k ink, e blue, G collar, g silver,
+  // c yellow), never rotated art.
+  // The desk top is rows 134-142; the iron keeps 2 px of desk from everything in every frame and both layouts: rows 137-140
+  // (the board's lower edge is row 135, the front edge row 143, his elbow on the desk in facepalm row 134), its thin tip
+  // (rows 138-140) in front of the board's right end, its blue body right of the board, its end 2 px short of the nearest
+  // pixel Ilinca puts on the desk on phones (her paper and hands at x 124, rows 134-136). Its tip pulses as in his hand.
+  var IRON_FLAT = ['......kkkkkkkkkkkkkkkkkkkkkkkkkkkkkk.',
+                   '.kkkkkGeeeeeeeeeeeeeeeeeeeeeeeeeeeeek',
+                   'kgggggGeeeeeeeeeeeeeeeeeeeeeeeeeeeeek',
+                   '.kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk.'];
+  function restingIron(f) {
     if (!toolsResting().iron) { return; }
-    var b = deskAt(0.35) + 1, y0 = b - 8, y, cx, x0, pass;               // y0: its lowest row, behind the station's top edge
-    for (pass = 0; pass < 2; pass++) {                                   // an outline first, so it reads over his shirt
-      for (y = y0; y >= y0 - 27; y--) {
-        cx = x + 8 + 0.75 * (b - 9 - y);
-        if (y > y0 - 5) { x0 = Math.round(cx); if (pass) { px(x0, y, y === y0 - 4 ? C.steelS : C.steel); } else { px(x0 - 1, y, C.ink); px(x0 + 1, y, C.ink); } }   // the silver tip, a grey collar at its top
-        else { x0 = Math.floor(cx - 0.5); if (pass) { px(x0, y, C.ironBlue); px(x0 + 1, y, C.ironBlue); } else { px(x0 - 1, y, C.ink); px(x0 + 2, y, C.ink); } }
-      }
-      if (!pass) { x0 = Math.floor(x + 8 + 0.75 * (b - 9 - (y0 - 28)) - 0.5); hline(x0, y0 - 28, 2, C.ink); }   // the end of its handle
-    }
+    var o = origin(cole), x0 = o.x + 48, y0 = DESK_Y + 3, col = { k: C.ink, e: C.ironBlue, G: C.steelS, g: C.steel };
+    for (var j = 0; j < IRON_FLAT.length; j++) { for (var i = 0; i < IRON_FLAT[j].length; i++) { var ch = IRON_FLAT[j][i]; if (col[ch]) { px(x0 + i, y0 + j, col[ch]); } } }
+    px(x0 + 1, y0 + 2, (f % 6 < 3) ? C.ironHot : C.steel);              // still hot: its tip pulses as it did in his hand
   }
   // Second audit rework (T67, "Object scale must be consistent"): the pick lay on the board at 17 px, 60% of the pick in
   // his hand. In his hand it runs 28 px from the end of its handle to its point, through his fist (sprite (60, 62) to
   // (46, 86)): it lies on the desk in front of the board at that length, 20 px of yellow handle and 8 of steel point (the
-  // point towards the station), outlined so it reads against the wood.
-  var PICK_FLAT = ['.........kkkkkkkkkkkkkkkkkkkkk',
-                   'kkkkkkkkkcccccccccccccccccccck',
+  // point towards the station), outlined so it reads against the wood. Third rework: its handle's end tapers like the
+  // pick in his hand (it was square), and it lies 9 px further left, so the dropped iron fits beside it on phones.
+  var PICK_FLAT = ['.........kkkkkkkkkkkkkkkkkkkk.',
+                   'kkkkkkkkkccccccccccccccccccck.',
                    'kggggggggcccccccccccccccccccck',
-                   'kkkkkkkkkkkkkkkkkkkkkkkkkkkkkk'];
+                   'kkkkkkkkkkkkkkkkkkkkkkkkkkkkk.'];
   function restingPick() {
     if (!toolsResting().pick) { return; }
-    var o = origin(cole), x0 = o.x + 25, y0 = deskAt(0.7) - 2, col = { k: C.ink, g: C.steel, c: C.pick };
+    var o = origin(cole), x0 = o.x + 16, y0 = deskAt(0.7) - 2, col = { k: C.ink, g: C.steel, c: C.pick };
     for (var j = 0; j < PICK_FLAT.length; j++) { for (var i = 0; i < PICK_FLAT[j].length; i++) { var ch = PICK_FLAT[j][i]; if (col[ch]) { px(x0 + i, y0 + j, col[ch]); } } }
   }
 
@@ -786,7 +802,7 @@
         var kind = set[j].indexOf("vase") === 0 ? "vase" : set[j] === "cartridge" ? "papers" : set[j];
         var sy = deskAt(kind === "mug" ? 0.45 : 0.35) + 1; propArt(kind, L.art.slots[j], sy); if (kind === "mug") { steam(L.art.slots[j] - 1, sy - 12, f); }
       }
-      if ((cole.activity === "solder" || cole.benchFrom || (cole.react && cole.greetAct === "solder")) && !cole.hidden) { restingIron(cole.x - 32); propSolderStation(cole.x - 32); restingPick(); }
+      if ((cole.activity === "solder" || cole.benchFrom || (cole.react && cole.greetAct === "solder")) && !cole.hidden) { propSolderStation(cole.x - 32); restingPick(); restingIron(f); }
       if (ilinca.phoneOnDesk && !ilinca.hidden && !actors.buzz) { propPhoneOnDesk(phoneSpot()); }   // (buzzing, the call draws it)
       for (var m = 0; m < extras.length; m++) {
         var e2 = extras[m];
@@ -800,7 +816,7 @@
       if (k === "plant") { propPlant(x); } else if (k === "papers") { propPapers(x); } else if (k === "bottle") { propBottle(x, DESK_Y); }
       else if (k === "cartridge") { propCartridge(x); } else if (k === "mug") { propMug(x, DESK_Y, false, f); } else if (k.indexOf("vase") === 0) { propVase(x, +k[4]); }
     }
-    if ((cole.activity === "solder" || cole.benchFrom || (cole.react && cole.greetAct === "solder")) && !cole.hidden) { restingIron(cole.x - 50); propSolderStation(cole.x - 50); restingPick(); }
+    if ((cole.activity === "solder" || cole.benchFrom || (cole.react && cole.greetAct === "solder")) && !cole.hidden) { propSolderStation(cole.x - 50); restingPick(); restingIron(f); }
     if (ilinca.phoneOnDesk && !ilinca.hidden && !actors.buzz) { propPhoneOnDesk(phoneSpot()); }   // (buzzing, the call draws it)
     for (var e = 0; e < extras.length; e++) { var ex = extras[e]; if (ex.kind === "plane") { propPlane(ex.x, deskAt(0.7), ex.dir); } else if (ex.kind === "bottle") { propBottle(ex.x, DESK_Y); } else if (ex.kind === "mug") { propMug(ex.x, DESK_Y, ex.steam, f); } }
   }
