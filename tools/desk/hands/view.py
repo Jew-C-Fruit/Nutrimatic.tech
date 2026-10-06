@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - hands/view.py
-Version 1.0.0
+Version 1.0.1
 
 Created: 2026-10-06 - A candidate hand in the live scene (the hand library, to-do round 31): builds the pose with the
   candidate drawn in, patches it into the scene (D.patchPoses), captures exact frames in the wide and phone layouts by
   day and at night, and writes the views a drawer, an auditor and Cole look at (v1.0.0)
+Modified: 2026-10-06 - the phone layout's figure positions follow the scene (Cole 80, Ilinca 172) (v1.0.1)
 
 python3 view.py CANDIDATE.json OUTDIR [--slot NAME] [--no-night] [--frames N --step S]
 python3 view.py --current SLOT OUTDIR            (the hand as it is now, for comparison)
@@ -25,7 +26,7 @@ HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, os.path.di
 from hands import core, slots as SL            # noqa: E402
 from hands.ruler import ruler                  # noqa: E402
 
-FIG_X = {'wide': {'cole': 124, 'ilinca': 226}, 'narrow': {'cole': 60, 'ilinca': 150}}
+FIG_X = {'wide': {'cole': 124, 'ilinca': 226}, 'narrow': {'cole': 80, 'ilinca': 172}}   # js/desk-scene.js LAYOUTS
 ART = {'cole': (37, 88), 'ilinca': (28, 84)}   # centre column, desk row
 DESK_Y = 134
 

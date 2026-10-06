@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.21.2
+ * Version 0.21.3
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -105,6 +105,10 @@
  *   the lamps further out (2, 226), so the red lamp stands clear of him in every pose, neither behind nor in front (v0.21.1)
  * Modified: 2026-10-06 - Desktop layout likewise: the red lamp at 40 (its shade ended behind his raised elbow in a wave and
  *   the stretch), the left desk prop at 18 so the widest one clears the lamp's foot (v0.21.2)
+ * Modified: 2026-10-06 - Phone layout (audit of T73/T82): the figures 92 px apart again (Cole 80, Ilinca 172; the
+ *   lamp fix had brought them to 82, so her elbow met his arm), the lamps half out of the frame (-1, 241) so neither
+ *   touches a figure in any pose; the shaker still passes hand to hand; on a phone the pigeon comes straight down to the
+ *   sill, so it walks clear of her hair (v0.21.3)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(i),
@@ -140,8 +144,8 @@
   var LAYOUTS = {
     wide:   { W: 360, H: 160, cole: 124, ilinca: 226, poster: { x: 14, y: 20, w: 58, h: 62 }, clock: { x: 88, y: 34 }, win: { x: 280, y: 22, w: 66, h: 74 }, lamp: 177, pendant: 121, slots: [36, 272, 338, 12, 306],
               art: { painting: { x: 7, y: 20 }, clock: { x: 88, y: 34, r: 7 }, win: { x: 262, y: 18, w: 88, h: 84 }, sky: { x: 254, y: 15 }, lamps: [40, 290], slots: [18, 318, 344], catY: 141, pendants: [96, 132, 216, 244] } },
-    narrow: { W: 240, H: 160, cole: 74, ilinca: 156, poster: { x: 1, y: 20, w: 51, h: 50 }, clock: { x: 98, y: 30 }, win: { x: 190, y: 22, w: 46, h: 66 }, lamp: 112, pendant: 126, slots: [226, 10],
-              art: { painting: { x: 1, y: 18 }, clock: { x: 99, y: 31, r: 7 }, win: { x: 192, y: 20, w: 44, h: 70 }, sky: { x: 130, y: 3 }, lamps: [2, 226], slots: [], catY: 141, pendants: [66, 118, 148, 175] } }
+    narrow: { W: 240, H: 160, cole: 80, ilinca: 172, poster: { x: 1, y: 20, w: 51, h: 50 }, clock: { x: 98, y: 30 }, win: { x: 190, y: 22, w: 46, h: 66 }, lamp: 112, pendant: 126, slots: [226, 10],
+              art: { painting: { x: 1, y: 18 }, clock: { x: 99, y: 31, r: 7 }, win: { x: 192, y: 20, w: 44, h: 70 }, sky: { x: 130, y: 3 }, lamps: [-1, 241], slots: [], catY: 141, pendants: [66, 118, 148, 175] } }
   };
   // The environment pictures. Until they have loaded (or if they never do) the room is drawn in code as before.
   var ENV = { ready: false, img: {} };
@@ -950,7 +954,7 @@
       ],
       update: function (t, f) {
         var b = actors.bird, target = sillY() - 7;
-        if (b.state === "land") { b.dir = -1; if (b.y < target) { b.y += 2; b.x -= 1; } else { b.y = target; b.state = "walk"; b.t0 = f; } }
+        if (b.state === "land") { b.dir = -1; if (b.y < target) { b.y += 2; b.x -= L === LAYOUTS.narrow ? 0 : 1; } else { b.y = target; b.state = "walk"; b.t0 = f; } }
         else if (b.state === "walk") { var k = f - b.t0; b.dir = (k % 120) < 72 ? -1 : 1; if (k % 24 < 12 && !b.peck) { b.x += (k % 2) ? b.dir : 0; } b.peck = (k % 30) >= 22; }   // it walks the way it faces (T39), turns once, pecks standing still
         else if (b.state === "fly") { b.dir = 1; b.y -= 3; b.x += 2; }
       },
