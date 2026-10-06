@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - characters.py
-Version 1.5.0
+Version 1.5.1
 
 Created: 2026-10-02 - Cole and Ilinca as sprites: generated bases finished by hand in the face, cut into layers (v1.0.0)
 Modified: 2026-10-02 - Cole's resting mouth is a half smile, not a straight line (v1.0.1)
@@ -18,6 +18,8 @@ Modified: 2026-10-04 - Note 11 ("eyes look closed on the look down; the current 
 Modified: 2026-10-04 - T22 ("My looking down face looks distorted with a very pointy chin", "still needs reworking"):
   Cole's looking-down head is his own base head bowed (rows remapped: more hair, features two rows lower, the lower face
   two rows shorter), his own looking-down and closed eyes; the generated looking-down picture is no longer used (v1.5.0)
+Modified: 2026-10-06 - Ilinca's looking-down head keeps inside her base head's outline below the chin (T78/T79: her neck
+  moved with her nods) (v1.5.1)
 
 characters.py - Cole and Ilinca for the desk scene.
 
@@ -320,6 +322,10 @@ class Ilinca:
     arm = dict(upper=25, fore=21, rL=5, rR=6, sleeve=1.0, skin=['#f9e2d2', '#f1a49b', '#e0b3a2'], cloth=['#292423', '#0e0c0b'], cuff='#3d3837', line='#010100')
     centre = 28
     desk = 84
+    # T78/T79 (2026-10-06, "ilinca's neck moving with nods", "neck moves with nod"): the looking-down head drew a 3-px strip
+    # down the side of her neck where the base head leaves the body's neck showing; from this row down it keeps inside
+    # the base head's outline, so the neck stays put when the nod swaps the heads
+    down_clip = 31
     points = dict(mouth=(25, 30), eye=(29, 19), chin=(26, 36), ear=(38, 27))
 
     # ---- looking down (note 10) ---------------------------------------------------------------------------------
@@ -396,6 +402,8 @@ def down_layers(c):
     for x in range(s.w):
         if base_rows[x] >= 0: m[:base_rows[x] + 1, x] |= s.idx[:base_rows[x] + 1, x] >= 0
     head = s.copy(); head.idx[~m] = -1
+    clip = getattr(c, 'down_clip', None)
+    if clip is not None: sub = head.idx[clip:]; sub[~hm[clip:]] = -1    # T78/T79: below this row it stays inside the base head's outline
     return head
 
 
