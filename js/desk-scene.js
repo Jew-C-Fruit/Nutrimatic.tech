@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.21.1
+ * Version 0.22.0
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -103,6 +103,9 @@
  *   exact captures (v0.21.0)
  * Modified: 2026-10-06 - Phone layout (T92, "red lamp is behind cole"): the figures a little right (Cole 74, Ilinca 156) and
  *   the lamps further out (2, 226), so the red lamp stands clear of him in every pose, neither behind nor in front (v0.21.1)
+ * Modified: 2026-10-06 - Round 31: soldering, every two or three seconds both hands and their tools move a pixel along
+ *   the board and back (to-do T67: solderR, solderL and their lifted frames); after the spark, while his hands are off
+ *   the board, his lamp's beam at night falls on the desk only, as by day (T84: over his shirt it read as an arm) (v0.22.0)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(i),
@@ -331,6 +334,7 @@
   var BULB = [[36, 10], [35, 11], [36, 11], [35, 12], [36, 12], [34, 13], [35, 13], [36, 13]];
   function lampGeom(i) { var bx = L.art.lamps[i], flip = i === 1; return { x: flip ? bx - 33 : bx - 9, y: DESK_Y - 43, mx: flip ? bx - 30 : bx + 30, my: DESK_Y - 29, flip: flip }; }
   function lampIsOn(i, h) { var p = people[i]; return !p.hidden && (isDark(h) || p.activity === "solder" || p.activity === "write"); }
+  function handsOffWork(p) { return p.activity === "startle" || p.activity === "facepalm"; }   // the spark: his hands up and away from the board (T84)
   function slantCone(q, strength, overlay, w1) {
     var y0 = q.my, y1 = DESK_FRONT + 3, x1 = q.mx + (q.flip ? -24 : 24);
     if (overlay) { g.save(); g.globalCompositeOperation = "overlay"; }
@@ -588,7 +592,10 @@
     ds: [["ds", 2], ["ds1", 2], ["ds", 1], ["ds2", 2], ["ds", 2], ["ds2", 1], ["ds1", 1], ["ds", 3], ["ds1", 1]],
     rest: [["rest", 40], ["rest1", 12], ["rest", 26], ["rest1", 6]],
     phone: [["phone", 9], ["phone1", 3], ["phone", 5], ["phone1", 2]],
-    solder: [["solder", 16], ["solder1", 3], ["solder", 9], ["solder1", 2]],
+    // T67: every two or three seconds both hands and their tools move a pixel along the board and back, a pixel at a time
+    // (solderR right, solderL left; ...1 with his left hand lifted)
+    solder: [["solder", 16], ["solder1", 3], ["solder", 11], ["solderR", 14], ["solderR1", 3], ["solderR", 13], ["solder", 12], ["solder1", 2],
+             ["solder", 14], ["solderL", 15], ["solderL1", 3], ["solderL", 12]],
     think: [["think", 22], ["think1", 3], ["think", 2], ["think1", 3], ["think", 30], ["think1", 4]],    // T7: fingers drumming on the desk
     call: [["call", 14], ["call1", 6], ["call", 9], ["call1", 4]]
   };
@@ -1234,9 +1241,11 @@
     }
     for (var i = 0; i < 2; i++) {
       if (!lampIsOn(i, h)) { continue; }
-      var q = lampGeom(i);
+      var q = lampGeom(i), offWork = handsOffWork(people[i]);
+      if (offWork) { g.save(); g.beginPath(); g.rect(0, DESK_Y, W, H - DESK_Y); g.clip(); }   // T84: his hands off the work, the beam over his shirt read as an arm: on the desk only, as by day
       slantCone(q, n * 0.34, true, 34); slantCone(q, n * 0.30, true, 22); slantCone(q, n * 0.26, true, 12);
       slantCone(q, n * 0.05, false, 30);
+      if (offWork) { g.restore(); }
     }
     g.save(); g.globalCompositeOperation = "destination-in"; g.drawImage(fgCopy, 0, 0); g.restore();   // light falls on things, not into the window
   }

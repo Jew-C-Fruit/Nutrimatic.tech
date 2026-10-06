@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - poses.py
-Version 1.11.0
+Version 1.12.0
 
 Created: 2026-10-02 - The figures' body poses, from generated pictures, as layers under the base head; the neck, and
   Ilinca's top, taken from the base so every pose joins the same head; front boxes by eye (v1.0.0)
@@ -72,6 +72,12 @@ Modified: 2026-10-05 - Round-30 audit rework, hands that hold things drawn as pi
   round the shaker moving under his collar (shake_grip), one plane size at his chest and in his pinching hand
   (THROW_HAND), the petting arms joined to the shoulder and the shirt down to the desk (PET_ARM_COLE/ILINCA, 'maker',
   'late'); SHOULDERS take arm boxes and fixes; the talking arms take the rest shoulders (v1.11.0)
+Modified: 2026-10-06 - Round 31, to-do T84 (the solder spark: "3 arm problem still happening"): the facepalm picture's third
+  forearm goes (two lay along the desk, one from under the raised arm's elbow); his other arm hangs at his side as in
+  'hide' (FACEPALM_LAP, drawn after the shoulder cap). T67 (soldering: "left hand is bringing some background with it"
+  ... "Blue iron with silver tip, yellow and silver pick"): the grey backdrop under both forearms becomes his shirt; a
+  blue iron with a silver tip and a yellow pick with a silver point are drawn over the finished hands (tools_on); frames
+  move both hands and their tools a pixel along the board (slide: only the hand moves, the shirt and board stay) (v1.12.0)
 
 Every activity in the scene is drawn with a body pose: the whole torso with arms, hands and whatever they hold, made
 by the image model from the figure's own portrait (pose_sprites.py says how) and reduced to a sprite on the base
@@ -701,6 +707,38 @@ def phone_paint(lift=0):
             ('rows', 57, 85, ['__'])]   # re-audit: the blazer's lower outline steps from row 85 to 84 in one pixel (it was a 2x2 block)
 
 
+# T67 (2026-10-06, Cole: "left hand is bringing some background with it. tools should periodically be repositioned on
+# circuitboard along X axis, small changes only. Tools need contrasting colors so as to stand out from shirt. Blue iron with
+# silver tip, yellow and silver pick, perhaps"). The picture's grey backdrop under both forearms (his left hand's frame
+# moved it up and down with the hand, and left a slit of wall under it) becomes his shirt in shadow; the black iron, lost
+# against his black T-shirt, goes, and the tools are drawn over the finished hands (tools_on): a blue iron with a silver
+# tip (its glow is the scene's, at the pose's 'tip') and, in his left hand, a yellow pick with a silver point, each map
+# holding only the pixels that show (in front of the shirt and the board; behind his fingers nothing is drawn). Every few
+# seconds both hands and their tools move a pixel along the board (frames: slide moves only a hand, what it uncovers
+# shows the shirt), a pixel left or right of where the picture holds them; his left hand still lifts.
+SOLDER_POST = [('rows', 16, 57, ['ttttt', '.ttttt', '..ttttt', '..ttttt']),          # the old iron: its end above his hand
+               ('rows', 31, 75, ['tttt', '.tttt', '.tttt', '..tttt', '...ttt', '....tt', '.....tt', '......t', '......t',
+                                 '......tt', '', '.....kiik']),                      # its shaft and tip (the chip under the tip again)
+               ('rows', 60, 83, ['o']), ('rows', 58, 84, ['u' * 8, 'u' * 9, 'u' * 12]),   # the backdrop under his left forearm
+               ('rows', 8, 84, ['uu']), ('rows', 6, 85, ['uuuu']), ('rows', 4, 86, ['u' * 7])]   # and under his right one
+SOLDER_IRON = (17, 56, ['BB', 'BB', '.BB', '..BB', '..BB'] + [''] * 11 + ['.............BB', '.............BB', '',
+               '...............BB', '................BB', '................BB', '.................BB', '.................BB',
+               '..................BB', '...................G', '...................g', '....................g',
+               '....................g', '.....................g'])                  # blue, the silver tip down to (38, 86)
+SOLDER_PICK = (46, 62, ['.............cc', '............cc', '............cc', '...........cc', '...........cc',
+               '..........cc', '.........cc'] + [''] * 14 + ['.g', '.g', 'g', 'g'])   # yellow above his hand, its silver point below
+# the hands' boxes: each cuts its forearm where both its edges run level (a hand moved along the board then stretches or
+# shortens the arm by a pixel, with no doubled outline); his left hand lifts with the forearm up to where it rests on the elbow
+SOLDER_IRON_HAND, SOLDER_PICK_HAND, SOLDER_PICK_LIFT = (6, 61, 37, 84), (44, 68, 67, 86), (44, 68, 72, 86)
+
+
+def solder_frame(dx, lift):
+    """a soldering frame: both hands and their tools dx pixels along the board (one at most: small changes), his left hand
+    lifted a pixel or not"""
+    slides = ([(SOLDER_IRON_HAND, dx, 0), (SOLDER_PICK_HAND, dx, 0)] if dx else []) + ([(SOLDER_PICK_LIFT, 0, -1)] if lift else [])
+    return dict(slide=slides, tools={'iron': (dx, 0), 'pick': (dx, -lift)}, pts={'tip': (38 + dx, 86)})
+
+
 # By eye, per pose: the box (base coordinates) whose pixels go over the face, and named points.
 MANUAL = {
     'cole': {
@@ -712,7 +750,9 @@ MANUAL = {
                             ('clear', 22, 89, 52, 93),
                             ('under', 25, 85, ['..kk...k....kk.....k..kk.', '.kkkk.kkk..kkkk...kkk.kkkk'.replace('kkkk', 'kiik'), 'k' + 'c' * 24 + 'k', 'k' + 'C' * 24 + 'k', 'k' * 26], SKIN_COLE),
                             ('rows', 37, 83, ['k', '.k', '.k'])],
-                       pts={'tip': (38, 86)}, frames={'solder1': ((48, 68, 68, 88), 0, -1)},
+                       pts={'tip': (38, 86)}, post=SOLDER_POST, tools={'iron': SOLDER_IRON, 'pick': SOLDER_PICK},   # T67
+                       frames={'solder1': solder_frame(0, 1), 'solderR': solder_frame(1, 0), 'solderR1': solder_frame(1, 1),
+                               'solderL': solder_frame(-1, 0), 'solderL1': solder_frame(-1, 1)},
                        props={'board': (BOARD, (24, 85, 51, 89))}),                # the board stays on the desk when he waves the smoke away
         'solder2': dict(fix=[('recolour', 28, 81, 48, 86, {'#2f6b3a': '#211f1f', '#1f4a28': '#211f1f', '#3d5f99': '#211f1f', '#090507': '#211f1f', '#d9a650': '#211f1f'}),
                              ('clear', 26, 89, 52, 96),
@@ -988,7 +1028,7 @@ SOFT_MAX = 6                                                         # the longe
 KEYS = {
     'cole': dict(k='#010101', b='#623e32', d='#dc7f6d', a='#ee947c', m='#f6af8d', s='#f8cda6', h='#f9eee0', t='#211f1f', u='#100f13',
                  w='#fbfaf5', r='#e4002b', R='#a3001f', g='#cfd2d4', G='#9a9ea2', p='#ff5a72', c='#d9a650', C='#7d6230',
-                 v='#2f6b3a', V='#1f4a28', B='#3d5f99', i='#5f6368'),
+                 v='#2f6b3a', V='#1f4a28', B='#3d5f99', i='#5f6368', o='#0f0503', q='#090507'),   # o, q: the pictures' near-black lines (T84)
     'ilinca': dict(k='#010100', D='#b5705f', d='#d18881', a='#f1a49b', e='#e0b3a2', x='#e1cec4', s='#f9e2d2', h='#faebe1', j='#292423', J='#191718',
                    w='#fbfbf9', W='#fbfaf5', N='#5f4030', n='#6f4b3a', o='#9a6f50', O='#bd8e5d', y='#d9ae71', r='#e4002b', R='#a3001f', g='#cfd2d4', G='#9a9ea2',
                    B='#6f93cf', b='#3d5f99', c='#2b4572'),            # T49 rework: her phone's blues (its back, its shaded side, the camera)
@@ -1470,6 +1510,39 @@ def shifted(spr, ox, oy, box, dx, dy):
     return out
 
 
+def slide(spr, ox, oy, box, dx, dy, who):
+    """T67 (2026-10-06, soldering: "left hand is bringing some background with it"): a hand moved a pixel, and only the
+    hand: inside the box (base coordinates) its skin and every line pixel joined to it move by (dx, dy); where it was,
+    what lies behind shows (the nearest pixel that is neither skin nor line: the shirt, the board); where the box's edge
+    cuts through the forearm, the arm carries on unbroken (the cut takes the arm's pixel just outside the box). A box
+    shift (shifted) had moved the shirt and the background round the hand with it."""
+    from scipy import ndimage
+    out = spr.copy(); H, W = spr.idx.shape; x0, y0, x1, y1 = box[0] - ox, box[1] - oy, box[2] - ox, box[3] - oy
+    inbox = np.zeros((H, W), bool); inbox[max(0, y0):max(0, y1 + 1), max(0, x0):max(0, x1 + 1)] = True
+    skin = np.isin(spr.idx, [i for i, c in enumerate(spr.pal) if c in SOFTEN[who][0][0]]) & (spr.idx >= 0)
+    line = np.isin(spr.idx, [i for i, c in enumerate(spr.pal) if c in LINES[who]]) & (spr.idx >= 0)
+    lab, n = ndimage.label((skin | line) & inbox, structure=np.ones((3, 3), bool))   # the hand and every line joined to it in the box
+    part = np.isin(lab, np.unique(lab[skin & inbox])) & (lab > 0)                     # (its outline is three pixels thick under the fingertips)
+    lab2, _ = ndimage.label(skin | line, structure=np.ones((3, 3), bool))
+    near = np.isin(lab2, np.unique(lab2[part])) & (lab2 > 0) & ndimage.binary_dilation(part, structure=np.ones((3, 3), bool), iterations=2)   # the arm just outside the box
+    bg = (spr.idx >= 0) & ~skin & ~line
+    if bg.any():
+        _, (iy, ix) = ndimage.distance_transform_edt(~bg, return_indices=True); out.idx[part] = spr.idx[iy[part], ix[part]]
+    ys, xs = np.nonzero(part); ty, tx = ys + dy, xs + dx; ok = (ty >= 0) & (ty < H) & (tx >= 0) & (tx < W)
+    out.idx[ty[ok], tx[ok]] = spr.idx[ys[ok], xs[ok]]
+    moved = np.zeros((H, W), bool); moved[ty[ok], tx[ok]] = True
+    left = part & ~moved                                                # where the hand was and is no more
+    arm = near                                                          # (his arm: not a board's or a fold's line)
+    for y, x in zip(*np.nonzero(left)):
+        src = None
+        if dx > 0 and x - x0 < dx and x0 - 1 >= 0 and arm[y, x0 - 1]: src = (y, x0 - 1)
+        elif dx < 0 and x1 - x < -dx and x1 + 1 < W and arm[y, x1 + 1]: src = (y, x1 + 1)
+        elif dy > 0 and y - y0 < dy and y0 - 1 >= 0 and skin[y0 - 1, x]: src = (y0 - 1, x)   # (up or down, only an arm's skin carries
+        elif dy < 0 and y1 - y < -dy and y1 + 1 < H and skin[y1 + 1, x]: src = (y1 + 1, x)   # on: the line under a lifted arm is the desk's)
+        if src: out.idx[y, x] = spr.idx[src]
+    return out
+
+
 # the neck, between the jaw and the collar, in base coordinates: x range and the collar row
 NECK = {'cole': (28, 50, 49), 'ilinca': (23, 37, 49)}
 
@@ -1634,7 +1707,50 @@ def wave_from(c, act, wave, seam):
 YAWN_FOREARM_EDGE = [('rows', 61, 54 + i, [r]) for i, r in enumerate(['.k_', '..k_', '...k_', '...k__', '...k___', '....k__', '.....k__', '......k__', '.......kk_'])]
 # and in both, the capped left shoulder line closed where it stepped two pixels (a shirt pixel touched the wall)
 SHOULDER_STEP = [('rows', 7, 56, ['k'])]
-SHOULDERS = {'cole': {'think': {'L': 66, 'R': 64, 'arm': [(46, 44, 53, 53)], 'fix': SHOULDER_STEP}, 'yawn': {'L': 66, 'R': 62, 'arm': [(46, 36, 53, 53)], 'fix': YAWN_FOREARM_EDGE + SHOULDER_STEP}, 'facepalm': {'L': 66}, 'sip': {'R': 56},
+# T84 (2026-10-06, the solder spark: "3 arm problem still happening"): the facepalm picture had three forearms, the one
+# raised to his head and two lying along the desk that met in the middle (the generated picture's notch where they
+# meet), the right-hand one coming out from under the raised arm's elbow. His other arm now hangs at his side, its hand in
+# his lap under the desk: from his shoulder down, left of column 58, the 'hide' pose's arm and shirt (the generated pose
+# drawn while Maker walks past; letters o and q are its two near-black line colours), drawn after the shoulder cap so its
+# line is exact; the raised arm's elbow rests on the desk with its own outline against his shirt (column 59)
+FACEPALM_LAP = ['_____________________kuuttttttttttttttttttttttttttoooooottttttttttttttttt',   # 57
+                '____________________kuttttttttttttttttttttttttttttttttttttttttttttttttttt',
+                '___________________kouttttttttttttttttttttttttttttttttttttttttttttttttttt',
+                '___________________kuuttttttttttttttttttttttttttttttttttttttttttttttttttt',
+                '___________________kutttttttttttttttttttttttttttttttttttttttttttttttttttt',
+                '__________________kuutttttttttttttttttttttttttttttttttttttttttttttttttttt',   # 62
+                '__________________kuutttttttttttttttttttttttttttttttttttttttttttttttttttt',
+                '_________________kouttttttttttttttttttttttttttttttttttttttttttttttttttttt',
+                '_________________kuuttttttttttttttttttttttttttttttttttttttttttttttttttttt',
+                '_________________kuuttttttttttttttttttttttttttttttttttttttttttttttttttttt',
+                '_________________kuuttttttttttttttttttttttttttttttttttttttttttttttttttttt',   # 67
+                '_________________kuuttttttttttttttttttttttttttttttttttttttttttttttttttttt',
+                '_________________kuuttttttuuttttutttttttttttttttttttttttttttttttttttttttt',
+                '_________________kuutttttttuttttutttttttttttttttttttttttttttttttttttttttt',
+                '________________kukkooottutuutotttttttttttttttttttttttttttttttttttttttttt',
+                '________________kaaassoooutuutktqqttttttttttttttttttttttttttttttttttttttt',   # 72
+                '________________kaasssssoouuuukukqttttttttttttttttttttttttttttttttttttttt',
+                '________________kaasssssssouuukukqttttttttttttttttttttttttttttttttttttttt',
+                '_______________koaasssssssoouukukuttttttttttttttttttttttttttttttttttttttt',
+                '_______________kaasssssssssouukkuuttttttttttttttttttttttttttttttttttttttt',
+                '_______________kaassssssssssoukkuuttttttttttttttttttttttttttttttttttttttt',   # 77
+                '______________koaasssssssssskukuuuutttttttttttttttttttttttttttttttttttttt',
+                '______________kaassssssssssskkkuuuutttttttttttttttttttttttttttttttttttttt',
+                '______________kaassssssssssskkkuuuutttttttttttttttttttttttttttttttttttttu',
+                '______________kaadbboosssssskkuuuuuttttttttttttttttttttttttttttttttttttuu',
+                '_____________koddssssoosssskkuuuuuuutttttttttttttttttttttttttttttttttttuk',   # 82
+                '_____________kodsssssssossskkuuuuuuuutttttttttttttttttttttttttttttttttuuk',
+                '_____________kasssssssssosskkuuuuuuuuuttttttttttttttttttttttttttttttttuuk',
+                '_____________kaasssssssssookkuuuuuuuuuuuuuttttttttttttttttttttttttttttuuk',
+                '____________kaaassssssssssookuuuuuuuuuuuutttttttttttttttttttttttttttttuuk',
+                '_____________kaasssssssssssokkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk',   # 87
+                '_____________kaasssssssssssok____________________________________________',
+                '_________________________________________________________________________',
+                '_________________________________________________________________________',
+                '_________________________________________________________________________',
+                '_________________________________________________________________________']   # 92
+FACEPALM_FIX = [('rows', -14, 57, FACEPALM_LAP), ('rows', 58, 75, ['.km'] * 7 + ['ukm'] * 3 + ['uk'] * 2 + ['.k'])]   # (and its shaded inner side)
+SHOULDERS = {'cole': {'think': {'L': 66, 'R': 64, 'arm': [(46, 44, 53, 53)], 'fix': SHOULDER_STEP}, 'yawn': {'L': 66, 'R': 62, 'arm': [(46, 36, 53, 53)], 'fix': YAWN_FOREARM_EDGE + SHOULDER_STEP}, 'facepalm': {'L': 66, 'fix': FACEPALM_FIX}, 'sip': {'R': 56},
                       'solder': {'L': 66, 'R': 66}, 'solder1': {'L': 66, 'R': 66}, 'petedge': {'L': 70, 'R': 66}, 'petedge2': {'L': 70, 'R': 66},
                       'petcat': {'L': 70}, 'petcat2': {'L': 70}, 'offer': {'L': 66}, 'offerEmpty': {'L': 66},
                       'surprise': {'L': 58}, 'talk': {'L': 70, 'R': 70}}}   # T58 (j): talking arms in a conversation took narrower, lower shoulders
@@ -1773,6 +1889,7 @@ def build(c):
             prop, mask = lift_prop(spr if spr.idx.shape == body.idx.shape else body, meta['x'], meta['y'], cols, box)
             entry['props'][name] = (prop, meta['x'], meta['y']); masks[name] = mask & (body.idx >= 0)
         out[pose] = entry
+        if man.get('tools'): entry['_tools'] = [(n_, x_, y_, rows_, 0, 0) for n_, (x_, y_, rows_) in man['tools'].items()]   # T67: drawn last (tools_on)
         for variant, name in man.get('empty', {}).items():
             from scipy import ndimage
             b2 = body.copy(); b2.idx[masks[name]] = -1
@@ -1791,6 +1908,7 @@ def build(c):
             moved = shifted(body, meta['x'], meta['y'], box, dx, dy) if box else body.copy()
             vf = shifted(entry['front'][0], meta['x'], meta['y'], box, dx, dy) if (box and entry['front']) else (entry['front'][0].copy() if entry['front'] else None)
             if isinstance(spec, dict) and spec.get('move'): moved = moved_parts(moved, meta['x'], meta['y'], *spec['move'])   # only some parts move
+            for sb_, sdx, sdy in (spec.get('slide', []) if isinstance(spec, dict) else []): moved = slide(moved, meta['x'], meta['y'], sb_, sdx, sdy, who)   # T67: only a hand moves
             if edits: moved = fix(moved, meta['x'], meta['y'], edits, KEYS[who])
             vfb = None
             if who in HAIR_FRONT_ROW:
@@ -1805,6 +1923,10 @@ def build(c):
             moved = pinholes(moved, meta['x'], meta['y'], head, [(vfront[0], vfront[1], vfront[2] + hdy) if vfront else None, vfbody], desk=c.desk)
             for e in _maker_ops(who, variant): moved = moved.copy(); _maker_clear(moved, meta['x'], meta['y'], who, *e[1:])   # T60 (n, o)
             out[variant] = dict(body=(moved, meta['x'], meta['y']), front=vfront, front_body=vfbody, pts=entry['pts'], props=entry['props'])
+            if isinstance(spec, dict) and spec.get('pts'): out[variant]['pts'] = dict(spec['pts'])   # T67: the iron's tip where this frame holds it
+            if entry.get('_tools'):                                      # the tools held in the hands, where this frame's hands hold them
+                at = spec.get('tools', {}) if isinstance(spec, dict) else {}
+                out[variant]['_tools'] = [(n_, x_, y_, rows_) + tuple(at.get(n_, (0, 0))) for n_, x_, y_, rows_, _, _ in entry['_tools']]
     if 'rest' in out:
         capped = dict(SHOULDERS.get(who, {}))
         for pose, ends in list(capped.items()):                          # T58: and every frame made from a capped pose (think1 had kept the old shoulders: a blip)
@@ -1821,4 +1943,18 @@ def build(c):
             if act in out:
                 e = wave_from(c, out[act], out['wave'], seam); bb, bx, by = e['body']
                 e['body'] = (pinholes(bb, bx, by, head, e['front'], desk=c.desk), bx, by); out[act + 'Wave'] = e
+                if out[act].get('_tools'):                               # T67: a greeting keeps the tool in the hand that stays (the
+                    keep = [t_ for t_ in out[act]['_tools'] if t_[1] + t_[4] >= (seam if not isinstance(seam, tuple) else seam[2])]   # waving hand's goes, as before)
+                    if keep: e['_tools'] = keep
+    for pose in list(out):                                               # T67: the tools last, over the finished hands and shirt
+        if out[pose].get('_tools'): out[pose] = tools_on(out[pose], KEYS[who])
     return out
+
+
+def tools_on(entry, key):
+    """T67: the tools a pose's hands hold (MANUAL 'tools': {name: (x, y, rows)}, pixel maps whose rows hold only the pixels
+    that show: where the tool is in front of the shirt or the board, not behind a finger), each moved by its frame's offset
+    (frames: 'tools': {name: (dx, dy)}); drawn after the shoulder cap and the greetings, so nothing redraws them"""
+    entry = dict(entry); tl = entry.pop('_tools'); b, bx, by = entry['body']
+    entry['body'] = (fix(b, bx, by, [('rows', x_ + dx_, y_ + dy_, rows_) for _, x_, y_, rows_, dx_, dy_ in tl], key), bx, by)
+    return entry
