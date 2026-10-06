@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.21.3
+ * Version 0.21.4
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -109,6 +109,8 @@
  *   lamp fix had brought them to 82, so her elbow met his arm), the lamps half out of the frame (-1, 241) so neither
  *   touches a figure in any pose; the shaker still passes hand to hand; on a phone the pigeon comes straight down to the
  *   sill, so it walks clear of her hair (v0.21.3)
+ * Modified: 2026-10-06 - Ilinca typing (T73, "doesn't appear to move"): each forearm eases in a pixel, then two, and back
+ *   (her new type3 frame), at her own times and never in step with Cole; her hand rests on the trackpad 1 s, not 2 (v0.21.4, merged from r31-arms)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(i),
@@ -598,11 +600,13 @@
     think: [["think", 22], ["think1", 3], ["think", 2], ["think1", 3], ["think", 30], ["think1", 4]],    // T7: fingers drumming on the desk
     call: [["call", 14], ["call1", 6], ["call", 9], ["call1", 4]]
   };
-  var MOTION_HER = { type: [["type", 5], ["type1", 2], ["type", 2], ["type2", 3], ["type", 3], ["type1", 1], ["type", 2], ["type2", 2], ["type", 1], ["type1", 2]] };   // 23 ticks against his 20
+  // T73 ("doesn't appear to move"): her black sleeves read as moving only when a forearm eases in a pixel, then two, and back
+  // (type1, type3 the left; type2, typetrack the right), then a smaller twitch of each; 23 ticks against his 20, never in step
+  var MOTION_HER = { type: [["type", 4], ["type1", 1], ["type3", 2], ["type1", 1], ["type", 3], ["type2", 1], ["typetrack", 2], ["type2", 1], ["type", 3], ["type1", 1], ["type", 2], ["type2", 2]] };
   function motion(p, name) {
     // (solder2, another way of holding the iron, went: its shoulders and arms were far wider than every other pose, T30)
     var seq = MOTION[name]; if (!seq) { return name; }
-    if (name === "type" && p.poses.typetrack && ((p.actFrame + (p.name === "ilinca" ? 31 : 0)) % (p.name === "ilinca" ? 83 : 70)) >= 60) { return "typetrack"; }   // a hand on the trackpad, at their own times
+    if (name === "type" && p.poses.typetrack && ((p.actFrame + (p.name === "ilinca" ? 31 : 0)) % (p.name === "ilinca" ? 83 : 70)) >= (p.name === "ilinca" ? 71 : 60)) { return "typetrack"; }   // a hand on the trackpad, at their own times (hers held 1 s, not 2: T73)
     if (p.name === "ilinca" && MOTION_HER[name]) { seq = MOTION_HER[name]; }
     var total = 0, i; for (i = 0; i < seq.length; i++) { total += seq[i][1]; }
     var k = (p.actFrame + (p.name === "ilinca" ? 13 : 0)) % total;      // T50: never in step with him (another rhythm, another start)
