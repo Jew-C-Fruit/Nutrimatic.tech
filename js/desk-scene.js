@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.22.5
+ * Version 0.22.6
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -131,6 +131,11 @@
  *   grey with a faint lighter top edge (it was the box's brightest pixel, a light dot at display size); where his outline
  *   meets the station's box a wedge of skin narrowed to a 1 px sliver (above the box in facepalm, at its left edge while
  *   soldering): those pixels take his line colour, so his line runs into the box (STATION_SEAL) (v0.22.5)
+ * Modified: 2026-10-06 - Round-31 sixth spark rework (T67, T84; audit of 3176b99): the facepalm seal keeps his crease a clean
+ *   diagonal (its last step one line pixel, his crease brown beside it, no 2x2 black foot); the seal pixels are drawn with
+ *   his figure (drawSeal in drawCharacter), so at night they take his lighting, not the station's under the lamp; each is
+ *   drawn only where his pose still shows a pixel of skin between one of his lines and the box's edge, so a later redraw of
+ *   his hands cannot leave a stray line pixel (v0.22.6)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(i),
@@ -191,7 +196,7 @@
     deskTop: "#6b4a30", deskTopL: "#8a6442", deskTopD: "#4e3522", deskFront: "#3b2817", deskFrontD: "#2a1b0f", plate: "#efe9dc", plateS: "#b7ad99",
     green: "#2d6a3c", greenL: "#6fb57f", leaf: "#3f8f55", stem: "#4b7a3a", petalR: "#e4002b", petalW: "#ffffff", petalY: "#f2c744",
     pot: "#a3603c", potS: "#7c4428", board: "#2f6b3a", boardS: "#1f4a28", copper: "#d9a650",
-    iron: "#9a9a9e", ironHot: "#ff6a3d", ironBlue: "#68aaf2", steel: "#cfd2d4", steelS: "#9a9ea2", pick: "#d9a650", knob: "#76787c", knobL: "#8c8e92", knobD: "#5c5e62", line: "#0f0503", smoke: "#c9c6bf", smoke2: "#dedbd4", phone: "#3d5f99", phoneTop: "#6f93cf", phoneScreen: "#dfe9f5",
+    iron: "#9a9a9e", ironHot: "#ff6a3d", ironBlue: "#68aaf2", steel: "#cfd2d4", steelS: "#9a9ea2", pick: "#d9a650", knob: "#76787c", knobL: "#8c8e92", knobD: "#5c5e62", line: "#0f0503", crease: "#623e32", smoke: "#c9c6bf", smoke2: "#dedbd4", phone: "#3d5f99", phoneTop: "#6f93cf", phoneScreen: "#dfe9f5",
     paper: "#fbfaf5", paperLine: "#d9d5c8", mug: "#e4002b", mugS: "#a3001f", mugL: "#ff4d6a",
     laptop: "#cfd2d4", laptopS: "#9a9ea2", laptopL: "#eaeced", ds: "#d6162f", dsS: "#9d0f22", dsScreen: "#cfe3d4",
     lampBody: "#1b1b1b", lampShade: "#f2efe6", lampShadeOn: "#ffe9a8", bulb: "#fff1b8", pendant: "#1f1f22", pendantIn: "#ffe6a0", pendantOff: "#6d6d70", cord: "#2a2a2c",
@@ -585,16 +590,47 @@
   // Fifth rework (audit of 658787a, "no skin slivers"): the box stands in front of him, and where one of his lines runs
   // diagonally into its edge the skin beside it narrows to a 1 px wedge: in facepalm above the box (his lap hand's crease
   // at row 128, the box at row 130, a row of skin 2 px long between), while soldering at its left edge (his forearm's lower
-  // outline, 1 px of skin, the box). Those pixels take his line colour, so the line meets the box; his hands are not redrawn. Pose pixels
-  // (figure coordinates), drawn with the station only in these poses.
-  var SEAL_SOLDER = [[-6, 85]];
-  var STATION_SEAL = { facepalm: [[7, 83], [8, 83]], solder: SEAL_SOLDER, solder1: SEAL_SOLDER, solderR: SEAL_SOLDER, solderR1: SEAL_SOLDER, solderL: SEAL_SOLDER, solderL1: SEAL_SOLDER };
+  // outline, 1 px of skin, the box). Those pixels close the wedge; his hands are not redrawn. Pose pixels (figure
+  // coordinates) and the colour each takes: k his line, b his crease brown (both his own palette's).
+  // Sixth rework (audit of 3176b99): in facepalm both pixels in line colour made a 2x2 black foot where his crease steps
+  // diagonally (rows 127-129: 93-94, 94-95, 96); now its last step is (95, 129) in line colour, so it keeps stepping
+  // (95-96 on row 129), and (94, 129) beside it takes his crease's brown, as the crease starts in brown on row 127. The seal
+  // is drawn with his figure (drawSeal, from drawCharacter), not with the station: at night under the lamp it then keeps
+  // his lighting (figureMask) instead of the station's (a lit bump on the box's top). And each pixel is drawn only where
+  // it is needed: right against the box's top or left edge, where his pose shows skin with one of his lines just beyond
+  // it, so a later redraw of the hands that moves the line leaves no stray line pixel (the checker then shows the sliver).
+  var SEAL_SOLDER = [[-6, 85, "k"]];
+  var STATION_SEAL = { facepalm: [[7, 83, "b"], [8, 83, "k"]], solder: SEAL_SOLDER, solder1: SEAL_SOLDER, solderR: SEAL_SOLDER, solderR1: SEAL_SOLDER, solderL: SEAL_SOLDER, solderL1: SEAL_SOLDER };
+  function stationShows() { return (cole.activity === "solder" || cole.benchFrom || (cole.react && cole.greetAct === "solder")) && !cole.hidden; }
+  function stationX() { return ENV.ready ? cole.x - 32 : cole.x - 50; }
+  function stationBox() { var x = stationX(), b = deskAt(0.35) + 1; return { x0: x - 10, y0: b - 8, x1: x + 9, y1: b - 1 }; }   // as propSolderStation draws it
+  function poseRGB(p, pose, sx, sy) {                                   // the colour his pose shows at a figure pixel (topmost layer), null where clear
+    var layers = pose.ownHead ? [[pose.body, 0]] : [[pose.front, p.headDy || 0], [pose.frontBody, 0], [pose.body, 0]];
+    for (var i = 0; i < layers.length; i++) {
+      var s = layers[i][0]; if (!s) { continue; }
+      var lx = sx - s.x, ly = sy - layers[i][1] - s.y; if (lx < 0 || ly < 0 || lx >= s.w || ly >= s.h) { continue; }
+      if (!s.rgba) { s.rgba = s.c.getContext("2d").getImageData(0, 0, s.w, s.h).data; }
+      var j = (ly * s.w + lx) * 4; if (s.rgba[j + 3]) { return [s.rgba[j], s.rgba[j + 1], s.rgba[j + 2]]; }
+    }
+    return null;
+  }
+  function luma(c) { return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; }
+  function drawSeal(p) {
+    var d = p.drawn, seal = p === cole && d && stationShows() && STATION_SEAL[d.name]; if (!seal) { return; }
+    var bx = stationBox(), col = { k: C.line, b: C.crease };
+    for (var k = 0; k < seal.length; k++) {
+      var sx = seal[k][0], sy = seal[k][1], x = d.o.x + sx, y = d.o.y + d.jig + sy;
+      var top = y === bx.y0 - 1 && x >= bx.x0 && x <= bx.x1, left = x === bx.x0 - 1 && y >= bx.y0 && y <= bx.y1;
+      if (!top && !left) { continue; }                                   // only right against the box's top or left edge
+      var here = poseRGB(p, d.pose, sx, sy), beyond = top ? poseRGB(p, d.pose, sx, sy - 1) : poseRGB(p, d.pose, sx - 1, sy);
+      if (!here || !beyond || luma(here) < 120 || luma(beyond) > 80) { continue; }   // skin here, one of his lines beyond it
+      px(x, y, col[seal[k][2]]);
+    }
+  }
   function propSolderStation(x) {
     var b = deskAt(0.35) + 1, col = { a: C.knobL, b: C.knob, c: C.knobD, k: C.ink, o: C.ironHot, r: C.red };   // standing on the desk's top, beside the board
     rect(x - 10, b - 8, 20, 8, C.ink3); outline(x - 10, b - 8, 20, 8, C.ink);
     for (var j = 0; j < STATION_FACE.length; j++) { for (var i = 0; i < STATION_FACE[j].length; i++) { var ch = STATION_FACE[j][i]; if (col[ch]) { px(x - 9 + i, b - 7 + j, col[ch]); } } }
-    var d = cole.drawn, seal = d && !cole.hidden && STATION_SEAL[d.name];
-    if (seal) { for (var k = 0; k < seal.length; k++) { px(d.o.x + seal[k][0], d.o.y + d.jig + seal[k][1], C.line); } }
   }
   // T67 (round-31 audit, "the tools never disappear"): what his hands are not holding rests on the bench, at the size it
   // has in his hand (the same blue, silver and yellow). Both while the spark has his hands up, the iron alone while he
@@ -787,6 +823,7 @@
     if (pose.frontBody) { blit(pose.frontBody, o.x, o.y + jig); }        // hands and things in front of her hair, where her body has them
     if (pose.front) { blit(pose.front, o.x, o.y + jig + p.headDy); }      // what is at the face moves with the head
     if (/^type/.test(name) && pose.props.laptop) { blit(pose.props.laptop, o.x, o.y + jig); }   // the laptop stands in front of the neck and the hair (T29, T45)
+    drawSeal(p);                                                         // where his line meets the station's box (STATION_SEAL)
     if (p.activity === "solder") {                                       // the iron's tip: a glow, a wisp of smoke, now and then a spark
       var tip = posePoint(p, "tip");
       if (tip) { px(tip.x, tip.y, (f % 6 < 3) ? C.ironHot : C.iron); var sm = (f >> 1) % 10; px(tip.x + (sm % 2), tip.y - 2 - sm, sm < 5 ? C.smoke : C.smoke2); if (f % 23 === 0) { px(tip.x - 1, tip.y - 1, C.sun); px(tip.x + 1, tip.y - 2, C.sun); } }
@@ -840,7 +877,7 @@
         var kind = set[j].indexOf("vase") === 0 ? "vase" : set[j] === "cartridge" ? "papers" : set[j];
         var sy = deskAt(kind === "mug" ? 0.45 : 0.35) + 1; propArt(kind, L.art.slots[j], sy); if (kind === "mug") { steam(L.art.slots[j] - 1, sy - 12, f); }
       }
-      if ((cole.activity === "solder" || cole.benchFrom || (cole.react && cole.greetAct === "solder")) && !cole.hidden) { propSolderStation(cole.x - 32); restingPick(); restingIron(f); }
+      if (stationShows()) { propSolderStation(stationX()); restingPick(); restingIron(f); }
       if (ilinca.phoneOnDesk && !ilinca.hidden && !actors.buzz) { propPhoneOnDesk(phoneSpot()); }   // (buzzing, the call draws it)
       for (var m = 0; m < extras.length; m++) {
         var e2 = extras[m];
@@ -854,7 +891,7 @@
       if (k === "plant") { propPlant(x); } else if (k === "papers") { propPapers(x); } else if (k === "bottle") { propBottle(x, DESK_Y); }
       else if (k === "cartridge") { propCartridge(x); } else if (k === "mug") { propMug(x, DESK_Y, false, f); } else if (k.indexOf("vase") === 0) { propVase(x, +k[4]); }
     }
-    if ((cole.activity === "solder" || cole.benchFrom || (cole.react && cole.greetAct === "solder")) && !cole.hidden) { propSolderStation(cole.x - 50); restingPick(); restingIron(f); }
+    if (stationShows()) { propSolderStation(stationX()); restingPick(); restingIron(f); }
     if (ilinca.phoneOnDesk && !ilinca.hidden && !actors.buzz) { propPhoneOnDesk(phoneSpot()); }   // (buzzing, the call draws it)
     for (var e = 0; e < extras.length; e++) { var ex = extras[e]; if (ex.kind === "plane") { propPlane(ex.x, deskAt(0.7), ex.dir); } else if (ex.kind === "bottle") { propBottle(ex.x, DESK_Y); } else if (ex.kind === "mug") { propMug(ex.x, DESK_Y, ex.steam, f); } }
   }
