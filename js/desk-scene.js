@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.22.4
+ * Version 0.22.5
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -125,6 +125,12 @@
  *   beside it, in the start the same sliver, in a wave it lay on his raised elbow's outline); the box reads as a station by
  *   its face instead: a temperature knob, the heater's red light, an orange readout (STATION_FACE). The dropped pick lies
  *   three rows high in rows 138-140, 2 px of desk from the station, the board, the iron and the desk's front edge (v0.22.4)
+ * Modified: 2026-10-06 - Round-31 fifth spark rework (T67, T84; audit of 658787a): the dropped pick is as thick as the pick in
+ *   his hand again (2 rows of yellow handle and the 1 px steel point inside its outline, rows 138-141, 28 px), with a tapered
+ *   point that keeps 2 px of desk from the station's corner and 1 row to the desk's front edge; the station's knob is a mid
+ *   grey with a faint lighter top edge (it was the box's brightest pixel, a light dot at display size); where his outline
+ *   meets the station's box a wedge of skin narrowed to a 1 px sliver (above the box in facepalm, at its left edge while
+ *   soldering): those pixels take his line colour, so his line runs into the box (STATION_SEAL) (v0.22.5)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(i),
@@ -185,7 +191,7 @@
     deskTop: "#6b4a30", deskTopL: "#8a6442", deskTopD: "#4e3522", deskFront: "#3b2817", deskFrontD: "#2a1b0f", plate: "#efe9dc", plateS: "#b7ad99",
     green: "#2d6a3c", greenL: "#6fb57f", leaf: "#3f8f55", stem: "#4b7a3a", petalR: "#e4002b", petalW: "#ffffff", petalY: "#f2c744",
     pot: "#a3603c", potS: "#7c4428", board: "#2f6b3a", boardS: "#1f4a28", copper: "#d9a650",
-    iron: "#9a9a9e", ironHot: "#ff6a3d", ironBlue: "#68aaf2", steel: "#cfd2d4", steelS: "#9a9ea2", pick: "#d9a650", smoke: "#c9c6bf", smoke2: "#dedbd4", phone: "#3d5f99", phoneTop: "#6f93cf", phoneScreen: "#dfe9f5",
+    iron: "#9a9a9e", ironHot: "#ff6a3d", ironBlue: "#68aaf2", steel: "#cfd2d4", steelS: "#9a9ea2", pick: "#d9a650", knob: "#76787c", knobL: "#8c8e92", knobD: "#5c5e62", line: "#0f0503", smoke: "#c9c6bf", smoke2: "#dedbd4", phone: "#3d5f99", phoneTop: "#6f93cf", phoneScreen: "#dfe9f5",
     paper: "#fbfaf5", paperLine: "#d9d5c8", mug: "#e4002b", mugS: "#a3001f", mugL: "#ff4d6a",
     laptop: "#cfd2d4", laptopS: "#9a9ea2", laptopL: "#eaeced", ds: "#d6162f", dsS: "#9d0f22", dsScreen: "#cfe3d4",
     lampBody: "#1b1b1b", lampShade: "#f2efe6", lampShadeOn: "#ffe9a8", bulb: "#fff1b8", pendant: "#1f1f22", pendantIn: "#ffe6a0", pendantOff: "#6d6d70", cord: "#2a2a2c",
@@ -566,18 +572,29 @@
   // a pixel of skin; in the start the same sliver; in a wave its crossbar covered his raised elbow's outline. No other spot
   // on or beside the station is clear of him (while soldering his forearm lies over the whole box top and his elbow just
   // left of it). The box now says what it is by its face: a round temperature knob, the heater's red light and a dark
-  // readout lit in the iron tip's orange; drawn inside the box, so it never meets him. k ink, G knob rim, g knob, w its
-  // highlight, r red light, o readout.
+  // readout lit in the iron tip's orange; drawn inside the box, so it never meets him. k ink, r red light, o readout.
+  // Fifth rework (audit of 658787a, "an odd white spot"): the knob was silver with a white highlight, the brightest pixel on
+  // the box, a light dot at display size. It is a mid grey (b), a faint lighter top edge (a) and a darker lower rim (c): a
+  // round knob lit from above, no brighter than the readout.
   var STATION_FACE = ['..................',
-                      '..GGG......kkkkkk.',
-                      '.GwggG..r..kookok.',
-                      '.GgggG.....kookok.',
-                      '..GGG......kkkkkk.',
+                      '..aaa......kkkkkk.',
+                      '.abbbc..r..kookok.',
+                      '.bbbbc.....kookok.',
+                      '..ccc......kkkkkk.',
                       '..................'];
+  // Fifth rework (audit of 658787a, "no skin slivers"): the box stands in front of him, and where one of his lines runs
+  // diagonally into its edge the skin beside it narrows to a 1 px wedge: in facepalm above the box (his lap hand's crease
+  // at row 128, the box at row 130, a row of skin 2 px long between), while soldering at its left edge (his forearm's lower
+  // outline, 1 px of skin, the box). Those pixels take his line colour, so the line meets the box; his hands are not redrawn. Pose pixels
+  // (figure coordinates), drawn with the station only in these poses.
+  var SEAL_SOLDER = [[-6, 85]];
+  var STATION_SEAL = { facepalm: [[7, 83], [8, 83]], solder: SEAL_SOLDER, solder1: SEAL_SOLDER, solderR: SEAL_SOLDER, solderR1: SEAL_SOLDER, solderL: SEAL_SOLDER, solderL1: SEAL_SOLDER };
   function propSolderStation(x) {
-    var b = deskAt(0.35) + 1, col = { G: C.steelS, g: C.steel, w: C.white, k: C.ink, o: C.ironHot, r: C.red };   // standing on the desk's top, beside the board
+    var b = deskAt(0.35) + 1, col = { a: C.knobL, b: C.knob, c: C.knobD, k: C.ink, o: C.ironHot, r: C.red };   // standing on the desk's top, beside the board
     rect(x - 10, b - 8, 20, 8, C.ink3); outline(x - 10, b - 8, 20, 8, C.ink);
     for (var j = 0; j < STATION_FACE.length; j++) { for (var i = 0; i < STATION_FACE[j].length; i++) { var ch = STATION_FACE[j][i]; if (col[ch]) { px(x - 9 + i, b - 7 + j, col[ch]); } } }
+    var d = cole.drawn, seal = d && !cole.hidden && STATION_SEAL[d.name];
+    if (seal) { for (var k = 0; k < seal.length; k++) { px(d.o.x + seal[k][0], d.o.y + d.jig + seal[k][1], C.line); } }
   }
   // T67 (round-31 audit, "the tools never disappear"): what his hands are not holding rests on the bench, at the size it
   // has in his hand (the same blue, silver and yellow). Both while the spark has his hands up, the iron alone while he
@@ -610,16 +627,20 @@
   // (46, 86)): it lies on the desk in front of the board at that length, yellow handle and steel point (the point towards
   // the station), outlined so it reads against the wood. Third rework: its ends taper like the pick in his hand.
   // Fourth rework (audit of 99c05d7): it had 1 px of desk to the station's corner and one row to the desk's front edge,
-  // and at display size its point met the station. Between the board (lower edge row 135) and the front edge (row 143) a
-  // tool keeps 2 px of desk only in rows 138-140, so it lies there three rows high (outline, colour, outline: a 1 px steel
-  // point as in his hand, a 1 px yellow handle, a pixel thinner than the 2 px it shows on the slant in his fist), from 3 px
-  // right of the station's corner to 3 px short of the dropped iron's tip: 27 px of colour (8 steel, 19 yellow).
-  var PICK_FLAT = ['.kkkkkkkkkkkkkkkkkkkkkkkkkkk.',
-                   'kggggggggccccccccccccccccccck',
-                   '.kkkkkkkkkkkkkkkkkkkkkkkkkkk.'];
+  // and at display size its point met the station; it was cut to three rows. Fifth rework (audit of 658787a, "Object scale
+  // must be consistent"): three rows made it half as thick as in his hand and a wire beside the iron. It is as thick as in
+  // his hand again: a yellow handle 2 rows high (2 px on the slant in his fist) and the 1 px steel point, inside its
+  // outline, rows 138-141, 28 px of colour (8 steel, 20 yellow), its handle end slanted. Its point tapers to one pixel
+  // (row 140, two columns right of the station's lower right corner, three rows below it), so it keeps 2 px of desk from
+  // the station, the board (row 135) and the iron, and one row (142) to the desk's front edge (row 143), the one margin
+  // allowed at 1 px.
+  var PICK_FLAT = ['.........kkkkkkkkkkkkkkkkkkkk.',
+                   '.kkkkkkkkccccccccccccccccccck.',
+                   'kggggggggcccccccccccccccccccck',
+                   '.kkkkkkkkkkkkkkkkkkkkkkkkkkkk.'];
   function restingPick() {
     if (!toolsResting().pick) { return; }
-    var o = origin(cole), x0 = o.x + 17, y0 = DESK_Y + 4, col = { k: C.ink, g: C.steel, c: C.pick };
+    var o = origin(cole), x0 = o.x + 16, y0 = DESK_Y + 4, col = { k: C.ink, g: C.steel, c: C.pick };
     for (var j = 0; j < PICK_FLAT.length; j++) { for (var i = 0; i < PICK_FLAT[j].length; i++) { var ch = PICK_FLAT[j][i]; if (col[ch]) { px(x0 + i, y0 + j, col[ch]); } } }
   }
 
