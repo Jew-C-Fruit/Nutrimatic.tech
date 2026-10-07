@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.21.4
+ * Version 0.21.5
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -111,6 +111,12 @@
  *   sill, so it walks clear of her hair (v0.21.3)
  * Modified: 2026-10-06 - Ilinca typing (T73, "doesn't appear to move"): each forearm eases in a pixel, then two, and back
  *   (her new type3 frame), at her own times and never in step with Cole; her hand rests on the trackpad 1 s, not 2 (v0.21.4, merged from r31-arms)
+ * Modified: 2026-10-06 - Layout audit of T92: on phones the red lamp at -4 (his fist pump met its shade, his waves kept one
+ *   pixel; now every pose of his clears it by 3); in the wide layout the white lamp at 294 (her shoulder had touched its
+ *   shade since 91d954b; now 2 clear pixels in every pose she takes); the shake handover with the two leaning toward each
+ *   other, a pixel a frame (L.lean), so the shaker moves 2 px as it changes hands, both hands on it (it had jumped 18 px on
+ *   a phone, 28 in the wide layout); her plate stands clear of Maker's hanging tail when she pets her; on a phone the
+ *   pigeon walks the sill at half the pace, staying in one pane, clear of the middle bar (v0.21.5)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(i),
@@ -145,9 +151,9 @@
   // those places, `win` etc. are the drawn room's (the fallback when the pictures do not load).
   var LAYOUTS = {
     wide:   { W: 360, H: 160, cole: 124, ilinca: 226, poster: { x: 14, y: 20, w: 58, h: 62 }, clock: { x: 88, y: 34 }, win: { x: 280, y: 22, w: 66, h: 74 }, lamp: 177, pendant: 121, slots: [36, 272, 338, 12, 306],
-              art: { painting: { x: 7, y: 20 }, clock: { x: 88, y: 34, r: 7 }, win: { x: 262, y: 18, w: 88, h: 84 }, sky: { x: 254, y: 15 }, lamps: [40, 290], slots: [18, 318, 344], catY: 141, pendants: [96, 132, 216, 244] } },
+              art: { painting: { x: 7, y: 20 }, clock: { x: 88, y: 34, r: 7 }, win: { x: 262, y: 18, w: 88, h: 84 }, sky: { x: 254, y: 15 }, lamps: [40, 294], slots: [18, 318, 344], catY: 141, pendants: [96, 132, 216, 244] }, lean: [13, 13] },
     narrow: { W: 240, H: 160, cole: 80, ilinca: 172, poster: { x: 1, y: 20, w: 51, h: 50 }, clock: { x: 98, y: 30 }, win: { x: 190, y: 22, w: 46, h: 66 }, lamp: 112, pendant: 126, slots: [226, 10],
-              art: { painting: { x: 1, y: 18 }, clock: { x: 99, y: 31, r: 7 }, win: { x: 192, y: 20, w: 44, h: 70 }, sky: { x: 130, y: 3 }, lamps: [-1, 241], slots: [], catY: 141, pendants: [66, 118, 148, 175] } }
+              art: { painting: { x: 1, y: 18 }, clock: { x: 99, y: 31, r: 7 }, win: { x: 192, y: 20, w: 44, h: 70 }, sky: { x: 130, y: 3 }, lamps: [-4, 241], slots: [], catY: 141, pendants: [66, 118, 148, 175] }, lean: [8, 8] }
   };
   // The environment pictures. Until they have loaded (or if they never do) the room is drawn in code as before.
   var ENV = { ready: false, img: {} };
@@ -454,6 +460,9 @@
   }
   function drawNamePlate(p) {
     var name = p.name === "cole" ? "COLE" : "ILINCA", w = textWidth(name) + 9, x = p.x - (w / 2 | 0), y = DESK_FRONT + 8;   // on the drawer front
+    // Maker lying to be petted by Ilinca hangs her tail where this plate was (the name hidden): its root is 21 px right of
+    // the cat's middle and its swing reaches 4 px further at the plate's rows, so the plate stands 2 clear px right of it
+    if (p.name === "ilinca") { x = Math.max(x, petSpot(p) + 28); }
     rect(x + 1, y + 2, w, 9, "rgba(0,0,0,0.3)"); rect(x, y, w, 9, C.plate); hline(x, y + 8, w, C.plateS); vline(x + w - 1, y + 1, 8, C.plateS);
     drawText(name, x + 5, y + 2, C.ink);
   }
@@ -959,7 +968,7 @@
       update: function (t, f) {
         var b = actors.bird, target = sillY() - 7;
         if (b.state === "land") { b.dir = -1; if (b.y < target) { b.y += 2; b.x -= L === LAYOUTS.narrow ? 0 : 1; } else { b.y = target; b.state = "walk"; b.t0 = f; } }
-        else if (b.state === "walk") { var k = f - b.t0; b.dir = (k % 120) < 72 ? -1 : 1; if (k % 24 < 12 && !b.peck) { b.x += (k % 2) ? b.dir : 0; } b.peck = (k % 30) >= 22; }   // it walks the way it faces (T39), turns once, pecks standing still
+        else if (b.state === "walk") { var k = f - b.t0; b.dir = (k % 120) < 72 ? -1 : 1; if (k % 24 < 12 && !b.peck) { b.x += (k % (L === LAYOUTS.narrow ? 4 : 2)) === 1 ? b.dir : 0; } b.peck = (k % 30) >= 22; }   // it walks the way it faces (T39), turns once, pecks standing still; on a phone at half the pace, so it stays in the right-hand pane (the middle bar hid its head)
         else if (b.state === "fly") { b.dir = 1; b.y -= 3; b.x += 2; }
       },
       drawOutside: function (t, f) {                                     // on the ledge outside: behind the glass and the window's bars (T27)
@@ -1079,13 +1088,21 @@
         [0, function () { setActivity(cole, "shake", 99); faceOf(cole, { mouth: "smile", look: { x: 0, y: 0 }, turn: 0 }); }],
         // he shakes it and holds it straight out across the gap (he doesn't drink from it: Cole); she reaches over and
         // takes it while his arm is still out; then she drinks
-        [2.6, function () { setActivity(cole, "offer", 99); lookAt(cole, ilinca.x, faceLevel(ilinca)); cole.mouth = "smile"; lookAt(ilinca, cole.x, faceLevel(cole)); faceOf(ilinca, { brows: "up", mouth: "smile" }); }],
+        [2.6, function () { setActivity(cole, "offer", 99); lookAt(cole, ilinca.x, faceLevel(ilinca)); cole.mouth = "smile"; lookAt(ilinca, cole.x, faceLevel(cole)); faceOf(ilinca, { brows: "up", mouth: "smile" }); if (ilinca.activity !== "rest") { setActivity(ilinca, "rest", 99); } actors.lean = 1; }],   // she leaves her work to lean over (a laptop or a paper must not slide with her)
         [3.7, function () { setActivity(ilinca, "take", 99); setActivity(cole, "offerEmpty", 99); ilinca.brows = null; }],
-        [4.5, function () { setActivity(cole, "rest", 99); }],
+        [4.5, function () { setActivity(cole, "rest", 99); actors.lean = -1; }],
         [5.1, function () { setActivity(ilinca, "drink", 99); ilinca.mouth = "o"; ilinca.turn = 0; ilinca.lookTarget = { x: 0, y: -1 }; }],
         [7.8, function () { setActivity(ilinca, "rest", 99); ilinca.mouth = "smile"; ilinca.nodAt = frame + 1; ilinca.hold = null; extras.push({ kind: "bottle", x: midX() + 22 }); }]
       ],
-      end: function () { extras = extras.filter(function (e) { return e.kind !== "bottle"; }); }
+      // They lean toward each other while his arm is out, a pixel a frame (L.lean: 8 each on a phone, 13 in the wide layout),
+      // so his hand is still on the shaker when hers takes it, and it moves 2 px across and 2 down as it changes hands (at
+      // 92 px apart on a phone it had jumped 18, in the wide layout 28, the hands apart); after the handover they lean back
+      update: function () {
+        var on = actors.lean === 1, k = L.lean || [0, 0];
+        if (!actors.lean) { return; }
+        cole.slide += clamp((on ? k[0] : 0) - cole.slide, -1, 1); ilinca.slide += clamp((on ? -k[1] : 0) - ilinca.slide, -1, 1);
+      },
+      end: function () { cole.slide = 0; ilinca.slide = 0; extras = extras.filter(function (e) { return e.kind !== "bottle"; }); }
     },
     // Late: a yawn passes between them.
     latenight: {
