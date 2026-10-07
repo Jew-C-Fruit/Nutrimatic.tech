@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.21.9
+ * Version 0.21.10
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -132,6 +132,9 @@
  * Modified: 2026-10-07 - Layout audit of f148c83: his kept sheet closed by its top edge again, that row drawn before the
  *   figures so he stays in front of it (on a phone the desk's back edge had looked broken beside the cat); her drink picture
  *   with her body down to the desk (tools/desk/poses.py v1.11.5) (v0.21.9)
+ * Modified: 2026-10-07 - Layout audit of a426cd5: in the wide room his kept sheet runs up to the desk's own back-edge line
+ *   (its own top edge under that line had made a doubled dark band); her take picture with her body down to the desk
+ *   (tools/desk/poses.py v1.11.6) (v0.21.10)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(i),
@@ -166,9 +169,9 @@
   // those places, `win` etc. are the drawn room's (the fallback when the pictures do not load).
   var LAYOUTS = {
     wide:   { W: 360, H: 160, cole: 124, ilinca: 226, poster: { x: 14, y: 20, w: 58, h: 62 }, clock: { x: 88, y: 34 }, win: { x: 280, y: 22, w: 66, h: 74 }, lamp: 177, pendant: 121, slots: [36, 272, 338, 12, 306],
-              art: { painting: { x: 7, y: 20 }, clock: { x: 88, y: 34, r: 7 }, win: { x: 262, y: 18, w: 88, h: 84 }, sky: { x: 254, y: 15 }, lamps: [40, 294], slots: [18, 318, 344], catY: 141, pendants: [96, 132, 216, 244] } },
+              art: { painting: { x: 7, y: 20 }, clock: { x: 88, y: 34, r: 7 }, win: { x: 262, y: 18, w: 88, h: 84 }, sky: { x: 254, y: 15 }, lamps: [40, 294], slots: [18, 318, 344], catY: 141, pendants: [96, 132, 216, 244], deskEdge: 132 } },
     narrow: { W: 240, H: 160, cole: 80, ilinca: 172, poster: { x: 1, y: 20, w: 51, h: 50 }, clock: { x: 98, y: 30 }, win: { x: 190, y: 22, w: 46, h: 66 }, lamp: 112, pendant: 126, slots: [226, 10],
-              art: { painting: { x: 1, y: 18 }, clock: { x: 99, y: 31, r: 7 }, win: { x: 192, y: 20, w: 44, h: 70 }, sky: { x: 130, y: 3 }, lamps: [-4, 241], slots: [], catY: 141, pendants: [66, 118, 148, 175] } }
+              art: { painting: { x: 1, y: 18 }, clock: { x: 99, y: 31, r: 7 }, win: { x: 192, y: 20, w: 44, h: 70 }, sky: { x: 130, y: 3 }, lamps: [-4, 241], slots: [], catY: 141, pendants: [66, 118, 148, 175], deskEdge: 134 } }
   };
   // The environment pictures. Until they have loaded (or if they never do) the room is drawn in code as before.
   var ENV = { ready: false, img: {} };
@@ -739,11 +742,13 @@
   // front of it (it had drawn a line through his fingers); the rest, on the desk, before his hands and forearms on it.
   var SHEET_TOP = { cole: 87, ilinca: 84 };
   function sheetLeft(p) { var q = p.deskProp === "write" && !p.hidden ? p.poses.write : leftOnDesk(p); return q && q.props.paper ? q : null; }
-  function drawSheetPart(p, y0, y1) {
+  function drawSheetPart(p, y0, y1, up) {
     var q = sheetLeft(p), o = origin(p), top = Math.max(y0, o.y + SHEET_TOP[p.name]); if (!q || top >= y1) { return; }
-    g.save(); g.beginPath(); g.rect(0, top, W, y1 - top); g.clip(); blit(q.props.paper, o.x - Math.round(p.slide), o.y); g.restore();
+    g.save(); g.beginPath(); g.rect(0, top, W, y1 - top); g.clip(); blit(q.props.paper, o.x - Math.round(p.slide), o.y - (up || 0)); g.restore();
   }
-  function drawSheetBehind(p) { drawSheetPart(p, 0, DESK_Y); }
+  // (in the wide room picture the desk's back edge is a dark line on row 132 with a row of desk top under it: there the
+  // sheet's white runs up to that line, which closes it, instead of a second dark row under it; art.deskEdge)
+  function drawSheetBehind(p) { drawSheetPart(p, 0, DESK_Y, ENV.ready ? Math.max(0, DESK_Y - 1 - L.art.deskEdge) : 0); }
   function drawDeskPropUnder(p) { drawSheetPart(p, DESK_Y, H); }
   function drawDeskPropOver(p) {
     var q = p.deskProp === "type" && !p.hidden && p.poses.type; if (!q || !q.props.laptop) { return; }

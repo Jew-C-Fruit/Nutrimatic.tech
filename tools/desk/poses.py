@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - poses.py
-Version 1.11.5
+Version 1.11.6
 
 Created: 2026-10-02 - The figures' body poses, from generated pictures, as layers under the base head; the neck, and
   Ilinca's top, taken from the base so every pose joins the same head; front boxes by eye (v1.0.0)
@@ -91,6 +91,9 @@ Modified: 2026-10-07 - Round 31, layout audit of cf7f44a: her 'pet' picture (her
 Modified: 2026-10-07 - Round 31, layout audit of f148c83: his kept sheet closed by its top edge again (drawn behind him); her
   drink picture with her body down to the desk under the raised elbow (DRINK_TORSO_ILINCA); no 2x2 outline clump where the
   reach's new side outline met her hand (v1.11.5)
+Modified: 2026-10-07 - Round 31, layout audit of a426cd5: her take picture with her body down to the desk under the raised
+  elbow, its side on the drink's column (TAKE_TORSO_ILINCA); her reach's side on the same column, so her body keeps one
+  width from the reach to the take, the drink and the set-down (v1.11.6)
 
 Every activity in the scene is drawn with a body pose: the whole torso with arms, hands and whatever they hold, made
 by the image model from the figure's own portrait (pose_sprites.py says how) and reduced to a sprite on the base
@@ -658,9 +661,9 @@ PET_TORSO_ILINCA = [
     '...JJJJJJJJJJJJJJJJqWWWWWWW...',
     '..JJJJJJJJJJJJJJJJJqWWWWWWW...',
     '.JJJJJJJJJJJJJJJJJJqWWWWWW....',   # (no outline pixel here: it met her hand's lower outline in a 2x2 clump)
-    '.kJJJJJJJJJJJJJJJJJqWWWW......',
-    '.kJJJJJJJJJJJJJJJJJqWWW.......',
-    '.kJJJJJJJJJJJJJJJJJqW.........']
+    '.kkkkJJJJJJJJJJJJJJqWWWW......',   # her side from here down on the column of her take and drink pictures (x 1)
+    '....kJJJJJJJJJJJJJJqWWW.......',
+    '....kJJJJJJJJJJJJJJqW.........']
 
 # Round 31, layout audit of f148c83: in her drink picture her body stopped short of the desk between her raised elbow and her
 # hand on the desk (the wall showed under her chest): a darker pocket under the sleeve and her blazer on down to the desk
@@ -674,6 +677,17 @@ DRINK_TORSO_ILINCA = [
     '.jjjjjjjjjjjjj',
     'kjjjjjjjjjjjjj',
     'kjjjjjjjjjjjj']
+
+# Round 31, layout audit of a426cd5: her take picture, the same: her body down to the desk between the raised elbow and her
+# hand on the desk, its side on the same column as in the drink, so nothing comes and goes from one frame to the next. Rows
+# from y 78, columns from x 1; drawn last ('post').
+TAKE_TORSO_ILINCA = [
+    '........QQQ',
+    '.......QQQQ',
+    '......QQQJJJ',
+    'k...JJJJJJJJ',
+    'kJJJJJJJJJJJ',
+    'kJJJJJJJJJJJ']
 
 # T60 (her petting frames, the audit after note o): Ilinca's petting arm as drawn by hand where the picture failed: her
 # sleeve outlined down its left side and carried down onto Maker's back (clearing the stand-in cat had left the wall
@@ -1181,7 +1195,8 @@ MANUAL = {
                      frames={'call1': {'edits': [('rows', -10, 66, CALL_LOW[1])]}}),   # T7: her free hand shifts as she talks
         'surprise': dict(keep_chest=True, front=(48, 24, 68, 58), front_mode='limb'),
         # the bottle came out in her skin colours
-        'take': dict(fix=[('erase', -12, 12, 4, 50, BOTTLE), ('under', -11, 14, shaker('ilinca'), SKIN_ILINCA, True)],   # T35: a picture made with this shaker in her hand; her fingers wrap it
+        'take': dict(post=[('rows', 1, 78, TAKE_TORSO_ILINCA)],    # her body down to the desk under the raised elbow, as in the drink
+                     fix=[('erase', -12, 12, 4, 50, BOTTLE), ('under', -11, 14, shaker('ilinca'), SKIN_ILINCA, True)],   # T35: a picture made with this shaker in her hand; her fingers wrap it
                      # T51 (c): its shaded side the shaker's own grey (the picture's skin-grey there had been kept as skin: a beige
                      # stripe); put on after the hand is cleaned, so nothing else in the pose changes
                      stamp=[(-11, 14, [''.join('g' if ch == 'g' else '.' for ch in r) for r in shaker('ilinca')], False)]),
