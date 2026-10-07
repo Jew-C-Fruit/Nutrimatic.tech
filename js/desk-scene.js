@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.21.6
+ * Version 0.21.7
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -123,6 +123,10 @@
  *   seat. Her laptop or paper stays on the desk while she does (T48, p.deskProp). Both name plates by one rule, 13 px right
  *   of their owner's middle (clear of Maker's tail and paw in either visit); on a phone the red lamp's foot corner is not
  *   drawn (it read as a stray blob) (v0.21.6)
+ * Modified: 2026-10-07 - Layout audit of 80a0d7f (T48 in the shake): with her laptop left on the desk her hands at its
+ *   keyboard stay behind it, none of them below its front edge; the paper left on the desk is whole and the shaker in his
+ *   hands is the desk one (tools/desk/poses.py v1.11.3); a paper left on the desk (a greeting, Maker on the desk too) lies
+ *   whole under the hands, not over them (v0.21.7)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(i),
@@ -697,28 +701,38 @@
     }
   }
   // Hands, forearms and what they hold lie on the desk: that part of the pose is drawn again once the desk is there.
+  // While her laptop is left on the desk (the shake break), the hands at its keyboard stay behind it as when typing: below
+  // the desk line nothing of them is drawn where the laptop stands (their tips had stuck out under its front edge).
   function drawOnDesk(p) {
     var d = p.drawn; if (p.hidden || !d) { return; }
-    g.save(); g.beginPath(); g.rect(0, DESK_Y, W, H - DESK_Y); g.clip();
+    var lap = p.deskProp === "type" && p.poses.type && p.poses.type.props.laptop;
+    g.save(); g.beginPath();
+    if (lap) { var lx0 = d.o.x - Math.round(p.slide) + lap.x, lx1 = lx0 + lap.w; g.rect(0, DESK_Y, lx0, H - DESK_Y); g.rect(lx1, DESK_Y, W - lx1, H - DESK_Y); }
+    else { g.rect(0, DESK_Y, W, H - DESK_Y); }
+    g.clip();
     blit(d.pose.body, d.o.x, d.o.y + d.jig); if (d.pose.frontBody) { blit(d.pose.frontBody, d.o.x, d.o.y + d.jig); } if (d.pose.front) { blit(d.pose.front, d.o.x, d.o.y + d.jig + p.headDy); }
     g.restore();
   }
   // The laptop (or the paper) stays on the desk while the hands are off it: lifted for the cat, or petting her.
-  function drawLaptopOut(p) {
-    if (p.hidden) { return; }
+  function leftOnDesk(p) {                                             // the pose whose things lie on the desk while the hands are elsewhere
+    if (p.hidden) { return null; }
     var greetFrom = p.react === "greet" && (p.greetAct === "type" || p.greetAct === "write") ? p.greetAct : null;   // waving hello from the keyboard
     var keep = p.keepProps === "type" || p.keepProps === "write" ? p.keepProps : null;
     var from = p.laptopOut ? "type" : keep || p.benchFrom || ((p.catLift === "type" || p.catLift === "write") ? p.catLift : greetFrom), q = from && p.poses[from];
-    if (!q || (p.activity === from && !p.laptopOut)) { return; }
-    var o = origin(p); Object.keys(q.props).forEach(function (n) { blit(q.props[n], o.x, o.y); });
+    return !q || (p.activity === from && !p.laptopOut) ? null : q;
   }
-  // The work left on the desk while the hands do something else (the shake break, T48): a paper lies under the hands (only
-  // what is on the desk top: its picture carries a scrap of her blouse above the desk line), a laptop stands in front of
-  // them as it does while typing. p.deskProp is the activity whose things stay ("type", "write"); they stay where they
+  function drawLaptopOut(p) {                                           // (a paper lies under the hands: drawDeskPropUnder)
+    var q = leftOnDesk(p); if (!q) { return; }
+    var o = origin(p); Object.keys(q.props).forEach(function (n) { if (n !== "paper") { blit(q.props[n], o.x, o.y); } });
+  }
+  // The work left on the desk while the hands do something else (the shake break, T48; a greeting, Maker on the desk): a
+  // paper lies under the hands (only the sheet: its picture carries a scrap of her blouse above it), a laptop stands in
+  // front of them as it does while typing. p.deskProp is the activity whose things stay ("type", "write"); they stay where they
   // were put however the figure moves (p.slide).
+  var SHEET_TOP = { cole: 87, ilinca: 84 };                             // the sheet's top row in the paper picture (tools/desk/poses.py prop_fix); above it the picture carries scraps of the pose
   function drawDeskPropUnder(p) {
-    var q = p.deskProp === "write" && !p.hidden && p.poses.write; if (!q || !q.props.paper) { return; }
-    var o = origin(p); g.save(); g.beginPath(); g.rect(0, DESK_Y, W, H - DESK_Y); g.clip(); blit(q.props.paper, o.x - Math.round(p.slide), o.y); g.restore();
+    var q = p.deskProp === "write" && !p.hidden ? p.poses.write : leftOnDesk(p); if (!q || !q.props.paper) { return; }
+    var o = origin(p), top = o.y + SHEET_TOP[p.name]; g.save(); g.beginPath(); g.rect(0, top, W, H - top); g.clip(); blit(q.props.paper, o.x - Math.round(p.slide), o.y); g.restore();
   }
   function drawDeskPropOver(p) {
     var q = p.deskProp === "type" && !p.hidden && p.poses.type; if (!q || !q.props.laptop) { return; }

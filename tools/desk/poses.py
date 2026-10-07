@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - poses.py
-Version 1.11.2
+Version 1.11.3
 
 Created: 2026-10-02 - The figures' body poses, from generated pictures, as layers under the base head; the neck, and
   Ilinca's top, taken from the base so every pose joins the same head; front boxes by eye (v1.0.0)
@@ -81,6 +81,10 @@ Modified: 2026-10-06 - Round 31, Cole's notes on Ilinca: her typing sleeves draw
   (T73); her thinking arm in front of her hair (over_hair: the picture's sleeve, wrist and cuff over her lock), the wall
   between her elbow and her desk hand closed (T76); the call's two arms down on the desk, her top and blazer down to it,
   and the wall under her talking elbow closed (T82) (v1.11.2, merged from r31-arms)
+Modified: 2026-10-07 - Round 31, layout audit of the shake (T92 follow-up): one shaker everywhere, his cap without the pink
+  highlight and her spout in the desk shaker's brown, so the one in their hands and the one standing on the desk are the
+  same picture; the writing paper left on the desk whole ('prop_fix': the sheet as the write pose draws it, closed by a
+  top edge; the lifted paper had holes where the hands lay) (v1.11.3)
 
 Every activity in the scene is drawn with a body pose: the whole torso with arms, hands and whatever they hold, made
 by the image model from the figure's own portrait (pose_sprites.py says how) and reduced to a sprite on the base
@@ -114,8 +118,10 @@ NU_MARK = ['kkk..', 'k.k..', 'k.k.k', 'k.k.k', '..kkk']
 SHAKER = ['aaaa.....aaa..', '.abba...acba..', '..abaaaadcba..', '.aaabbbbbdba..', '.abbbbbbbbbea.', 'abccbbbbbbeeea', 'abccbbbbbbeeea',
           'aaaaaaaaaaaaaa', 'affffffffggga.'] + ['.affffffffgga.'] * 6 + ['.afhhhffffgga.', '.afhfhffffgga.', '.afhfhfhffgga.',
           '.afhfhfhffgga.', '.afffhhhffgga.'] + ['.affffffffgga.'] * 7 + ['.affffffffga..', '..affffffgga..', '...aaaaaaaa...']
-SHAKER_KEYS = {'cole': dict(a='k', b='r', c='p', d='b', e='R', f='w', g='g', h='k'),
-               'ilinca': dict(a='k', b='r', c='r', d='R', e='R', f='W', g='g', h='k')}
+# (the cap's highlight plain red and the spout brown in both hands, as on the desk shaker: the one he set down had a pink
+# highlight the desk picture lacks, round-31 layout audit)
+SHAKER_KEYS = {'cole': dict(a='k', b='r', c='r', d='b', e='R', f='w', g='g', h='k'),
+               'ilinca': dict(a='k', b='r', c='r', d='u', e='R', f='W', g='g', h='k')}
 
 
 def shaker(who, angle=0):
@@ -1000,7 +1006,8 @@ MANUAL = {
         'write': dict(fix=[('recolour', 20, 82, 64, 87, {'#fbfaf5': '#211f1f', '#d9d5c8': '#211f1f'}), ('clear', 14, 91, 72, 98),
                            ('recolour', 14, 88, 72, 90, {'#fbfaf5': None, '#d9d5c8': None, '#cfd2d4': None}),
                            ('under', 22, 88, ['k' + 'w' * 40 + 'k', 'k' + 'g' * 40 + 'k', 'k' * 42], SKIN_COLE)],
-                      props={'paper': (PAPER, (10, 80, 90, 100))}, frames={'write1': ((14, 64, 36, 92), 1, 0), 'write2': ((14, 64, 36, 92), 2, -1)}),
+                      props={'paper': (PAPER, (10, 80, 90, 100))}, frames={'write1': ((14, 64, 36, 92), 1, 0), 'write2': ((14, 64, 36, 92), 2, -1)},
+                      prop_fix={'paper': [('rows', 22, 87, ['_' + 'k' * 40 + '_', 'k' + 'w' * 40 + 'k', 'k' + 'g' * 40 + 'k', 'k' * 42])]}),   # left on the desk, whole (the sheet as this pose draws it, a top edge closing it)
         # T28: the one shaker in every hand (the generated bottle goes, the shaker goes behind the fingers)
         'offer': dict(fix=[('recolour', 70, 12, 90, 52, {'#f9eee0': '#fbfaf5'}), ('erase', 70, 12, 90, 52, BOTTLE), ('under', 72, 16, shaker('cole'), SKIN_COLE)],
                       props={'bottle': (BOTTLE, (58, 0, 100, 50))}, empty={'offerEmpty': 'bottle'},
@@ -1089,7 +1096,8 @@ MANUAL = {
                      frames={'rest1': ((6, 72, 36, 88), 0, -1)}),
         'write': dict(fix=[('clear', -8, 87, 36, 92), ('recolour', -8, 85, 36, 86, {'#fbfaf5': None}),
                            ('under', -4, 85, ['k' + 'W' * 38 + 'k', 'k' * 40], SKIN_ILINCA | SLEEVE_ILINCA)],
-                      props={'paper': (PAPER, (-14, 74, 40, 96))}, frames={'write1': ((-6, 60, 16, 90), 1, 0), 'write2': ((-6, 60, 16, 90), 2, -1)}),
+                      props={'paper': (PAPER, (-14, 74, 40, 96))}, frames={'write1': ((-6, 60, 16, 90), 1, 0), 'write2': ((-6, 60, 16, 90), 2, -1)},
+                      prop_fix={'paper': [('rows', -4, 84, ['_' + 'k' * 38 + '_', 'k' + 'W' * 38 + 'k', 'k' * 40])]}),   # left on the desk, whole (the sheet as this pose draws it, a top edge closing it)
         # T40 (2026-10-04, "the elbow she's resting on should be more towards the middle of her body"): a new picture, the
         # forearm upright down the middle of her chest; the fist under her chin goes in front of her jaw
         'think': dict(keep_neck=True, front=[(17, 31, 34, 48)], front_mode='nothair', front_face=True, frames={'think1': ((8, 72, 38, 92), 1, 0)},   # T7: her fingers drum
@@ -1217,7 +1225,8 @@ KEYS = {
     'ilinca': dict(k='#010100', D='#b5705f', d='#d18881', a='#f1a49b', e='#e0b3a2', x='#e1cec4', s='#f9e2d2', h='#faebe1', j='#292423', J='#191718',
                    w='#fbfbf9', W='#fbfaf5', N='#5f4030', n='#6f4b3a', o='#9a6f50', O='#bd8e5d', y='#d9ae71', r='#e4002b', R='#a3001f', g='#cfd2d4', G='#9a9ea2',
                    B='#6f93cf', b='#3d5f99', c='#2b4572',             # T49 rework: her phone's blues (its back, its shaded side, the camera)
-                   q='#0b0503', Q='#0e0c0b'),                         # T82: the pictures' two near-blacks, so a map redrawn from a pose keeps them
+                   q='#0b0503', Q='#0e0c0b',                          # T82: the pictures' two near-blacks, so a map redrawn from a pose keeps them
+                   u='#623e32'),                                      # the shaker's spout, the brown of the desk shaker
 }
 
 
@@ -2008,6 +2017,7 @@ def build(c):
             # the prop comes from the pose before its head area was cut away (a laptop reaching up into the hair was cut
             # there, and the cat showed through that gap when the laptop was drawn over her alone)
             prop, mask = lift_prop(spr if spr.idx.shape == body.idx.shape else body, meta['x'], meta['y'], cols, box)
+            if man.get('prop_fix', {}).get(name): prop = fix(prop, meta['x'], meta['y'], man['prop_fix'][name], KEYS[who])   # e.g. the paper whole where the hands had covered it
             entry['props'][name] = (prop, meta['x'], meta['y']); masks[name] = mask & (body.idx >= 0)
         out[pose] = entry
         for variant, name in man.get('empty', {}).items():
