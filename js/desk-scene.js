@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.21.8
+ * Version 0.21.9
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -129,6 +129,9 @@
  *   whole under the hands, not over them (v0.21.7)
  * Modified: 2026-10-07 - Layout audit of cf7f44a: his paper's sheet starts at the desk line (its top edge had drawn over his
  *   hand on row 133); her reach for the shaker has her body down to the desk (tools/desk/poses.py v1.11.4) (v0.21.8)
+ * Modified: 2026-10-07 - Layout audit of f148c83: his kept sheet closed by its top edge again, that row drawn before the
+ *   figures so he stays in front of it (on a phone the desk's back edge had looked broken beside the cat); her drink picture
+ *   with her body down to the desk (tools/desk/poses.py v1.11.5) (v0.21.9)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(i),
@@ -731,11 +734,17 @@
   // paper lies under the hands (only the sheet: its picture carries a scrap of her blouse above it), a laptop stands in
   // front of them as it does while typing. p.deskProp is the activity whose things stay ("type", "write"); they stay where they
   // were put however the figure moves (p.slide).
-  var SHEET_TOP = { cole: 88, ilinca: 84 };                             // the sheet's top row in the paper picture, the desk line (tools/desk/poses.py prop_fix); above it the picture carries scraps of the pose
-  function drawDeskPropUnder(p) {
-    var q = p.deskProp === "write" && !p.hidden ? p.poses.write : leftOnDesk(p); if (!q || !q.props.paper) { return; }
-    var o = origin(p), top = o.y + SHEET_TOP[p.name]; g.save(); g.beginPath(); g.rect(0, top, W, H - top); g.clip(); blit(q.props.paper, o.x - Math.round(p.slide), o.y); g.restore();
+  // The sheet's top row in the paper picture (tools/desk/poses.py prop_fix; above it the picture carries scraps of the pose).
+  // His top edge lies on the row above the desk line: that row is drawn before the figures, so wherever he is he stays in
+  // front of it (it had drawn a line through his fingers); the rest, on the desk, before his hands and forearms on it.
+  var SHEET_TOP = { cole: 87, ilinca: 84 };
+  function sheetLeft(p) { var q = p.deskProp === "write" && !p.hidden ? p.poses.write : leftOnDesk(p); return q && q.props.paper ? q : null; }
+  function drawSheetPart(p, y0, y1) {
+    var q = sheetLeft(p), o = origin(p), top = Math.max(y0, o.y + SHEET_TOP[p.name]); if (!q || top >= y1) { return; }
+    g.save(); g.beginPath(); g.rect(0, top, W, y1 - top); g.clip(); blit(q.props.paper, o.x - Math.round(p.slide), o.y); g.restore();
   }
+  function drawSheetBehind(p) { drawSheetPart(p, 0, DESK_Y); }
+  function drawDeskPropUnder(p) { drawSheetPart(p, DESK_Y, H); }
   function drawDeskPropOver(p) {
     var q = p.deskProp === "type" && !p.hidden && p.poses.type; if (!q || !q.props.laptop) { return; }
     var o = origin(p); blit(q.props.laptop, o.x - Math.round(p.slide), o.y);
@@ -1403,6 +1412,7 @@
     else { drawRoom(h); drawWindowView(h, f); if (scenario && scenario.drawOutside) { scenario.drawOutside(t, f); } drawWindowFrame(); drawSunPatch(h); drawPendant(dark); drawLampArm(); }
     if (art) { drawLampsArt(h, "back"); }
     if (scenario && scenario.drawBack) { scenario.drawBack(t, f); }
+    people.forEach(drawSheetBehind);                                    // a paper's top edge above the desk line, behind them
     for (var i = 0; i < people.length; i++) { drawCharacter(people[i], f); }
     if (scenario && scenario.drawMid) { scenario.drawMid(t, f); }        // between them and the desk: a cat on a keyboard
     if (art) { g.drawImage(ENV.img["desk-" + layoutName], 0, 0); } else { drawDesk(); }

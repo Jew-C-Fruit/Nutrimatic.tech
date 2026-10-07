@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - poses.py
-Version 1.11.4
+Version 1.11.5
 
 Created: 2026-10-02 - The figures' body poses, from generated pictures, as layers under the base head; the neck, and
   Ilinca's top, taken from the base so every pose joins the same head; front boxes by eye (v1.0.0)
@@ -88,6 +88,9 @@ Modified: 2026-10-07 - Round 31, layout audit of the shake (T92 follow-up): one 
 Modified: 2026-10-07 - Round 31, layout audit of cf7f44a: her 'pet' picture (her reach for the shaker) has her body down to
   the desk under the reaching arm (PET_TORSO_ILINCA; the wall had shown there); his paper's sheet one row lower, at the
   desk line like hers (v1.11.4)
+Modified: 2026-10-07 - Round 31, layout audit of f148c83: his kept sheet closed by its top edge again (drawn behind him); her
+  drink picture with her body down to the desk under the raised elbow (DRINK_TORSO_ILINCA); no 2x2 outline clump where the
+  reach's new side outline met her hand (v1.11.5)
 
 Every activity in the scene is drawn with a body pose: the whole torso with arms, hands and whatever they hold, made
 by the image model from the figure's own portrait (pose_sprites.py says how) and reduced to a sprite on the base
@@ -654,10 +657,23 @@ PET_TORSO_ILINCA = [
     '.......QQQQQQQQQJJJqWWWWWWW...',
     '...JJJJJJJJJJJJJJJJqWWWWWWW...',
     '..JJJJJJJJJJJJJJJJJqWWWWWWW...',
-    '.kJJJJJJJJJJJJJJJJJqWWWWWW....',
+    '.JJJJJJJJJJJJJJJJJJqWWWWWW....',   # (no outline pixel here: it met her hand's lower outline in a 2x2 clump)
     '.kJJJJJJJJJJJJJJJJJqWWWW......',
     '.kJJJJJJJJJJJJJJJJJqWWW.......',
     '.kJJJJJJJJJJJJJJJJJqW.........']
+
+# Round 31, layout audit of f148c83: in her drink picture her body stopped short of the desk between her raised elbow and her
+# hand on the desk (the wall showed under her chest): a darker pocket under the sleeve and her blazer on down to the desk
+# line, its side outlined under the elbow. Rows from y 76, columns from x 1; drawn last ('post').
+DRINK_TORSO_ILINCA = [
+    '......QQ',
+    '......QQ',
+    '.....QQQ',
+    '....QQQQ',
+    '...QQQjjjjjjjjj',
+    '.jjjjjjjjjjjjj',
+    'kjjjjjjjjjjjjj',
+    'kjjjjjjjjjjjj']
 
 # T60 (her petting frames, the audit after note o): Ilinca's petting arm as drawn by hand where the picture failed: her
 # sleeve outlined down its left side and carried down onto Maker's back (clearing the stand-in cat had left the wall
@@ -1028,7 +1044,7 @@ MANUAL = {
                            ('recolour', 14, 88, 72, 90, {'#fbfaf5': None, '#d9d5c8': None, '#cfd2d4': None}),
                            ('under', 22, 88, ['k' + 'w' * 40 + 'k', 'k' + 'g' * 40 + 'k', 'k' * 42], SKIN_COLE)],
                       props={'paper': (PAPER, (10, 80, 90, 100))}, frames={'write1': ((14, 64, 36, 92), 1, 0), 'write2': ((14, 64, 36, 92), 2, -1)},
-                      prop_fix={'paper': [('rows', 22, 87, ['_' * 42, 'k' + 'w' * 40 + 'k', 'k' + 'g' * 40 + 'k', 'k' * 42])]}),   # left on the desk, whole: the sheet as this pose draws it, from the desk line down (a top edge above it had drawn over his hand)
+                      prop_fix={'paper': [('rows', 22, 87, ['_' + 'k' * 40 + '_', 'k' + 'w' * 40 + 'k', 'k' + 'g' * 40 + 'k', 'k' * 42])]}),   # left on the desk, whole: the sheet as this pose draws it, closed by a top edge on the row above the desk line (the scene draws that row before him, so he stays in front of it)
         # T28: the one shaker in every hand (the generated bottle goes, the shaker goes behind the fingers)
         'offer': dict(fix=[('recolour', 70, 12, 90, 52, {'#f9eee0': '#fbfaf5'}), ('erase', 70, 12, 90, 52, BOTTLE), ('under', 72, 16, shaker('cole'), SKIN_COLE)],
                       props={'bottle': (BOTTLE, (58, 0, 100, 50))}, empty={'offerEmpty': 'bottle'},
@@ -1147,7 +1163,7 @@ MANUAL = {
         # T51 (c): the generated bottle, hand and raised forearm all go; the hand-drawn shaker in her fist (DRINK_HAND) goes on
         'drink': dict(fix=[('clear', -8, 14, 14, 59), ('erase', 15, 14, 27, 42, BOTTLE),
                            ('recolour', 21, 54, 22, 54, {'#a19c9c': '#0b0503'}), ('recolour', 21, 55, 21, 55, {'#a19c9c': '#fbfaf5'})],   # a grey scrap of the picture at her neckline: outline and top, as in her rest pose
-                      stamp=[(-2, 26, DRINK_HAND)]),
+                      stamp=[(-2, 26, DRINK_HAND)], post=[('rows', 1, 76, DRINK_TORSO_ILINCA)]),   # her body down to the desk under the raised elbow
         'yawn': dict(front=(12, 24, 36, 42), front_mode='notface', keep_neck=True, front_face=True,
                      arm_front=[(2, 42, 27, 63), (-6, 63, 14, 66)],   # T59: the sleeve of the arm reaching up is in front of her hair
                      # T59 (k), rework: down to the tip of her hair (the boxes had stopped at row 63 and the tip showed in the sleeve)
