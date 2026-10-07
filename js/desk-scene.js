@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.21.5
+ * Version 0.21.6
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -117,6 +117,12 @@
  *   other, a pixel a frame (L.lean), so the shaker moves 2 px as it changes hands, both hands on it (it had jumped 18 px on
  *   a phone, 28 in the wide layout); her plate stands clear of Maker's hanging tail when she pets her; on a phone the
  *   pigeon walks the sill at half the pace, staying in one pane, clear of the middle bar (v0.21.5)
+ * Modified: 2026-10-06 - Shake break (Cole's pick after the layout audit of e6ce904: "Slide it"): the lean is gone; he sets
+ *   the shaker down on the desk and it slides across to her, slowing, 4 px a frame at most, to stop at her left in front of
+ *   the desk's edge; she reaches for it, lifts it and drinks, and sets it down where she took it; nobody moves in their
+ *   seat. Her laptop or paper stays on the desk while she does (T48, p.deskProp). Both name plates by one rule, 13 px right
+ *   of their owner's middle (clear of Maker's tail and paw in either visit); on a phone the red lamp's foot corner is not
+ *   drawn (it read as a stray blob) (v0.21.6)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(i),
@@ -151,9 +157,9 @@
   // those places, `win` etc. are the drawn room's (the fallback when the pictures do not load).
   var LAYOUTS = {
     wide:   { W: 360, H: 160, cole: 124, ilinca: 226, poster: { x: 14, y: 20, w: 58, h: 62 }, clock: { x: 88, y: 34 }, win: { x: 280, y: 22, w: 66, h: 74 }, lamp: 177, pendant: 121, slots: [36, 272, 338, 12, 306],
-              art: { painting: { x: 7, y: 20 }, clock: { x: 88, y: 34, r: 7 }, win: { x: 262, y: 18, w: 88, h: 84 }, sky: { x: 254, y: 15 }, lamps: [40, 294], slots: [18, 318, 344], catY: 141, pendants: [96, 132, 216, 244] }, lean: [13, 13] },
+              art: { painting: { x: 7, y: 20 }, clock: { x: 88, y: 34, r: 7 }, win: { x: 262, y: 18, w: 88, h: 84 }, sky: { x: 254, y: 15 }, lamps: [40, 294], slots: [18, 318, 344], catY: 141, pendants: [96, 132, 216, 244] } },
     narrow: { W: 240, H: 160, cole: 80, ilinca: 172, poster: { x: 1, y: 20, w: 51, h: 50 }, clock: { x: 98, y: 30 }, win: { x: 190, y: 22, w: 46, h: 66 }, lamp: 112, pendant: 126, slots: [226, 10],
-              art: { painting: { x: 1, y: 18 }, clock: { x: 99, y: 31, r: 7 }, win: { x: 192, y: 20, w: 44, h: 70 }, sky: { x: 130, y: 3 }, lamps: [-4, 241], slots: [], catY: 141, pendants: [66, 118, 148, 175] }, lean: [8, 8] }
+              art: { painting: { x: 1, y: 18 }, clock: { x: 99, y: 31, r: 7 }, win: { x: 192, y: 20, w: 44, h: 70 }, sky: { x: 130, y: 3 }, lamps: [-4, 241], slots: [], catY: 141, pendants: [66, 118, 148, 175] } }
   };
   // The environment pictures. Until they have loaded (or if they never do) the room is drawn in code as before.
   var ENV = { ready: false, img: {} };
@@ -361,7 +367,8 @@
     for (var i = 0; i < 2; i++) {
       var q = lampGeom(i), im = ENV.img[i === 0 ? "lamp-red" : "lamp-white"], on = lampIsOn(i, h), back = part === "back";
       if (!back && on && !isDark(h)) { g.save(); g.beginPath(); g.rect(0, DESK_Y, W, H - DESK_Y); g.clip(); slantCone(q, 0.10, false, 20); g.restore(); }   // by day a working lamp shows only faintly, on the desk (over his shirt it read as a third arm: T56)
-      g.save(); g.beginPath(); if (back) { g.rect(0, 0, W, DESK_Y); } else { g.rect(0, DESK_Y, W, H - DESK_Y); } g.clip();
+      var cut = L === LAYOUTS.narrow && i === 0 ? q.y + 29 : H;        // on a phone only the red lamp's arm and shade are in the frame: the corner of its foot read as a stray red blob
+      g.save(); g.beginPath(); if (back) { g.rect(0, 0, W, Math.min(DESK_Y, cut)); } else { g.rect(0, DESK_Y, W, Math.max(0, cut - DESK_Y)); } g.clip();
       if (q.flip) { g.translate(q.x + im.width, q.y); g.scale(-1, 1); g.drawImage(im, 0, 0); } else { g.drawImage(im, q.x, q.y); }
       g.restore();
       if (back && on) { drawBulb(q); }
@@ -458,11 +465,13 @@
     rect(0, DESK_FRONT + 5, W, H - DESK_FRONT - 5, C.deskFront); hline(0, DESK_FRONT + 5, W, C.deskFrontD);
     for (var x = 30; x < W; x += 74) { vline(x, DESK_FRONT + 7, H - DESK_FRONT - 7, C.deskFrontD); }
   }
+  var PLATE_DX = 13;
   function drawNamePlate(p) {
-    var name = p.name === "cole" ? "COLE" : "ILINCA", w = textWidth(name) + 9, x = p.x - (w / 2 | 0), y = DESK_FRONT + 8;   // on the drawer front
-    // Maker lying to be petted by Ilinca hangs her tail where this plate was (the name hidden): its root is 21 px right of
-    // the cat's middle and its swing reaches 4 px further at the plate's rows, so the plate stands 2 clear px right of it
-    if (p.name === "ilinca") { x = Math.max(x, petSpot(p) + 28); }
+    // On the drawer front, both plates by one rule: centred PLATE_DX right of the owner's middle. Maker lying to be petted
+    // hangs her tail over a plate centred on Ilinca (her tail's swing reaches 4 px right of its root at the plate's rows)
+    // and her paw over the edge comes within a pixel of one centred on Cole; 13 px right keeps both 2 clear px from them in
+    // either visit and layout, and the plates never move.
+    var name = p.name === "cole" ? "COLE" : "ILINCA", w = textWidth(name) + 9, x = p.x + PLATE_DX - (w / 2 | 0), y = DESK_FRONT + 8;
     rect(x + 1, y + 2, w, 9, "rgba(0,0,0,0.3)"); rect(x, y, w, 9, C.plate); hline(x, y + 8, w, C.plateS); vline(x + w - 1, y + 1, 8, C.plateS);
     drawText(name, x + 5, y + 2, C.ink);
   }
@@ -595,6 +604,7 @@
     stretch: "stretch", wave: "wave", highfive: "highfive", fold: "fold", "throw": "throw", shake: "shake", drink: "drink", offer: "offer",
     take: "take", rubEye: "yawn", yawn: "yawn", holdcup: "sip", pet: "pet", fan: "wave", fistpump: "fist", carry: "carry", release: "highfive",
     underdesk: "hide",                                                   // hands down in the lap, out of Maker's way
+    setdown: "shake2",                                                   // the shaker held on the desk top, before he lets it go
     startle: "surprise", facepalm: "facepalm"                            // the spark: a start, then a hand to his head (T38)
   };
   // Something always moves (Cole's note 9): each activity has frames of small motion the pose steps through, as
@@ -701,6 +711,18 @@
     var from = p.laptopOut ? "type" : keep || p.benchFrom || ((p.catLift === "type" || p.catLift === "write") ? p.catLift : greetFrom), q = from && p.poses[from];
     if (!q || (p.activity === from && !p.laptopOut)) { return; }
     var o = origin(p); Object.keys(q.props).forEach(function (n) { blit(q.props[n], o.x, o.y); });
+  }
+  // The work left on the desk while the hands do something else (the shake break, T48): a paper lies under the hands (only
+  // what is on the desk top: its picture carries a scrap of her blouse above the desk line), a laptop stands in front of
+  // them as it does while typing. p.deskProp is the activity whose things stay ("type", "write"); they stay where they
+  // were put however the figure moves (p.slide).
+  function drawDeskPropUnder(p) {
+    var q = p.deskProp === "write" && !p.hidden && p.poses.write; if (!q || !q.props.paper) { return; }
+    var o = origin(p); g.save(); g.beginPath(); g.rect(0, DESK_Y, W, H - DESK_Y); g.clip(); blit(q.props.paper, o.x - Math.round(p.slide), o.y); g.restore();
+  }
+  function drawDeskPropOver(p) {
+    var q = p.deskProp === "type" && !p.hidden && p.poses.type; if (!q || !q.props.laptop) { return; }
+    var o = origin(p); blit(q.props.laptop, o.x - Math.round(p.slide), o.y);
   }
   // A hand petting the cat lies on her: that part of the pose (a box in the figure's coordinates) goes on again after her.
   var PET_HAND = { cole: { pet: [60, 72, 86, 100], pethead: [28, 60, 52, 82], petcat: [44, 54, 82, 84], petcat2: [44, 54, 82, 84], petedge: [31, 66, 56, 104], petedge2: [31, 66, 57, 104] },   // T62: the hand on her head; the other forearm rests behind her
@@ -917,6 +939,13 @@
     });
   }
 
+  // The shaker sliding across the desk in the shake break, in its own desk-prop picture (propArt: x its middle, y one below
+  // its bottom row). It starts where his hands held it (shake2's shaker, set 3 px lower onto the desk top) and eases to a
+  // stop at her left, 43 px from her middle, moving toward the desk's front edge as it goes (so it ends in front of her
+  // forearms and clear of her mug, laptop and paper); n frames, the first step 4 px.
+  function shakerSlide() { var x0 = cole.x + 3, x1 = ilinca.x - 43; return { x0: x0, x1: x1, y0: DESK_Y + 2, y1: DESK_Y + 8, n: Math.ceil((x1 - x0) / 2) }; }
+  function shakerAt(k) { var s = shakerSlide(), p = clamp(k / s.n, 0, 1), e = 1 - (1 - p) * (1 - p); return { x: Math.round(s.x0 + (s.x1 - s.x0) * e), y: Math.round(s.y0 + (s.y1 - s.y0) * e) }; }
+
   var SCENARIOS = {
     // Cole sneaks a game on a red DS; Ilinca notices; he puts it away.
     ds: {
@@ -1081,28 +1110,44 @@
       },
       end: function () { ilinca.slide = 0; ilinca.hidden = false; ilinca.hold = null; extras = extras.filter(function (e) { return e.kind !== "mug"; }); }
     },
-    // Shake break: Cole mixes a bottle, drinks, passes it over.
+    // Shake break: Cole mixes the shaker, sets it down on the desk in front of him and slides it across to Ilinca (Cole's
+    // pick, round 31: "Slide it"; nobody moves in their seat). It slides along the desk top toward the front edge, slowing
+    // (4 px a frame at first, never more), and stops at her left, clear of her laptop, paper and mug and of his hands; she
+    // keeps working until it is almost there, reaches for it, lifts it and drinks, and sets it down where she took it.
+    // Her laptop or paper stays on the desk meanwhile (T48); a mug drunk from is part of her pose and goes when her hand
+    // leaves it for the shaker (T47: the desk mug is another size). Frame numbers below are counted from the push.
     shake: {
-      dur: 10,
+      dur: 11.5,
       steps: [
         [0, function () { setActivity(cole, "shake", 99); faceOf(cole, { mouth: "smile", look: { x: 0, y: 0 }, turn: 0 }); }],
-        // he shakes it and holds it straight out across the gap (he doesn't drink from it: Cole); she reaches over and
-        // takes it while his arm is still out; then she drinks
-        [2.6, function () { setActivity(cole, "offer", 99); lookAt(cole, ilinca.x, faceLevel(ilinca)); cole.mouth = "smile"; lookAt(ilinca, cole.x, faceLevel(cole)); faceOf(ilinca, { brows: "up", mouth: "smile" }); if (ilinca.activity !== "rest") { setActivity(ilinca, "rest", 99); } actors.lean = 1; }],   // she leaves her work to lean over (a laptop or a paper must not slide with her)
-        [3.7, function () { setActivity(ilinca, "take", 99); setActivity(cole, "offerEmpty", 99); ilinca.brows = null; }],
-        [4.5, function () { setActivity(cole, "rest", 99); actors.lean = -1; }],
-        [5.1, function () { setActivity(ilinca, "drink", 99); ilinca.mouth = "o"; ilinca.turn = 0; ilinca.lookTarget = { x: 0, y: -1 }; }],
-        [7.8, function () { setActivity(ilinca, "rest", 99); ilinca.mouth = "smile"; ilinca.nodAt = frame + 1; ilinca.hold = null; extras.push({ kind: "bottle", x: midX() + 22 }); }]
+        // he stops shaking and holds it on the desk top for a moment (shake2: the shaker 3 px above where it will stand)
+        [2.6, function () { setActivity(cole, "setdown", 99); lookAt(cole, ilinca.x, faceLevel(ilinca)); cole.mouth = "smile"; lookAt(ilinca, cole.x, faceLevel(cole)); faceOf(ilinca, { brows: "up", mouth: "smile" }); }],
+        // he lets go and it slides (the hands pushing it are still to be drawn: until then the hands come up, open)
+        [2.9, function () { setActivity(cole, "talk", 99); actors.shaker = { state: "slide", t0: frame }; }]
       ],
-      // They lean toward each other while his arm is out, a pixel a frame (L.lean: 8 each on a phone, 13 in the wide layout),
-      // so his hand is still on the shaker when hers takes it, and it moves 2 px across and 2 down as it changes hands (at
-      // 92 px apart on a phone it had jumped 18, in the wide layout 28, the hands apart); after the handover they lean back
-      update: function () {
-        var on = actors.lean === 1, k = L.lean || [0, 0];
-        if (!actors.lean) { return; }
-        cole.slide += clamp((on ? k[0] : 0) - cole.slide, -1, 1); ilinca.slide += clamp((on ? -k[1] : 0) - ilinca.slide, -1, 1);
+      update: function (t, f) {
+        var s = actors.shaker; if (!s) { return; }
+        var k = f - s.t0, n = shakerSlide().n;
+        if (s.state === "slide" && k >= n - 3 && !s.reached) {             // nearly there: she leaves her work and reaches for it
+          s.reached = true;
+          if (ilinca.activity === "type" || ilinca.activity === "write") { ilinca.deskProp = ilinca.activity; }
+          setActivity(ilinca, "pet", 99); ilinca.brows = null; var q = shakerAt(n); lookAt(ilinca, q.x, q.y - 20);
+        }
+        if (s.state === "slide" && k >= n + 4) {                           // she lifts it (in between frames still to be drawn)
+          s.state = "held"; s.at = f; setActivity(ilinca, "take", 99); lookAt(ilinca, cole.x, faceLevel(cole)); ilinca.mouth = "smile";
+          setActivity(cole, "rest", 99); cole.mouth = "smile";
+        }
+        if (s.state === "held" && f - s.at === 17) { setActivity(ilinca, "drink", 99); ilinca.mouth = "o"; ilinca.turn = 0; ilinca.lookTarget = { x: 0, y: -1 }; }
+        if (s.state === "held" && f - s.at === 49) { s.state = "down"; s.at = f; setActivity(ilinca, "pet", 99); ilinca.mouth = "smile"; ilinca.turn = 0; ilinca.hold = null; var r = shakerAt(1e6); lookAt(ilinca, r.x, r.y - 20); }   // she sets it down where she took it, her hand on it
+        if (s.state === "down" && f - s.at === 6) { setActivity(ilinca, "rest", 99); ilinca.nodAt = frame + 1; lookAt(ilinca, cole.x, faceLevel(cole)); }
       },
-      end: function () { cole.slide = 0; ilinca.slide = 0; extras = extras.filter(function (e) { return e.kind !== "bottle"; }); }
+      drawFront: function (t, f) {
+        var s = actors.shaker; if (!s || s.state === "held") { return; }
+        var q = shakerAt(s.state === "down" ? 1e6 : f - s.t0); if (ENV.ready) { propArt("bottle", q.x, q.y); } else { propBottle(q.x, q.y - 1); }
+        var d = ilinca.drawn, box = d && PET_HAND.ilinca[d.name];            // her hand on it lies over it
+        if (box && !ilinca.hidden) { g.save(); g.beginPath(); g.rect(d.o.x + box[0], d.o.y + box[1], box[2] - box[0], box[3] - box[1]); g.clip(); blit(d.pose.body, d.o.x, d.o.y); g.restore(); }
+      },
+      end: function () { ilinca.deskProp = null; }
     },
     // Late: a yawn passes between them.
     latenight: {
@@ -1159,7 +1204,7 @@
     scenario = null; actors = {}; convo = null; extras = [];
     people.forEach(function (p) {
       p.react = null; p.talking = false; p.gesture = false; p.turn = 0; p.turnUntil = 0; p.brows = null; p.mouth = "neutral"; p.hold = null; p.hidden = false; p.slide = 0;
-      p.held = false; p.laptopOut = false; p.keepProps = null; p.benchFrom = null; p.catLift = null; p.nodAt = 0; p.nod = 0; p.bob = 0; p.smileUntil = 0; p.lookTarget = { x: 0, y: 1 };
+      p.held = false; p.laptopOut = false; p.keepProps = null; p.deskProp = null; p.benchFrom = null; p.catLift = null; p.nodAt = 0; p.nod = 0; p.bob = 0; p.smileUntil = 0; p.lookTarget = { x: 0, y: 1 };
     });
   }
   function pickScenario() {
@@ -1345,7 +1390,7 @@
     for (var i = 0; i < people.length; i++) { drawCharacter(people[i], f); }
     if (scenario && scenario.drawMid) { scenario.drawMid(t, f); }        // between them and the desk: a cat on a keyboard
     if (art) { g.drawImage(ENV.img["desk-" + layoutName], 0, 0); } else { drawDesk(); }
-    people.forEach(drawOnDesk); people.forEach(drawLaptopOut);
+    people.forEach(drawDeskPropUnder); people.forEach(drawOnDesk); people.forEach(drawLaptopOut); people.forEach(drawDeskPropOver);
     if (art) { drawLampsArt(h, "front"); } else { drawLampBase(); }
     drawProps(f);
     if (!art) { drawLampCone(); drawLamp(); }
