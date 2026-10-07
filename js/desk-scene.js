@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.22.3
+ * Version 0.22.4
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -120,6 +120,11 @@
  *   every frame and both layouts, its tip still pulsing (IRON_FLAT); the pick's handle end tapers as in his hand and it
  *   lies 9 px further left; at night the station's holder darkens to the station's own grey, so under the lamp it no
  *   longer melts into his hand behind it (v0.22.3)
+ * Modified: 2026-10-06 - Round-31 fourth spark rework (T67, T84; audit of 99c05d7): the soldering station loses its T holder,
+ *   which no longer takes the iron and stood where his arms go (in facepalm it framed his lap hand and left a pixel of skin
+ *   beside it, in the start the same sliver, in a wave it lay on his raised elbow's outline); the box reads as a station by
+ *   its face instead: a temperature knob, the heater's red light, an orange readout (STATION_FACE). The dropped pick lies
+ *   three rows high in rows 138-140, 2 px of desk from the station, the board, the iron and the desk's front edge (v0.22.4)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(i),
@@ -555,15 +560,24 @@
     if (steam) { var k = (f >> 2) % 3; px(x - 2 + k, y - 14, C.smoke2); px(x + 1 - k, y - 17, C.smoke2); px(x - 1 + k, y - 20, C.smoke2); }
   }
   function steam(x, y, f) { var k = (f >> 2) % 3; px(x - 1 + k, y, C.smoke2); px(x + 2 - k, y - 3, C.smoke2); px(x + k, y - 6, C.smoke2); }
+  // Fourth spark rework (T67/T84, audit of 99c05d7; "Eliminating object clipping is essential"): the station's T holder is gone.
+  // The iron no longer goes in it (held while soldering, laid on the desk in the spark and the wave), and it stood exactly
+  // where his arms go: in facepalm its crossbar lay on his lap hand's outline and its stem ran down the hand's side leaving
+  // a pixel of skin; in the start the same sliver; in a wave its crossbar covered his raised elbow's outline. No other spot
+  // on or beside the station is clear of him (while soldering his forearm lies over the whole box top and his elbow just
+  // left of it). The box now says what it is by its face: a round temperature knob, the heater's red light and a dark
+  // readout lit in the iron tip's orange; drawn inside the box, so it never meets him. k ink, G knob rim, g knob, w its
+  // highlight, r red light, o readout.
+  var STATION_FACE = ['..................',
+                      '..GGG......kkkkkk.',
+                      '.GwggG..r..kookok.',
+                      '.GgggG.....kookok.',
+                      '..GGG......kkkkkk.',
+                      '..................'];
   function propSolderStation(x) {
-    var b = deskAt(0.35) + 1;                                              // standing on the desk's top, beside the board
-    rect(x - 10, b - 8, 20, 8, C.ink3); outline(x - 10, b - 8, 20, 8, C.ink); px(x - 7, b - 5, C.red); px(x - 4, b - 5, C.greenL); rect(x, b - 6, 6, 3, C.greyLight);
-    // Third spark rework (T84, the night clump): under the lamp at night the grey holder took the colour of his unlit hand
-    // behind it (lit 196,167,120 against 175,149,116), one beige mass in facepalm and in the start. At night it darkens to
-    // the station's own dark grey (ink3), lit a warm dark grey (119,95,72) against his hand lit or unlit, in every frame
-    // the station shows (soldering too), so it never changes between them; by day it stays as it was.
-    var tc = mix(C.grey, C.ink3, nightAmount(hourNow()));
-    rect(x + 6, b - 20, 2, 12, tc); hline(x + 3, b - 20, 8, tc);
+    var b = deskAt(0.35) + 1, col = { G: C.steelS, g: C.steel, w: C.white, k: C.ink, o: C.ironHot, r: C.red };   // standing on the desk's top, beside the board
+    rect(x - 10, b - 8, 20, 8, C.ink3); outline(x - 10, b - 8, 20, 8, C.ink);
+    for (var j = 0; j < STATION_FACE.length; j++) { for (var i = 0; i < STATION_FACE[j].length; i++) { var ch = STATION_FACE[j][i]; if (col[ch]) { px(x - 9 + i, b - 7 + j, col[ch]); } } }
   }
   // T67 (round-31 audit, "the tools never disappear"): what his hands are not holding rests on the bench, at the size it
   // has in his hand (the same blue, silver and yellow). Both while the spark has his hands up, the iron alone while he
@@ -593,16 +607,19 @@
   }
   // Second audit rework (T67, "Object scale must be consistent"): the pick lay on the board at 17 px, 60% of the pick in
   // his hand. In his hand it runs 28 px from the end of its handle to its point, through his fist (sprite (60, 62) to
-  // (46, 86)): it lies on the desk in front of the board at that length, 20 px of yellow handle and 8 of steel point (the
-  // point towards the station), outlined so it reads against the wood. Third rework: its handle's end tapers like the
-  // pick in his hand (it was square), and it lies 9 px further left, so the dropped iron fits beside it on phones.
-  var PICK_FLAT = ['.........kkkkkkkkkkkkkkkkkkkk.',
-                   'kkkkkkkkkccccccccccccccccccck.',
-                   'kggggggggcccccccccccccccccccck',
-                   'kkkkkkkkkkkkkkkkkkkkkkkkkkkkk.'];
+  // (46, 86)): it lies on the desk in front of the board at that length, yellow handle and steel point (the point towards
+  // the station), outlined so it reads against the wood. Third rework: its ends taper like the pick in his hand.
+  // Fourth rework (audit of 99c05d7): it had 1 px of desk to the station's corner and one row to the desk's front edge,
+  // and at display size its point met the station. Between the board (lower edge row 135) and the front edge (row 143) a
+  // tool keeps 2 px of desk only in rows 138-140, so it lies there three rows high (outline, colour, outline: a 1 px steel
+  // point as in his hand, a 1 px yellow handle, a pixel thinner than the 2 px it shows on the slant in his fist), from 3 px
+  // right of the station's corner to 3 px short of the dropped iron's tip: 27 px of colour (8 steel, 19 yellow).
+  var PICK_FLAT = ['.kkkkkkkkkkkkkkkkkkkkkkkkkkk.',
+                   'kggggggggccccccccccccccccccck',
+                   '.kkkkkkkkkkkkkkkkkkkkkkkkkkk.'];
   function restingPick() {
     if (!toolsResting().pick) { return; }
-    var o = origin(cole), x0 = o.x + 16, y0 = deskAt(0.7) - 2, col = { k: C.ink, g: C.steel, c: C.pick };
+    var o = origin(cole), x0 = o.x + 17, y0 = DESK_Y + 4, col = { k: C.ink, g: C.steel, c: C.pick };
     for (var j = 0; j < PICK_FLAT.length; j++) { for (var i = 0; i < PICK_FLAT[j].length; i++) { var ch = PICK_FLAT[j][i]; if (col[ch]) { px(x0 + i, y0 + j, col[ch]); } } }
   }
 
