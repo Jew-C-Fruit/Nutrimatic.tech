@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - poses.py
-Version 1.11.3
+Version 1.11.4
 
 Created: 2026-10-02 - The figures' body poses, from generated pictures, as layers under the base head; the neck, and
   Ilinca's top, taken from the base so every pose joins the same head; front boxes by eye (v1.0.0)
@@ -85,6 +85,9 @@ Modified: 2026-10-07 - Round 31, layout audit of the shake (T92 follow-up): one 
   highlight and her spout in the desk shaker's brown, so the one in their hands and the one standing on the desk are the
   same picture; the writing paper left on the desk whole ('prop_fix': the sheet as the write pose draws it, closed by a
   top edge; the lifted paper had holes where the hands lay) (v1.11.3)
+Modified: 2026-10-07 - Round 31, layout audit of cf7f44a: her 'pet' picture (her reach for the shaker) has her body down to
+  the desk under the reaching arm (PET_TORSO_ILINCA; the wall had shown there); his paper's sheet one row lower, at the
+  desk line like hers (v1.11.4)
 
 Every activity in the scene is drawn with a body pose: the whole torso with arms, hands and whatever they hold, made
 by the image model from the figure's own portrait (pose_sprites.py says how) and reduced to a sprite on the base
@@ -638,6 +641,24 @@ PET_ARM_COLE = [
     '______kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk',   # (to x 36: beside Maker's chin the rest pose's shirt edge was closed only by the hole filling)
 ]
 
+# Round 31, layout audit of the shake: her 'pet' picture (now only her reach for the shaker on the desk) was made with a
+# cat in front of her, so nothing of her lay between her chest and the desk: the wall showed under her reaching arm. Her
+# side and front go on down to the desk line: the blazer (a darker pocket under the arm), the lapel line, the blouse
+# between it and her hand on the desk. Rows from y 72, columns from x -3; drawn last ('post').
+PET_TORSO_ILINCA = [
+    '............QQ................',
+    '...........QQQQ...............',
+    '...........QQQQ...............',
+    '..........QQQQQ...............',
+    '.........QQQQQQQ..............',
+    '.......QQQQQQQQQJJJqWWWWWWW...',
+    '...JJJJJJJJJJJJJJJJqWWWWWWW...',
+    '..JJJJJJJJJJJJJJJJJqWWWWWWW...',
+    '.kJJJJJJJJJJJJJJJJJqWWWWWW....',
+    '.kJJJJJJJJJJJJJJJJJqWWWW......',
+    '.kJJJJJJJJJJJJJJJJJqWWW.......',
+    '.kJJJJJJJJJJJJJJJJJqW.........']
+
 # T60 (her petting frames, the audit after note o): Ilinca's petting arm as drawn by hand where the picture failed: her
 # sleeve outlined down its left side and carried down onto Maker's back (clearing the stand-in cat had left the wall
 # showing between them, and a ragged cuff); the hand on Maker's back with one outline, its fingertip no longer hanging
@@ -1007,7 +1028,7 @@ MANUAL = {
                            ('recolour', 14, 88, 72, 90, {'#fbfaf5': None, '#d9d5c8': None, '#cfd2d4': None}),
                            ('under', 22, 88, ['k' + 'w' * 40 + 'k', 'k' + 'g' * 40 + 'k', 'k' * 42], SKIN_COLE)],
                       props={'paper': (PAPER, (10, 80, 90, 100))}, frames={'write1': ((14, 64, 36, 92), 1, 0), 'write2': ((14, 64, 36, 92), 2, -1)},
-                      prop_fix={'paper': [('rows', 22, 87, ['_' + 'k' * 40 + '_', 'k' + 'w' * 40 + 'k', 'k' + 'g' * 40 + 'k', 'k' * 42])]}),   # left on the desk, whole (the sheet as this pose draws it, a top edge closing it)
+                      prop_fix={'paper': [('rows', 22, 87, ['_' * 42, 'k' + 'w' * 40 + 'k', 'k' + 'g' * 40 + 'k', 'k' * 42])]}),   # left on the desk, whole: the sheet as this pose draws it, from the desk line down (a top edge above it had drawn over his hand)
         # T28: the one shaker in every hand (the generated bottle goes, the shaker goes behind the fingers)
         'offer': dict(fix=[('recolour', 70, 12, 90, 52, {'#f9eee0': '#fbfaf5'}), ('erase', 70, 12, 90, 52, BOTTLE), ('under', 72, 16, shaker('cole'), SKIN_COLE)],
                       props={'bottle': (BOTTLE, (58, 0, 100, 50))}, empty={'offerEmpty': 'bottle'},
@@ -1061,6 +1082,7 @@ MANUAL = {
     },
     'ilinca': {
         'sip': dict(front=(-2, 20, 24, 46), front_mode='notface', front_face=True),
+        'pet': dict(post=[('rows', -3, 72, PET_TORSO_ILINCA)]),    # her reach for the shaker: her body down to the desk under the arm
         # T29 (2026-10-04: "Ilinca's hair still appears in front of her laptop. My laptop dims and shape are good, hers
         # aren't"): Cole's laptop (LID), standing on the desk in front of her middle; the scene draws it over her hair.
         # T31: her writing arms behind it, as his; the frames slide a sleeve in toward the keyboard

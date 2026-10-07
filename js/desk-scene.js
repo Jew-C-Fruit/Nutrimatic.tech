@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.21.7
+ * Version 0.21.8
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -127,6 +127,8 @@
  *   keyboard stay behind it, none of them below its front edge; the paper left on the desk is whole and the shaker in his
  *   hands is the desk one (tools/desk/poses.py v1.11.3); a paper left on the desk (a greeting, Maker on the desk too) lies
  *   whole under the hands, not over them (v0.21.7)
+ * Modified: 2026-10-07 - Layout audit of cf7f44a: his paper's sheet starts at the desk line (its top edge had drawn over his
+ *   hand on row 133); her reach for the shaker has her body down to the desk (tools/desk/poses.py v1.11.4) (v0.21.8)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(i),
@@ -729,7 +731,7 @@
   // paper lies under the hands (only the sheet: its picture carries a scrap of her blouse above it), a laptop stands in
   // front of them as it does while typing. p.deskProp is the activity whose things stay ("type", "write"); they stay where they
   // were put however the figure moves (p.slide).
-  var SHEET_TOP = { cole: 87, ilinca: 84 };                             // the sheet's top row in the paper picture (tools/desk/poses.py prop_fix); above it the picture carries scraps of the pose
+  var SHEET_TOP = { cole: 88, ilinca: 84 };                             // the sheet's top row in the paper picture, the desk line (tools/desk/poses.py prop_fix); above it the picture carries scraps of the pose
   function drawDeskPropUnder(p) {
     var q = p.deskProp === "write" && !p.hidden ? p.poses.write : leftOnDesk(p); if (!q || !q.props.paper) { return; }
     var o = origin(p), top = o.y + SHEET_TOP[p.name]; g.save(); g.beginPath(); g.rect(0, top, W, H - top); g.clip(); blit(q.props.paper, o.x - Math.round(p.slide), o.y); g.restore();
