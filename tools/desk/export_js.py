@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - export_js.py
-Version 1.5.0
+Version 1.6.0
 
 Created: 2026-10-02 - Writes js/desk-sprites.js from the sprite sources (v1.0.0)
 Modified: 2026-10-02 - Body poses (poses.py); layers run-length encoded, since there are now dozens of them (v1.1.0)
@@ -10,6 +10,7 @@ Modified: 2026-10-03 - Poses that keep their own head are marked (oh) (v1.3.0)
 Modified: 2026-10-03 - The looking-down head and its mouth frames (down) (v1.4.0)
 Modified: 2026-10-04 - Its eyes as frames too, open and closed (v1.4.1)
 Modified: 2026-10-04 - A pose's front layer drawn with the body ('fb'), apart from the one drawn with the head (v1.5.0)
+Modified: 2026-10-06 - A petting arm drawn again over the laptop or the paper ('o', to-do T91 in the visit, round-31 audit) (v1.6.0)
 
 export_js.py - write js/desk-sprites.js for the site from the finished sprites.
 
@@ -25,6 +26,7 @@ plain data so the scene needs no image files and no loading step:
                         a run of the same character is written once followed by its length in capitals (base 26, A = 0)
           poses         {name: {b: body layer, f: front layer (optional), pts: {name: [x, y]} (optional),
                         p: {prop name: layer} (optional: a prop lifted out of the pose, e.g. the laptop),
+                        o: layer (optional: the arm the scene draws again over the laptop or the paper the pose leaves out),
                         oh: 1 when the pose brings its own head (the scene draws no head or face over it)}}
           eyes, brows, mouth   frames as flat [x, y, colour, x, y, colour, ...] lists drawn over the head (-1 clears a pixel)
           down          {head: layer, eyes: {open, closed}, mouth: frames}: the head tipped toward the desk, drawn instead
@@ -75,7 +77,7 @@ def figure(c):
     for spr in (torso, head):
         for i in spr.used(): add(spr.pal[i])
     for q in built.values():
-        for part in [q['body'], q['front'], q.get('front_body')] + list(q.get('props', {}).values()):
+        for part in [q['body'], q['front'], q.get('front_body'), q.get('over')] + list(q.get('props', {}).values()):
             if part is not None:
                 for i in part[0].used(): add(part[0].pal[i])
     for group in fr.values():
@@ -104,6 +106,7 @@ def figure(c):
         if q.get('front_body') is not None: f, fx, fy = q['front_body']; entry['fb'] = layer(f, pal, fx, fy)   # drawn with the body, not the head
         if q['pts']: entry['pts'] = {k: list(v) for k, v in q['pts'].items()}
         if q.get('props'): entry['p'] = {k: layer(s, pal, sx, sy) for k, (s, sx, sy) in q['props'].items()}
+        if q.get('over') is not None: o, sx, sy = q['over']; entry['o'] = layer(o, pal, sx, sy)   # T91 (visit): over the prop
         if q.get('own_head'): entry['oh'] = 1
         out['poses'][name] = entry
     out['joints'] = {k: list(v) for k, v in c.joints.items()}

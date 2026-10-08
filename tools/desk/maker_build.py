@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - maker_build.py
-Version 1.7.0
+Version 1.7.1
 
 Created: 2026-10-02 - Maker the cat: five generated poses on one palette, eyes tidied (v1.0.0)
 Modified: 2026-10-02 - A fifth bigger (reduced again from the generated pictures: 62 px long walking, 45 px tall
@@ -21,6 +21,8 @@ Modified: 2026-10-03 - Note 6: the walk is rigged (walk_rig.py): twelve frames, 
 Modified: 2026-10-03 - The walk redone (Cole: the rigged walk was "completely wrong"): walk_rig.py 2.0 draws ten frames
   (walk0..walk9 and their Blink twins) on her standing body, the one she kneads in, after docs/animal-walk-cycles.md;
   the generated walk body (walk_body) is gone (v1.7.0)
+Modified: 2026-10-06 - Curled up, her bottom outline closed between tail and body: the paper she lies on showed through as
+  a light pixel (to-do T91) (v1.7.1)
 
 maker_build.py - Maker the cat: generated sprites (FLUX.2 klein 4B on her photos, see sources/PROVENANCE.md), reduced
 with tools/portraits/pixelize.py to a set size, recoloured to one shared palette close to her real blue-grey, and
@@ -259,6 +261,7 @@ def sprites(big=False):
         for e in eyes: eye(out[k], *e)
     for k, (cut, xr, add) in TAILS.items(): out[k] = elongate(out[k], cut, xr, add)
     out['loaf'] = smooth_lines(out['loaf'], (2, 12, 20, 27))           # lying: only the tail the scene hangs over the edge
+    out['curl'].put(42, 28, LINE)                                        # T91: her bottom outline closed between tail and body (the paper she lies on showed through)
     for k, box in PAWS.items(): out[k] = lift(out['stand'], *box)
     if big:
         base = dict(out); out = {}

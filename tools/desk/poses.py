@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - poses.py
-Version 1.13.0
+Version 1.14.0
 
 Created: 2026-10-02 - The figures' body poses, from generated pictures, as layers under the base head; the neck, and
   Ilinca's top, taken from the base so every pose joins the same head; front boxes by eye (v1.0.0)
@@ -93,6 +93,16 @@ Modified: 2026-10-06 - Round-31 audit rework (T67): the iron is one straight too
 Modified: 2026-10-06 - Round-31 second spark audit (T67, an old problem): a greeting from soldering keeps the board's
   lower edge (its dark copper and its outline) as in the soldering frames; wave_from had cleared them left of the seam
   and filled the gap with the copper above, a two-tone, stepped edge (v1.12.2)
+Modified: 2026-10-06 - Round 31, Maker on the laptop and the paper (to-do T88, T91): his hands-under-the-desk arms end on
+  the desk's edge (they ran a row over it); petting her behind the laptop's screen (petlap, petlap2: that pose with the
+  typing pose's arm reaching in behind the screen, the stroke sliding it); the whole paper as a prop ('sheet', drawn from
+  its map: the lifted paper had holes where the fingers lay); his forearm in petcat runs on behind her, his shirt down to
+  the desk behind it (v1.12.0 on r31-maker)
+Modified: 2026-10-06 - Round-31 audit of T88/T91: petting Maker behind his laptop screen, his arm reaches up to her back,
+  drawn by hand on the hands-under-the-desk pose (PETLAP_ARM, PETLAP_ARM2: the stroke in and out along the forearm; it
+  had been his typing arm, sliding sideways); his petting forearm on the paper lies on the desk (PETCAT_FOREARM_COLE: the
+  wall had shown under it in the phone layout); for the visit, petting with the laptop on the desk (petedgeLap: the other
+  hand at the keyboard) and the stroking arm as a layer the scene draws over the laptop or the paper ('over') (v1.13.0 on r31-maker)
 Modified: 2026-10-07 - Round 31, layout audit of the shake (T92 follow-up): one shaker everywhere, his cap without the pink
   highlight and her spout in the desk shaker's brown, so the one in their hands and the one standing on the desk are the
   same picture; the writing paper left on the desk whole ('prop_fix': the sheet as the write pose draws it, closed by a
@@ -109,6 +119,10 @@ Modified: 2026-10-07 - Round 31, layout audit of a426cd5: her take picture with 
 Modified: 2026-10-07 - Round-31 integration (r31-int): r31-nonhand (v1.11.6: T68-T70, Ilinca's arms, the shake's
   sheets and torsos) and r31-spark (v1.12.2: T67 soldering tools, T84 facepalm lap arm) merged; KEYS['cole'] carries
   both sides' letters (n, o: the same near-black; q; e), SHOULDERS both the sip's arm box (T69) and FACEPALM_FIX (T84) (v1.13.0)
+Modified: 2026-10-07 - Round-31 integration: r31-maker's audited core (0ad6b9d: T88 hands under the desk, petlap, the visit
+  keeping the laptop and paper, PETCAT_FOREARM_COLE) merged with the r31-int build; the writing paper is one whole prop
+  ('paper' closed by prop_fix, drawn under the hands); maker's 'sheet' map still gives the 'over' layers their outline
+  over the paper, and is then dropped, so no second sheet reaches the scene (v1.14.0)
 
 Every activity in the scene is drawn with a body pose: the whole torso with arms, hands and whatever they hold, made
 by the image model from the figure's own portrait (pose_sprites.py says how) and reduced to a sprite on the base
@@ -226,6 +240,10 @@ CAT_GREYS = {'#9a9ea2', '#cfd2d4', '#5f6368', '#a19c9c', '#ddd6cf', '#d9a650'}
 LAPTOP = {'#cfd2d4', '#9a9ea2', '#5f6368', '#dfe9f5', '#7fb2e0', '#d9d5c8', '#fbfaf5'}
 BOARD = {'#d9a650', '#7d6230', '#2f6b3a', '#1f4a28', '#3d5f99', '#5f6368'}   # the soldering boards and the parts on them
 PAPER = {'#fbfaf5', '#d9d5c8'}
+# the writing paper on the desk line, edge-on (note 9d): drawn under the writing hands, and whole as the prop 'sheet' the scene
+# draws while the hands are off it (T91, "cole's paper disappears when maker shows up": lifted from the pose, the paper had
+# holes where the fingers lay on it and lost its grey edge and outline, so only a broken white line stayed)
+SHEET = {'cole': (22, 88, ['k' + 'w' * 40 + 'k', 'k' + 'g' * 40 + 'k', 'k' * 42]), 'ilinca': (-4, 85, ['k' + 'W' * 38 + 'k', 'k' * 40])}
 BOTTLE = {'#fbfaf5', '#d9d5c8', '#cfd2d4', '#e4002b', '#a3001f', '#ff5a72'}
 # T29, T45: the laptop both of them type on, the plain back of its screen, the size and shape of the one in Cole's
 # generated typing picture (he: "My laptop dims and shape are good"), redrawn square: that picture's lid had a notch
@@ -704,6 +722,17 @@ TAKE_TORSO_ILINCA = [
     'kJJJJJJJJJJJ',
     'kJJJJJJJJJJJ']
 
+# Round-31 audit of T91 (Maker on his paper, phone layout: the wall showed under his petting forearm, x 26-50 on rows 132-133,
+# so it hovered two rows over the desk; only from x 51 on did his shirt run down to the desk): the forearm lies on the desk.
+# Its underside is carried down to the desk line (row 87) from the elbow to where his shirt shows below it, then rises in a
+# slope to its old lower edge; the shaded underside bands go down with it ('a' below the mid tone). Rows from y 84, x from -8.
+PETCAT_FOREARM_COLE = [
+    'kaaaaaaaaaammmmmmmmmmmmmmmmmk',
+    '_kaaaaaaaaammmmmmmmmmmmmmkkkt',
+    '__kaaaaaaaaaaaaaaaaaaakkktttt',
+    '___kkkkkkkkkkkkkkkkkkkkkkkkkk',
+]
+
 # T60 (her petting frames, the audit after note o): Ilinca's petting arm as drawn by hand where the picture failed: her
 # sleeve outlined down its left side and carried down onto Maker's back (clearing the stand-in cat had left the wall
 # showing between them, and a ragged cuff); the hand on Maker's back with one outline, its fingertip no longer hanging
@@ -1069,7 +1098,10 @@ MANUAL = {
                       paint=[('body', 20, 84, COLE_THINK_HAND), ('front', 54, 46, ['_']),   # T59 rework: the hand on the desk drawn whole; a shirt pixel outside his forearm's outline
                              ('front', 30, 36, COLE_THINK_NECK_CLEAR), ('body', 30, 39, COLE_THINK_COLLAR)],   # T68: the rest pose's neck and collar behind the fist
                       frames={'think1': {'edits': COLE_THINK_TAP}}),            # T7: the fingers on the desk drum (two lift a row; a box shift had doubled a finger line)
-        'hide': dict(fix=[('clear', -24, 89, 110, 104)]),                # hands in his lap: nothing of them below the desk line (note 9b)
+        # hands in his lap: nothing of them below the desk line (note 9b); T88 ("arms supposed to be hidden by table, but slightly
+        # overlap with it. Line on arms must coincide with edge of desk"): nor on the desk row itself, the desk's first row (his
+        # forearms ran a pixel over its edge), so they end exactly where the desk begins
+        'hide': dict(fix=[('clear', -24, 88, 110, 104)]),
         # note 9a, motion in every activity: frames the scene cycles through (a forearm typing behind the screen, a hand to
         # the trackpad, thumbs on the console, a fidgeting hand)
         # T60 (l) ("at rest, cole's hands are badly drawn"): both hands drawn by hand (REST_HAND), after the softening; the
@@ -1077,7 +1109,16 @@ MANUAL = {
         'rest': dict(post=rest_hands(), frames={'rest1': {'edits': [('clear', 4, 89, 34, 99), ('rows', 4, 86, REST_HAND_LIFT)]}}),
         # petting Maker lying beside him: the picture had a grey cat under his hand; it goes, and the scene lays Maker in
         # its place (RIG below), so the hand lies exactly on her back; the hand moves a little as it strokes
-        'petcat': dict(fix=[('erase', 28, 60, 86, 93, CAT_GREYS)], frames={'petcat2': ((46, 56, 80, 82), -2, 0)}),
+        # T91 ("hand is disconnected", Maker on his paper): the forearm on the desk ended in a stump beside her head, the wall
+        # showing between them and under it, where the picture's cat had been. Drawn after the cleanup ('late'): the forearm runs
+        # on behind her (its end out of sight under her), his shirt goes on down behind it to the desk line with its hem there
+        # as in his other poses, and the dark specks under the old end go. (The hand on her back is the hand library's.)
+        'petcat': dict(fix=[('erase', 28, 60, 86, 93, CAT_GREYS),
+                            ('late', [('clear', 25, 84, 27, 86), ('rows', 25, 72, ['u' * 16] + ['s' * 16] * 8 + ['a' * 16] * 2 + ['k' * 16]),
+                                      ('holes', 15, 64, 40, 71, '#211f1f'), ('holes', 15, 84, 40, 86, '#211f1f'),
+                                      ('rows', 14, 85, ['k', 'k']), ('rows', 14, 87, ['k' * 27]), ('holes', 49, 64, 49, 64, '#211f1f'),   # (and a pinhole of wall between the shirt, the hand and her back)
+                                      ('rows', -8, 84, PETCAT_FOREARM_COLE)])],
+                       frames={'petcat2': ((46, 56, 80, 82), -2, 0)}),
         # note 12: Maker lies at the desk's front edge now; this picture was made with her pasted there (work folder
         # petedge/), so the hand lands on her back; everything of the stand-in cat but the hand goes
         # T60 (n, o): built on the rest picture (the shoulders, the sleeves, the shirt to the desk, the other arm), the petting
@@ -1107,8 +1148,8 @@ MANUAL = {
         # not a sheet in perspective hanging over the desk's front (what the paper covered above the desk is his shirt)
         'write': dict(fix=[('recolour', 20, 82, 64, 87, {'#fbfaf5': '#211f1f', '#d9d5c8': '#211f1f'}), ('clear', 14, 91, 72, 98),
                            ('recolour', 14, 88, 72, 90, {'#fbfaf5': None, '#d9d5c8': None, '#cfd2d4': None}),
-                           ('under', 22, 88, ['k' + 'w' * 40 + 'k', 'k' + 'g' * 40 + 'k', 'k' * 42], SKIN_COLE)],
-                      props={'paper': (PAPER, (10, 80, 90, 100))}, frames={'write1': ((14, 64, 36, 92), 1, 0), 'write2': ((14, 64, 36, 92), 2, -1)},
+                           ('under',) + SHEET['cole'] + (SKIN_COLE,)],
+                      props={'paper': (PAPER, (10, 80, 90, 100)), 'sheet': ('map',) + SHEET['cole']}, frames={'write1': ((14, 64, 36, 92), 1, 0), 'write2': ((14, 64, 36, 92), 2, -1)},
                       prop_fix={'paper': [('rows', 22, 87, ['_' + 'k' * 40 + '_', 'k' + 'w' * 40 + 'k', 'k' + 'g' * 40 + 'k', 'k' * 42])]}),   # left on the desk, whole: the sheet as this pose draws it, closed by a top edge on the row above the desk line (the scene draws that row before him, so he stays in front of it)
         # T28: the one shaker in every hand (the generated bottle goes, the shaker goes behind the fingers)
         'offer': dict(fix=[('recolour', 70, 12, 90, 52, {'#f9eee0': '#fbfaf5'}), ('erase', 70, 12, 90, 52, BOTTLE), ('under', 72, 16, shaker('cole'), SKIN_COLE)],
@@ -1198,8 +1239,8 @@ MANUAL = {
         'rest': dict(fix=[('recolour', 56, 55, 64, 66, {'#5f6368': '#191718', '#9a9ea2': '#292423'})],   # a grey chair corner by her shoulder
                      frames={'rest1': ((6, 72, 36, 88), 0, -1)}),
         'write': dict(fix=[('clear', -8, 87, 36, 92), ('recolour', -8, 85, 36, 86, {'#fbfaf5': None}),
-                           ('under', -4, 85, ['k' + 'W' * 38 + 'k', 'k' * 40], SKIN_ILINCA | SLEEVE_ILINCA)],
-                      props={'paper': (PAPER, (-14, 74, 40, 96))}, frames={'write1': ((-6, 60, 16, 90), 1, 0), 'write2': ((-6, 60, 16, 90), 2, -1)},
+                           ('under',) + SHEET['ilinca'] + (SKIN_ILINCA | SLEEVE_ILINCA,)],
+                      props={'paper': (PAPER, (-14, 74, 40, 96)), 'sheet': ('map',) + SHEET['ilinca']}, frames={'write1': ((-6, 60, 16, 90), 1, 0), 'write2': ((-6, 60, 16, 90), 2, -1)},
                       prop_fix={'paper': [('rows', -4, 84, ['_' + 'k' * 38 + '_', 'k' + 'W' * 38 + 'k', 'k' * 40])]}),   # left on the desk, whole (the sheet as this pose draws it, a top edge closing it)
         # T40 (2026-10-04, "the elbow she's resting on should be more towards the middle of her body"): a new picture, the
         # forearm upright down the middle of her chest; the fist under her chin goes in front of her jaw
@@ -2001,6 +2042,143 @@ def wave_from(c, act, wave, seam):
     return dict(body=(out, x0, y0), front=fr, pts={}, props=act['props'])
 
 
+# T88 (Cole, Maker on his laptop: "Cole should move arm as if to pet maker's back after a moment of looking annoyed. hand
+# should not be visible"): she sits on the keyboard behind the screen, which the scene draws in front of her and of him, her
+# back to him. Round-31 audit: the first try was his typing arm at keyboard height, its stroke sliding sideways as typing
+# does, so it could read as typing one-handed. Now his arm on the viewer's left reaches up and in behind the screen to her
+# back, drawn by hand on his hands-under-the-desk pose (the other arm stays under the desk): his shoulder and sleeve as in
+# that pose, the sleeve swinging out a little to its hem, the bare upper arm below it, the elbow off the desk (clear of the
+# desk's edge in both layouts), the forearm rising at about 37 degrees to the screen's left edge, as thick as his petting
+# forearm at the desk's edge (PET_ARM_COLE), where the scene's laptop hides the hand; one outline from the sleeve round the
+# elbow and along the forearm, the shirt of his side down to the desk under it. The stroke (petlap2) is the same arm drawn
+# two pixels back along itself (the elbow down and out), so the hand moves in and out along her back instead of sideways.
+# x from -8, rows from 56 ('_' clears; the forearm runs on under the screen's edge, x 16, to x 18).
+PETLAP_ARM = [   # reaching in
+    '________________kttttttttkk',
+    '_______________kuuttttttkss',
+    '______________kuttttttkksss',
+    '_____________kuutttttksssss',
+    '____________kuutttttkssssss',   # 60
+    '___________kuuttttkksssssss',
+    '__________kuuttttksssssssss',
+    '_________kuutttkkssssssssss',
+    '________kuutttkssssssssssss',
+    '_______kuutttkssssssssssssm',   # 65
+    '______kuutttksssssssssssmmm',
+    '_____kkkkkkksssssssssssmmma',
+    '____kasssssssssssssssmmmaak',
+    '____kassssssssssssssmmmakku',
+    '___kassssssssssssmmmmaakuut',   # 70
+    '___kasssssssssssmmmmakkuttt',
+    '___kassssssssssmmmmakuutttt',
+    '___kassssssssmmmmaakutttttt',
+    '___kasssssssmmmmakkuttttttt',
+    '___kasssssssmmmakuutttttttt',   # 75
+    '___kammmmmmmmaakutttttttttt',
+    '____kammmmmmakkuttttttttttt',
+    '_____kaaaaaakuutttttttttttt',
+    '______kkkkkkkuutttttttttttt',
+    '____________kuutttttttttttt',   # 80
+    '____________kuutttttttttttt',
+    '____________kuutttttttttttt',
+    '____________kuutttttttttttt',
+    '____________kuutttttttttttt',
+    '____________kuutttttttttttt',   # 85
+    '____________kuutttttttttttt',
+    '____________kuutttttttttttt',
+]
+PETLAP_ARM2 = [   # drawn back two pixels along the forearm
+    '________________kttttttttks',
+    '_______________kuutttttkkss',
+    '______________kuttttttkssss',
+    '_____________kuuttttkksssss',
+    '____________kuuttttksssssss',   # 60
+    '___________kuuttttkssssssss',
+    '__________kuutttkksssssssss',
+    '_________kuutttksssssssssss',
+    '________kuuttkkssssssssssss',
+    '_______kuuttkssssssssssssmm',   # 65
+    '______kuuttkssssssssssssmmm',
+    '_____kkkkkksssssssssssmmmaa',
+    '___kkasssssssssssssssmmmakk',
+    '__kasssssssssssssssmmmaakuu',
+    '__kassssssssssssssmmmakkutt',   # 70
+    '_kassssssssssssmmmmaakuuttt',
+    '_kasssssssssssmmmmakkuttttt',
+    '_kassssssssssmmmmakuutttttt',
+    '_kassssssssmmmmaakutttttttt',
+    '_kasssssssmmmmakkuttttttttt',   # 75
+    '_kasssssssmmmakuutttttttttt',
+    '_kammmmmmmmaakutttttttttttt',
+    '__kammmmmmakkuttttttttttttt',
+    '___kaaaaaakkkuutttttttttttt',
+    '____kkkkkk__kuutttttttttttt',   # 80
+    '____________kuutttttttttttt',
+    '____________kuutttttttttttt',
+    '____________kuutttttttttttt',
+    '____________kuutttttttttttt',
+    '____________kuutttttttttttt',   # 85
+    '____________kuutttttttttttt',
+    '____________kuutttttttttttt',
+]
+PET_LAP = {'cole': {'petlap': ('hide', -8, 56, PETLAP_ARM), 'petlap2': ('hide', -8, 56, PETLAP_ARM2)}}
+
+# Round-31 audit (Cole's T91 symptom in the visit, "cole's paper disappears when maker shows up": the laptop or the paper
+# went when the stroking began and stayed gone): now it stays on the desk. Typing, one hand stays at the keyboard behind the
+# screen while the other strokes her (petedgeLap: the petting pose with the typing pose's other arm, from these boxes,
+# base coordinates, inclusive, every seam behind the laptop; the resting hand of the petting pose had run out below the
+# laptop and been cut by its edge).
+PET_KEYS = {'cole': [(58, 0, 120, 120), (50, 82, 120, 120)], 'ilinca': [(26, 0, 120, 120)]}
+# The arm that strokes her reaches past the laptop's screen or lies on the paper: its skin and the outline touching it, in
+# these boxes (base coordinates, inclusive), make the pose's 'over' layer, which the scene draws after the prop (so the arm
+# is in front of the laptop's screen as it reaches round it to her at the desk's front edge, and the hands lie on the paper).
+# Over the prop (the pose and prop named) the skin gets one closed black outline of its own: where the hand had met her
+# blazer it had none, and a pixel of outline drawn by her hair lock would have floated on the screen.
+PET_OVER = {'cole': {'petedge': ((-40, 56, 120, 110), 'write', 'sheet'), 'petedgeLap': ((-40, 56, 57, 81), 'type', 'laptop')},
+            'ilinca': {'petedge': ((-40, 56, 120, 110), 'write', 'sheet'), 'petedgeLap': ((-40, 56, 16, 80), 'type', 'laptop')}}
+
+
+def graft(base, donor, boxes):
+    """the built pose `base` with what the built pose `donor` has inside the boxes (base coordinates, inclusive; its empty
+    pixels too) in place of base's own there, in the body and the body-front layers; the face-front layer is base's"""
+    def merged(a, d):
+        if a is None and d is None: return None
+        ref = a if a is not None else d
+        (bb, bx, by) = a if a is not None else (Sprite(-np.ones((1, 1), np.int16), list(ref[0].pal)), ref[1], ref[2])
+        (db, dx_, dy_) = d if d is not None else (Sprite(-np.ones((1, 1), np.int16), list(bb.pal)), bx, by)
+        x0, y0 = min(bx, dx_), min(by, dy_); x1, y1 = max(bx + bb.w, dx_ + db.w), max(by + bb.h, dy_ + db.h)
+        out = Sprite(-np.ones((y1 - y0, x1 - x0), np.int16), list(bb.pal))
+        def place(s, sx, sy):
+            q = -np.ones(out.idx.shape, np.int16); src = np.array([out.color(col) for col in s.pal] + [-1], np.int16)
+            q[sy - y0:sy - y0 + s.h, sx - x0:sx - x0 + s.w] = src[s.idx]; return q
+        A, D = place(bb, bx, by), place(db, dx_, dy_)
+        X = np.arange(A.shape[1])[None, :] + x0; Y = np.arange(A.shape[0])[:, None] + y0
+        inbox = np.zeros(A.shape, bool)
+        for box in boxes: inbox |= (X >= box[0]) & (X <= box[2]) & (Y >= box[1]) & (Y <= box[3])
+        out.idx = np.where(inbox, D, A).astype(np.int16)
+        return (out, x0, y0) if (out.idx >= 0).any() else None
+    return dict(base, body=merged(base['body'], donor['body']), front_body=merged(base.get('front_body'), donor.get('front_body')), props={})
+
+
+def over_layer(who, entry, box, prop):
+    """the arm the scene draws again over a prop: the pose's skin inside the box (base coordinates, inclusive) and the
+    outline touching it (as _maker_clear keeps a hand); where the prop (sprite, x, y) lies, the skin's own closed outline
+    instead (the pixels next to it, edge to edge, black unless the pose has an outline colour there)"""
+    from scipy import ndimage as nd
+    s, ox, oy = entry['body']; o = s.copy()
+    Y, X = np.mgrid[0:s.h, 0:s.w]; X = X + ox; Y = Y + oy
+    inbox = (X >= box[0]) & (X <= box[2]) & (Y >= box[1]) & (Y <= box[3])
+    ps, px_, py_ = prop; under = np.zeros(s.idx.shape, bool)
+    yy, xx = np.nonzero(ps.idx >= 0); yy, xx = yy + py_ - oy, xx + px_ - ox; ok = (yy >= 0) & (yy < s.h) & (xx >= 0) & (xx < s.w); under[yy[ok], xx[ok]] = True
+    sk = np.isin(s.idx, [i for i, c in enumerate(s.pal) if c in SOFTEN[who][0][0]]) & inbox
+    ink = np.isin(s.idx, [i for i, c in enumerate(s.pal) if c in LINES[who] | {KEYS[who]['k']}])
+    ring = nd.binary_dilation(sk, structure=np.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]], bool)) & ~sk & inbox
+    keep = sk | (ink & nd.binary_dilation(sk, structure=np.ones((3, 3), bool)) & inbox & ~under) | (ring & under)
+    o.idx[ring & under & ~ink] = o.color(KEYS[who]['k'])
+    o.idx[~keep] = -1
+    return (o, ox, oy) if keep.any() else None
+
+
 # T30 (2026-10-04, "My shoulders change shape and size frequently"): ten of his poses share the rest pose's shoulders;
 # the others had higher, wider ones. Those take the rest pose's shoulder line: from his collar down, left of his neck (L)
 # and right of it (R), the outline is the rest pose's, then over BLEND rows it eases out to the pose's own (its arms
@@ -2197,11 +2375,16 @@ def build(c):
         if man.get('post'): body = fix(body, meta['x'], meta['y'], man['post'], KEYS[who])
         entry = dict(body=(body, meta['x'], meta['y']), front=fr_, front_body=fb_, pts=man.get('pts', {}), props={})
         masks = {}
-        for name, (cols, box) in man.get('props', {}).items():
-            # the prop comes from the pose before its head area was cut away (a laptop reaching up into the hair was cut
-            # there, and the cat showed through that gap when the laptop was drawn over her alone)
-            prop, mask = lift_prop(spr if spr.idx.shape == body.idx.shape else body, meta['x'], meta['y'], cols, box)
-            if man.get('prop_fix', {}).get(name): prop = fix(prop, meta['x'], meta['y'], man['prop_fix'][name], KEYS[who])   # e.g. the paper whole where the hands had covered it
+        for name, spec in man.get('props', {}).items():
+            if spec[0] == 'map':                                         # T91: a prop drawn whole from its pixel map (the paper's sheet)
+                _, mx, my, rows = spec; prop = Sprite(-np.ones(body.idx.shape, np.int16), list(body.pal))
+                prop.rows(mx - meta['x'], my - meta['y'], rows, KEYS[who]); mask = prop.idx >= 0
+            else:
+                # the prop comes from the pose before its head area was cut away (a laptop reaching up into the hair was cut
+                # there, and the cat showed through that gap when the laptop was drawn over her alone)
+                cols, box = spec
+                prop, mask = lift_prop(spr if spr.idx.shape == body.idx.shape else body, meta['x'], meta['y'], cols, box)
+                if man.get('prop_fix', {}).get(name): prop = fix(prop, meta['x'], meta['y'], man['prop_fix'][name], KEYS[who])   # e.g. the paper whole where the hands had covered it
             entry['props'][name] = (prop, meta['x'], meta['y']); masks[name] = mask & (body.idx >= 0)
         out[pose] = entry
         if man.get('tools'): entry['_tools'] = [(n_, x_, y_, rows_, 0, 0) for n_, (x_, y_, rows_) in man['tools'].items()]   # T67: drawn last (tools_on)
@@ -2263,6 +2446,19 @@ def build(c):
                     if keep: e['_tools'] = keep
     for pose in list(out):                                               # T67: the tools last, over the finished hands and shirt
         if out[pose].get('_tools'): out[pose] = tools_on(out[pose], KEYS[who])
+    for pose, (base, mx, my, arm) in PET_LAP.get(who, {}).items():     # T88 rework: petting Maker behind the screen, the arm drawn by hand
+        if base in out:
+            bb, bx, by = out[base]['body']; bb = bb.copy()
+            if mx < bx: bb = bb.pad(left=bx - mx); bx = mx
+            bb.rows(mx - bx, my - by, arm, KEYS[who])
+            out[pose] = dict(out[base], body=(pinholes(bb, bx, by, head, None, desk=c.desk), bx, by), front=None, front_body=None, pts={}, props={})
+    for pose in ('petedge', 'petedge2'):                                 # round-31 audit: the visit keeps the laptop (one hand at the keyboard)
+        if pose in out and 'type' in out and who in PET_KEYS: out[pose.replace('petedge', 'petedgeLap')] = graft(out[pose], out['type'], PET_KEYS[who])
+    for pose, (box, src, prop) in PET_OVER.get(who, {}).items():         # and the stroking arm goes over the laptop or the paper
+        for name in (pose, pose + '2'):
+            if name in out and src in out: out[name] = dict(out[name], over=over_layer(who, out[name], box, out[src]['props'][prop]))
+    for e in out.values():                                               # (round-31 integration: the paper is one prop, 'paper', whole and
+        if 'sheet' in e.get('props', {}): e['props'] = {k: v for k, v in e['props'].items() if k != 'sheet'}   # under the hands; 'sheet' only outlined 'over')
     return out
 
 
