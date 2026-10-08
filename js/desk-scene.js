@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.24.0
+ * Version 0.24.1
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -199,6 +199,10 @@
  *   hands under the desk and his kept sheet's top; one sheet drawing, the whole paper under the hands (r31-nonhand's,
  *   closed by its top edge), so the visit and the laptop scenes draw no second sheet; the petting arm's 'over' layer
  *   after the props; a seal pixel is never drawn below the desk edge of a pose clipped there (v0.24.0)
+ * Modified: 2026-10-07 - Round-31 integration fix: in the visit, stroking Maker from his paper, the sheet under his hands had lost
+ *   its white to his petting pose's shirt hem on the desk's first row (a thin grey line was left: the paper read as gone);
+ *   a pose with an arm drawn 'over' gets the paper's sheet over it once more and the arm over that, as r31-maker's audited
+ *   visit drew it (v0.24.1)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(i),
@@ -949,7 +953,11 @@
   function drawLaptopOut(p) {                                           // (a paper lies under the hands: drawDeskPropUnder)
     var q = leftOnDesk(p); if (!q) { return; }
     var o = origin(p), d = p.drawn; Object.keys(q.props).forEach(function (n) { if (n !== "paper") { blit(q.props[n], o.x, o.y); } });
-    if (d && d.pose.over) { blit(d.pose.over, d.o.x, d.o.y + d.jig); }   // (the petting arm in front of the laptop's screen, or on the paper)
+    // (the petting arm in front of the laptop's screen, or on the paper. Round-31 integration: his petting pose has his shirt
+    // down onto the desk's first row, where the paper lies, so under the hands the sheet had lost its white to the shirt's
+    // hem in the visit, a thin grey line left; with an arm drawn 'over', the paper's sheet goes over the pose once more and
+    // the arm over it, as r31-maker's audited visit drew it: the paper in front of his shirt, his arm and hand on it)
+    if (d && d.pose.over) { drawDeskPropUnder(p); blit(d.pose.over, d.o.x, d.o.y + d.jig); }
   }
   // The work left on the desk while the hands do something else (the shake break, T48; a greeting, Maker on the desk): a
   // paper lies under the hands (only the sheet: its picture carries a scrap of her blouse above it), a laptop stands in
