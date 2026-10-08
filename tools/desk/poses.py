@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - poses.py
-Version 1.14.0
+Version 1.14.1
 
 Created: 2026-10-02 - The figures' body poses, from generated pictures, as layers under the base head; the neck, and
   Ilinca's top, taken from the base so every pose joins the same head; front boxes by eye (v1.0.0)
@@ -123,6 +123,9 @@ Modified: 2026-10-07 - Round-31 integration: r31-maker's audited core (0ad6b9d: 
   keeping the laptop and paper, PETCAT_FOREARM_COLE) merged with the r31-int build; the writing paper is one whole prop
   ('paper' closed by prop_fix, drawn under the hands); maker's 'sheet' map still gives the 'over' layers their outline
   over the paper, and is then dropped, so no second sheet reaches the scene (v1.14.0)
+Modified: 2026-10-08 - Round-31 integration audit of Cole's side: three old holes closed, a pixel of wall between his thumb and
+  Maker in petcat2 (his thumb's dark shade), three under his lifted hand in write2 and two beside his forearm in both folding
+  frames on the desk line (his shirt, and the forearm's outline carried down) (v1.14.1)
 
 Every activity in the scene is drawn with a body pose: the whole torso with arms, hands and whatever they hold, made
 by the image model from the figure's own portrait (pose_sprites.py says how) and reduced to a sprite on the base
@@ -1118,7 +1121,9 @@ MANUAL = {
                                       ('holes', 15, 64, 40, 71, '#211f1f'), ('holes', 15, 84, 40, 86, '#211f1f'),
                                       ('rows', 14, 85, ['k', 'k']), ('rows', 14, 87, ['k' * 27]), ('holes', 49, 64, 49, 64, '#211f1f'),   # (and a pinhole of wall between the shirt, the hand and her back)
                                       ('rows', -8, 84, PETCAT_FOREARM_COLE)])],
-                       frames={'petcat2': ((46, 56, 80, 82), -2, 0)}),
+                       # (round-31 integration audit: the stroke moves his hand two pixels left, Maker stays, and a pixel of wall
+                       # showed between his thumb and her back, sprite (54, 66): it takes the thumb's dark shade around it)
+                       frames={'petcat2': {'box': (46, 56, 80, 82), 'dx': -2, 'dy': 0, 'edits': [('rows', 54, 66, ['u'])]}}),
         # note 12: Maker lies at the desk's front edge now; this picture was made with her pasted there (work folder
         # petedge/), so the hand lands on her back; everything of the stand-in cat but the hand goes
         # T60 (n, o): built on the rest picture (the shoulders, the sleeves, the shirt to the desk, the other arm), the petting
@@ -1149,7 +1154,10 @@ MANUAL = {
         'write': dict(fix=[('recolour', 20, 82, 64, 87, {'#fbfaf5': '#211f1f', '#d9d5c8': '#211f1f'}), ('clear', 14, 91, 72, 98),
                            ('recolour', 14, 88, 72, 90, {'#fbfaf5': None, '#d9d5c8': None, '#cfd2d4': None}),
                            ('under',) + SHEET['cole'] + (SKIN_COLE,)],
-                      props={'paper': (PAPER, (10, 80, 90, 100)), 'sheet': ('map',) + SHEET['cole']}, frames={'write1': ((14, 64, 36, 92), 1, 0), 'write2': ((14, 64, 36, 92), 2, -1)},
+                      props={'paper': (PAPER, (10, 80, 90, 100)), 'sheet': ('map',) + SHEET['cole']}, frames={'write1': ((14, 64, 36, 92), 1, 0),
+                      # (round-31 integration audit: lifted a pixel, his hand left three pixels of wall under it on the desk line on a
+                      # phone, sprite (16-18, 87): his shirt shows there behind the lifted hand, under its own outline)
+                      'write2': {'box': (14, 64, 36, 92), 'dx': 2, 'dy': -1, 'edits': [('rows', 16, 87, ['ttt'])]}},
                       prop_fix={'paper': [('rows', 22, 87, ['_' + 'k' * 40 + '_', 'k' + 'w' * 40 + 'k', 'k' + 'g' * 40 + 'k', 'k' * 42])]}),   # left on the desk, whole: the sheet as this pose draws it, closed by a top edge on the row above the desk line (the scene draws that row before him, so he stays in front of it)
         # T28: the one shaker in every hand (the generated bottle goes, the shaker goes behind the fingers)
         'offer': dict(fix=[('recolour', 70, 12, 90, 52, {'#f9eee0': '#fbfaf5'}), ('erase', 70, 12, 90, 52, BOTTLE), ('under', 72, 16, shaker('cole'), SKIN_COLE)],
@@ -1182,7 +1190,10 @@ MANUAL = {
                       fix=[('erase', 74, 18, 98, 38, PAPER), ('clear', 64, 20, 95, 67), ('rows', 62, 30, THROW_HAND),
                            ('under', THROW_PLANE[0], THROW_PLANE[1], PLANE, SKIN_COLE, True)]),
         # T42: he folds it in three steps, the paper getting smaller each time (the generated sheet goes)
+        # (round-31 integration audit: two pixels of wall on the desk line between his forearm's lower outline and the shirt
+        # strip beside it on a phone, sprite (59-60, 87), in both folding frames: the strip and the outline go on down to it)
         'fold': dict(fix=[('erase', 20, 56, 58, 88, PAPER), ('holes', 20, 56, 58, 88, '#211f1f'), ('under', 24, 56, paper_stage(0), SKIN_COLE, True)],
+                     post=[('rows', 59, 87, ['tk'])],
                      # T57 (i, audit: "the plane held at his chest at the end of folding ... about 1.5x bigger" than the thrown one,
                      # "reads as an up-arrow"): the finished plane is PLANE itself, the one he throws, its tail behind his left
                      # fingers and its nose at his right hand (the earlier folding stage stays as it was)

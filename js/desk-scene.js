@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.24.1
+ * Version 0.24.2
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -203,6 +203,13 @@
  *   its white to his petting pose's shirt hem on the desk's first row (a thin grey line was left: the paper read as gone);
  *   a pose with an arm drawn 'over' gets the paper's sheet over it once more and the arm over that, as r31-maker's audited
  *   visit drew it (v0.24.1)
+ * Modified: 2026-10-08 - Round-31 integration audits: no looking-down head over the stretch (in a nod or a listening nod
+ *   its outline left two pixels of wall beside his raised arm; the stretch keeps its own head and the nod tilts the face);
+ *   the DS poses' two-deep skin wedge at the station's box top sealed (his crease brown and line, a two-deep case in the
+ *   seal's guard); the scenes kept from starting while he solders ask soldering(), so a greeting from soldering counts, and
+ *   no scene starts in the middle of a greeting; the shake's shaker stops 49 px from her in the wide room (2 clear px from
+ *   every pose of hers and of his) and, on a phone where the two of them sit too close for it, she reaches for it 6 px
+ *   before its stop and keeps it after drinking (L.shake) (v0.24.2)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(i),
@@ -236,9 +243,9 @@
   // With the generated room (assets/desk) the poster, clock and window are where that picture has them; `art` holds
   // those places, `win` etc. are the drawn room's (the fallback when the pictures do not load).
   var LAYOUTS = {
-    wide:   { W: 360, H: 160, cole: 124, ilinca: 226, poster: { x: 14, y: 20, w: 58, h: 62 }, clock: { x: 88, y: 34 }, win: { x: 280, y: 22, w: 66, h: 74 }, lamp: 177, pendant: 121, slots: [36, 272, 338, 12, 306],
+    wide:   { W: 360, H: 160, cole: 124, ilinca: 226, shake: { stop: 49 }, poster: { x: 14, y: 20, w: 58, h: 62 }, clock: { x: 88, y: 34 }, win: { x: 280, y: 22, w: 66, h: 74 }, lamp: 177, pendant: 121, slots: [36, 272, 338, 12, 306],
               art: { painting: { x: 7, y: 20 }, clock: { x: 88, y: 34, r: 7 }, win: { x: 262, y: 18, w: 88, h: 84 }, sky: { x: 254, y: 15 }, lamps: [40, 294], slots: [18, 318, 344], catY: 141, pendants: [96, 132, 216, 244], deskEdge: 132 } },
-    narrow: { W: 240, H: 160, cole: 80, ilinca: 172, poster: { x: 1, y: 20, w: 51, h: 50 }, clock: { x: 98, y: 30 }, win: { x: 190, y: 22, w: 46, h: 66 }, lamp: 112, pendant: 126, slots: [226, 10],
+    narrow: { W: 240, H: 160, cole: 80, ilinca: 172, shake: { stop: 43, reach: 6, keep: true }, poster: { x: 1, y: 20, w: 51, h: 50 }, clock: { x: 98, y: 30 }, win: { x: 190, y: 22, w: 46, h: 66 }, lamp: 112, pendant: 126, slots: [226, 10],
               art: { painting: { x: 1, y: 18 }, clock: { x: 99, y: 31, r: 7 }, win: { x: 192, y: 20, w: 44, h: 70 }, sky: { x: 130, y: 3 }, lamps: [-4, 241], slots: [], catY: 141, pendants: [66, 118, 148, 175], deskEdge: 134 } }
   };
   // The environment pictures. Until they have loaded (or if they never do) the room is drawn in code as before.
@@ -676,9 +683,15 @@
   // hands in his lap when she catches him) is the arm facepalm took its lap arm from, the same two pixels; in the DS poses his
   // left forearm's outline comes down past the box's top right corner with one pixel of skin shade left in the corner
   // (15, 83), which takes his line colour, so his skin ends at the box's corner (the corner case in drawSeal).
-  var SEAL_SOLDER = [[-6, 85, "k"]], SEAL_LAP = [[7, 83, "b"], [8, 83, "k"]], SEAL_DS = [[15, 83, "k"]];
+  // (Round-31 integration audit: in the DS poses his left forearm's outline also comes down to the box's top two pixels short
+  // of its corner, leaving a wedge of skin two pixels deep, (-2, 82-83): the crease brown and his line close it, both or
+  // neither, by the guard's two-deep case.)
+  var SEAL_SOLDER = [[-6, 85, "k"]], SEAL_LAP = [[7, 83, "b"], [8, 83, "k"]], SEAL_DS = [[15, 83, "k"], [-2, 82, "b"], [-2, 83, "k"]];
   var STATION_SEAL = { facepalm: SEAL_LAP, solder: SEAL_SOLDER, solder1: SEAL_SOLDER, solderR: SEAL_SOLDER, solderR1: SEAL_SOLDER, solderL: SEAL_SOLDER, solderL1: SEAL_SOLDER,
                        hide: SEAL_LAP, ds: SEAL_DS, ds1: SEAL_DS, ds2: SEAL_DS };
+  // (round-31 integration audit: greeting from soldering his activity reads "wave"; the scenes that must not start while he
+  // solders ask this instead)
+  function soldering() { return cole.activity === "solder" || !!cole.benchFrom || (!!cole.react && cole.greetAct === "solder"); }
   function stationShows() { return (cole.activity === "solder" || cole.benchFrom || (cole.react && cole.greetAct === "solder")) && !cole.hidden; }
   function stationX() { return ENV.ready ? cole.x - 32 : cole.x - 50; }
   function stationBox() { var x = stationX(), b = deskAt(0.35) + 1; return { x0: x - 10, y0: b - 8, x1: x + 9, y1: b - 1 }; }   // as propSolderStation draws it
@@ -696,14 +709,19 @@
   function drawSeal(p) {
     var d = p.drawn, seal = p === cole && d && stationShows() && STATION_SEAL[d.name]; if (!seal) { return; }
     var bx = stationBox(), col = { k: C.line, b: C.crease };
+    var has = function (ax, ay) { for (var j = 0; j < seal.length; j++) { if (seal[j][0] === ax && seal[j][1] === ay) { return true; } } return false; };
+    var skin = function (c) { return !!c && luma(c) >= 120; };
     for (var k = 0; k < seal.length; k++) {
       var sx = seal[k][0], sy = seal[k][1], x = d.o.x + sx, y = d.o.y + d.jig + sy;
       var top = y === bx.y0 - 1 && x >= bx.x0 && x <= bx.x1, left = x === bx.x0 - 1 && y >= bx.y0 && y <= bx.y1, corner = y === bx.y0 - 1 && x === bx.x1 + 1;
-      if (!top && !left && !corner) { continue; }                        // only right against the box's top or left edge (or diagonally at its top right corner)
+      var top2 = y === bx.y0 - 2 && x >= bx.x0 && x <= bx.x1 && has(sx, sy + 1);   // the upper of two skin pixels between his line and the box's top
+      if (!top && !left && !corner && !top2) { continue; }               // only right against the box's top or left edge (or diagonally at its top right corner)
       if (UNDER_DESK[d.name] && y >= deskEdge()) { continue; }           // (a pose clipped at the desk's edge: nothing of it below that row)
       var here = poseRGB(p, d.pose, sx, sy), beyond = top ? poseRGB(p, d.pose, sx, sy - 1) : left ? poseRGB(p, d.pose, sx - 1, sy) : poseRGB(p, d.pose, sx + 1, sy);   // (at the corner: his line beside it)
+      if (top && skin(beyond) && has(sx, sy - 1)) { beyond = poseRGB(p, d.pose, sx, sy - 2); }   // two deep: his line above the pair, both sealed
+      if (top2) { if (!skin(poseRGB(p, d.pose, sx, sy + 1))) { continue; } beyond = poseRGB(p, d.pose, sx, sy - 1); }
       if (!here || !beyond || luma(here) < 120 || luma(beyond) > 80) { continue; }   // skin here, one of his lines beyond it
-      px(x, y, col[seal[k][2]]);
+      px(x, y, seal[k][2] === "k" ? "rgb(" + beyond.join(",") + ")" : col[seal[k][2]]);   // (his line in the colour of that line itself)
     }
   }
   function propSolderStation(x) {
@@ -1207,9 +1225,14 @@
 
   // The shaker sliding across the desk in the shake break, in its own desk-prop picture (propArt: x its middle, y one below
   // its bottom row). It starts where his hands held it (shake2's shaker, set 3 px lower onto the desk top) and eases to a
-  // stop at her left, 43 px from her middle, moving toward the desk's front edge as it goes (so it ends in front of her
-  // forearms and clear of her mug, laptop and paper); n frames, the first step 4 px.
-  function shakerSlide() { var x0 = cole.x + 3, x1 = ilinca.x - 43; return { x0: x0, x1: x1, y0: DESK_Y + 2, y1: DESK_Y + 8, n: Math.ceil((x1 - x0) / 2) }; }
+  // stop at her left (L.shake.stop px from her middle), moving toward the desk's front edge as it goes, clear of her mug,
+  // laptop and paper; n frames, the first step 4 px. Round-31 integration audit: it had stopped 43 px from her middle in both
+  // layouts, over her resting and typing elbow's tip. In the wide room it stops 49 px from her, 2 clear px from every pose
+  // of hers (writing, the closest) and of his at rest. On a phone their elbows are 7 px apart, too close for the 14 px
+  // shaker with 2 px on each side, so there it stops as before but she reaches for it 6 px before its stop, before it comes
+  // within 2 px of her (L.shake.reach: it slides into her hand, which lies over it), and after drinking she keeps it
+  // (L.shake.keep) instead of setting it down between her resting elbow and his.
+  function shakerSlide() { var x0 = cole.x + 3, x1 = ilinca.x - L.shake.stop; return { x0: x0, x1: x1, y0: DESK_Y + 2, y1: DESK_Y + 8, n: Math.ceil((x1 - x0) / 2) }; }
   function shakerAt(k) { var s = shakerSlide(), p = clamp(k / s.n, 0, 1), e = 1 - (1 - p) * (1 - p); return { x: Math.round(s.x0 + (s.x1 - s.x0) * e), y: Math.round(s.y0 + (s.y1 - s.y0) * e) }; }
 
   var SCENARIOS = {
@@ -1228,7 +1251,7 @@
     // go (T42: "should glide to the side and out of frame when thrown").
     airplane: {
       dur: 7.5,
-      when: function () { return cole.activity !== "solder"; },        // (T48: his throwing arm and his hands at rest lie where the board and the tools would)
+      when: function () { return !soldering(); },        // (T48: his throwing arm and his hands at rest lie where the board and the tools would)
       steps: [
         [0, function () { setActivity(cole, "fold", 99); faceOf(cole, { look: { x: 0, y: 1 }, turn: 0, mouth: "smile" }); }],
         [2.4, function () { setActivity(cole, "throw", 99); lookAt(cole, ilinca.x, faceLevel(ilinca)); }],
@@ -1280,7 +1303,7 @@
     // while and blinks at them; one of them pets her (eyes shut, content; the laptop or the paper stays on the desk); she
     // sits up, looks at each in turn (they look back), and goes. Never while Cole is soldering.
     visit: {
-      dur: 34, when: function () { return cole.activity !== "solder"; },
+      dur: 34, when: function () { return !soldering(); },
       setup: function () {
         var petter = review && review.petter ? who(review.petter) : Math.random() < 0.5 ? cole : ilinca, spot = petSpot(petter), fromLeft = Math.random() < 0.5;
         actors.cat = { x: fromLeft ? -36 : W + 36, y: catY(), state: "walk", dir: fromLeft ? 1 : -1, spot: spot, phase: "in", lieDir: PET_RIG[petter.name].dir };
@@ -1319,7 +1342,7 @@
     // behind the screen, T88). She leaves,
     // thinks better of it, and comes back once more; the hands go back to work once she has gone.
     laptop: {
-      dur: 30, when: function () { return cole.activity !== "solder" && people.some(function (p) { return p.activity === "type" || p.activity === "write"; }); },
+      dur: 30, when: function () { return !soldering() && people.some(function (p) { return p.activity === "type" || p.activity === "write"; }); },
       setup: function () {
         var cands = people.filter(function (p) { return p.activity === "type" || p.activity === "write"; }), v = cands[(Math.random() * cands.length) | 0];
         var onLaptop = v.activity === "type", o = origin(v), box = onLaptop ? v.poses.type.props.laptop : v.poses.write && v.poses.write.props.paper;
@@ -1382,7 +1405,7 @@
     // Ilinca rolls off for coffee and comes back with two mugs.
     coffee: {
       dur: 15,
-      when: function () { return ilinca.activity !== "coffee" && cole.activity !== "coffee" && cole.activity !== "solder"; },   // (T48: his mug and hands lie where the board and the tools would)
+      when: function () { return ilinca.activity !== "coffee" && cole.activity !== "coffee" && !soldering(); },   // (T48: his mug and hands lie where the board and the tools would)
       steps: [
         [0, function () { setActivity(ilinca, "rest", 99); lookAt(ilinca, cole.x, faceLevel(cole)); ilinca.mouth = "smile"; }],
         [0.8, function () { lookAt(cole, ilinca.x, faceLevel(ilinca)); cole.nodAt = frame + 2; cole.mouth = "smile"; }],
@@ -1406,7 +1429,7 @@
     // leaves it for the shaker (T47: the desk mug is another size). Frame numbers below are counted from the push.
     shake: {
       dur: 11.5,
-      when: function () { return cole.activity !== "solder"; },        // (never while he solders: the shaker would slide through his tools on the desk)
+      when: function () { return !soldering(); },        // (never while he solders: the shaker would slide through his tools on the desk)
       steps: [
         [0, function () { setActivity(cole, "shake", 99); faceOf(cole, { mouth: "smile", look: { x: 0, y: 0 }, turn: 0 }); }],
         // he stops shaking and holds it on the desk top for a moment (shake2: the shaker 3 px above where it will stand)
@@ -1417,7 +1440,7 @@
       update: function (t, f) {
         var s = actors.shaker; if (!s) { return; }
         var k = f - s.t0, n = shakerSlide().n;
-        if (s.state === "slide" && k >= n - 3 && !s.reached) {             // nearly there: she leaves her work and reaches for it
+        if (s.state === "slide" && (k >= n - 3 || (L.shake.reach && shakerAt(k).x >= shakerSlide().x1 - L.shake.reach)) && !s.reached) {   // nearly there (on a phone, 6 px from its stop): she leaves her work and reaches for it
           s.reached = true;
           if (ilinca.activity === "type" || ilinca.activity === "write") { ilinca.deskProp = ilinca.activity; }
           setActivity(ilinca, "pet", 99); ilinca.brows = null; var q = shakerAt(n); lookAt(ilinca, q.x, q.y - 20);
@@ -1427,7 +1450,8 @@
           setActivity(cole, "rest", 99); cole.mouth = "smile";
         }
         if (s.state === "held" && f - s.at === 17) { setActivity(ilinca, "drink", 99); ilinca.mouth = "o"; ilinca.turn = 0; ilinca.lookTarget = { x: 0, y: -1 }; }
-        if (s.state === "held" && f - s.at === 49) { s.state = "down"; s.at = f; setActivity(ilinca, "pet", 99); ilinca.mouth = "smile"; ilinca.turn = 0; ilinca.hold = null; var r = shakerAt(1e6); lookAt(ilinca, r.x, r.y - 20); }   // she sets it down where she took it, her hand on it
+        if (s.state === "held" && f - s.at === 49 && L.shake.keep) { setActivity(ilinca, "take", 99); ilinca.mouth = "smile"; ilinca.turn = 0; ilinca.nodAt = frame + 1; lookAt(ilinca, cole.x, faceLevel(cole)); }   // (a phone: she keeps it)
+        if (s.state === "held" && f - s.at === 49 && !L.shake.keep) { s.state = "down"; s.at = f; setActivity(ilinca, "pet", 99); ilinca.mouth = "smile"; ilinca.turn = 0; ilinca.hold = null; var r = shakerAt(1e6); lookAt(ilinca, r.x, r.y - 20); }   // she sets it down where she took it, her hand on it
         if (s.state === "down" && f - s.at === 6) { setActivity(ilinca, "rest", 99); ilinca.nodAt = frame + 1; lookAt(ilinca, cole.x, faceLevel(cole)); }
       },
       drawFront: function (t, f) {
@@ -1440,7 +1464,7 @@
     },
     // Late: a yawn passes between them.
     latenight: {
-      dur: 7, when: function () { return isDark(hourNow()) && cole.activity !== "solder"; },   // (T48: his yawning arm and his hands at rest lie where the board and the tools would)
+      dur: 7, when: function () { return isDark(hourNow()) && !soldering(); },   // (T48: his yawning arm and his hands at rest lie where the board and the tools would)
       steps: [
         [0, function () { setActivity(cole, "yawn", 99); cole.mouth = "yawn"; cole.lookTarget = { x: 0, y: -1 }; }],
         [1.8, function () { setActivity(cole, "rubEye", 99); cole.mouth = "neutral"; }],
@@ -1473,7 +1497,7 @@
     // The phone buzzes; good news; a fist pump.
     call: {
       dur: 11,
-      when: function () { return ilinca.activity !== "phone" && ilinca.activity !== "call" && cole.activity !== "solder"; },   // (T48: his fist pump and his hands at rest lie where the board and the tools would)
+      when: function () { return ilinca.activity !== "phone" && ilinca.activity !== "call" && !soldering(); },   // (T48: his fist pump and his hands at rest lie where the board and the tools would)
       steps: [
         [0, function () { actors.buzz = { t0: frame }; }],
         [1.4, function () { setActivity(ilinca, "call", 99); actors.buzz = null; ilinca.phoneOnDesk = false; faceOf(ilinca, { mouth: "talk", look: { x: 0, y: 0 }, turn: 0 }); }],
@@ -1639,14 +1663,14 @@
       if (still) { p.blink = 0; } else if (p.blink > 0) { p.blink--; } else if (--p.nextBlink <= 0) { p.blink = 2; p.nextBlink = 24 + Math.random() * 48; }
       if (!p.react && !(scenario && scenario.name === "spark")) { p.bob = 0; }
       p.tilt = stretching(p) ? 0 : (p.nod > 0 || (p.workLook[p.activity] && !convo && !p.react && !(pointerActive && !scenario))) ? 1 : 0;
-      p.lookDown = !!p.headDown && !stretching(p) && p.activity !== "coffee" && p.activity !== "holdcup" && p.activity !== "yawn" && p.activity !== "rubEye" && (p.nod > 0 || (!p.react && p.look.y > 0.5));     // at the work, the cat, a pointer on the desk; never over a coffee (T43)
+      p.lookDown = !!p.headDown && !stretching(p) && p.activity !== "stretch" && p.activity !== "coffee" && p.activity !== "holdcup" && p.activity !== "yawn" && p.activity !== "rubEye" && (p.nod > 0 || (!p.react && p.look.y > 0.5));     // at the work, the cat, a pointer on the desk; never over a coffee (T43)
       if (!still) { stepExpression(p, f); }
     }
     if (pointer.inside && pointerActive && !saidHello && !convo && !scenario && f > 4 * FPS) {          // the nearer one glances over and smiles
       saidHello = true; var near = Math.abs(pointer.x - cole.x) < Math.abs(pointer.x - ilinca.x) ? cole : ilinca;
       if (!near.react) { near.mouth = "smile"; near.smileUntil = f + 2 * FPS; }
     }
-    if (!scenario && !convo && !review && f >= nextScenarioAt && !pointerActive) { if (!pickScenario()) { nextScenarioAt = f + 15 * FPS; } }
+    if (!scenario && !convo && !review && f >= nextScenarioAt && !pointerActive && !cole.react && !ilinca.react) { if (!pickScenario()) { nextScenarioAt = f + 15 * FPS; } }
     stepScenario(f);
     stepConvo(f);
     updateLamp(h);
