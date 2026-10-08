@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.23.0
+ * Version 0.23.1
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -173,6 +173,12 @@
  *   (v0.22.6: T67 tools moving on the board and dropped on the desk, T84 the station without its holder, STATION_SEAL)
  *   merged; the station, the dropped tools and the seal follow Cole, so they keep their places in the phone layout
  *   (tools/desk/poses.py v1.13.0) (v0.23.0)
+ * Modified: 2026-10-07 - Round-31 integration, T48 (desk things vanishing on activity changes), the coordinator's decision on
+ *   the soldering station: the shake never starts while he solders (the shaker would slide through his tools on the desk);
+ *   a scene that takes his hands off the board while he solders (scenario.bench: the DS) leaves the bench as the spark does,
+ *   the station and the board on the desk and his tools lying flat at their audited places (p.benchFrom), and when it ends
+ *   he goes back to soldering and picks them up (backToBench); caught with the DS he goes back to the board, not to a
+ *   laptop; the station seal covers the DS poses ('hide' as facepalm, the DS poses at the box's top right corner) (v0.23.1)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(i),
@@ -642,8 +648,13 @@
   // his lighting (figureMask) instead of the station's (a lit bump on the box's top). And each pixel is drawn only where
   // it is needed: right against the box's top or left edge, where his pose shows skin with one of his lines just beyond
   // it, so a later redraw of the hands that moves the line leaves no stray line pixel (the checker then shows the sliver).
-  var SEAL_SOLDER = [[-6, 85, "k"]];
-  var STATION_SEAL = { facepalm: [[7, 83, "b"], [8, 83, "k"]], solder: SEAL_SOLDER, solder1: SEAL_SOLDER, solderR: SEAL_SOLDER, solderR1: SEAL_SOLDER, solderL: SEAL_SOLDER, solderL1: SEAL_SOLDER };
+  // T48 (round-31 integration): the DS scene keeps the bench (scenario.bench), so its poses meet the box too: 'hide' (his
+  // hands in his lap when she catches him) is the arm facepalm took its lap arm from, the same two pixels; in the DS poses his
+  // left forearm's outline comes down past the box's top right corner with one pixel of skin shade left in the corner
+  // (15, 83), which takes his line colour, so his skin ends at the box's corner (the corner case in drawSeal).
+  var SEAL_SOLDER = [[-6, 85, "k"]], SEAL_LAP = [[7, 83, "b"], [8, 83, "k"]], SEAL_DS = [[15, 83, "k"]];
+  var STATION_SEAL = { facepalm: SEAL_LAP, solder: SEAL_SOLDER, solder1: SEAL_SOLDER, solderR: SEAL_SOLDER, solderR1: SEAL_SOLDER, solderL: SEAL_SOLDER, solderL1: SEAL_SOLDER,
+                       hide: SEAL_LAP, ds: SEAL_DS, ds1: SEAL_DS, ds2: SEAL_DS };
   function stationShows() { return (cole.activity === "solder" || cole.benchFrom || (cole.react && cole.greetAct === "solder")) && !cole.hidden; }
   function stationX() { return ENV.ready ? cole.x - 32 : cole.x - 50; }
   function stationBox() { var x = stationX(), b = deskAt(0.35) + 1; return { x0: x - 10, y0: b - 8, x1: x + 9, y1: b - 1 }; }   // as propSolderStation draws it
@@ -663,9 +674,9 @@
     var bx = stationBox(), col = { k: C.line, b: C.crease };
     for (var k = 0; k < seal.length; k++) {
       var sx = seal[k][0], sy = seal[k][1], x = d.o.x + sx, y = d.o.y + d.jig + sy;
-      var top = y === bx.y0 - 1 && x >= bx.x0 && x <= bx.x1, left = x === bx.x0 - 1 && y >= bx.y0 && y <= bx.y1;
-      if (!top && !left) { continue; }                                   // only right against the box's top or left edge
-      var here = poseRGB(p, d.pose, sx, sy), beyond = top ? poseRGB(p, d.pose, sx, sy - 1) : poseRGB(p, d.pose, sx - 1, sy);
+      var top = y === bx.y0 - 1 && x >= bx.x0 && x <= bx.x1, left = x === bx.x0 - 1 && y >= bx.y0 && y <= bx.y1, corner = y === bx.y0 - 1 && x === bx.x1 + 1;
+      if (!top && !left && !corner) { continue; }                        // only right against the box's top or left edge (or diagonally at its top right corner)
+      var here = poseRGB(p, d.pose, sx, sy), beyond = top ? poseRGB(p, d.pose, sx, sy - 1) : left ? poseRGB(p, d.pose, sx - 1, sy) : poseRGB(p, d.pose, sx + 1, sy);   // (at the corner: his line beside it)
       if (!here || !beyond || luma(here) < 120 || luma(beyond) > 80) { continue; }   // skin here, one of his lines beyond it
       px(x, y, col[seal[k][2]]);
     }
@@ -999,6 +1010,11 @@
   /* ---------- activities ---------- */
   var frame = 0;
   function setActivity(p, a, seconds) {
+    // T48 (round-31 integration): a scene that takes his hands off the board while he solders (scenario.bench) leaves the
+    // bench as the spark does: the station and the board stay on the desk and his tools lie on it (p.benchFrom: stationShows,
+    // leftOnDesk, restingIron, restingPick); he picks them up again when he goes back to soldering
+    if (p === cole && scenario && scenario.bench && p.activity === "solder" && a !== "solder" && !p.benchFrom) { var d = p.drawn; p.benchFrom = d && /^solder/.test(d.name) ? d.name : "solder"; }
+    if (p === cole && a === "solder") { p.benchFrom = null; }
     p.activity = a; p.actFrame = 0; p.actUntil = frame + Math.round(seconds * FPS);
     p.brows = a === "think" ? "down" : (p.brows === "down" ? null : p.brows);
     if (p === ilinca) { p.phoneOnDesk = a !== "phone" && a !== "call"; }
@@ -1070,7 +1086,7 @@
   function startScenario(name) {
     var sc = SCENARIOS[name]; if (!sc || (sc.when && !sc.when())) { return false; }
     if (scenario && scenario.end) { scenario.end(); }                    // (only the test hooks start one over another)
-    scenario = { name: name, t0: frame, steps: sc.steps.map(function (s) { return { at: s[0], fn: s[1], done: false }; }), dur: sc.dur, update: sc.update, drawOutside: sc.drawOutside, drawBack: sc.drawBack, drawMid: sc.drawMid, drawFront: sc.drawFront, end: sc.end };
+    scenario = { name: name, t0: frame, steps: sc.steps.map(function (s) { return { at: s[0], fn: s[1], done: false }; }), dur: sc.dur, bench: !!sc.bench, update: sc.update, drawOutside: sc.drawOutside, drawBack: sc.drawBack, drawMid: sc.drawMid, drawFront: sc.drawFront, end: sc.end };
     actors = {}; if (sc.setup) { sc.setup(); }
     people.forEach(function (p) { p.actUntil = frame + 1e6; p.gesture = false; }); convo = null;
     return true;
@@ -1080,7 +1096,11 @@
     var t = (f - scenario.t0) / FPS;
     scenario.steps.forEach(function (s) { if (!s.done && t >= s.at) { s.done = true; s.fn(t); } });
     if (scenario.update) { scenario.update(t, f); }
-    if (t >= scenario.dur) { if (scenario.end) { scenario.end(); } scenario = null; actors = {}; people.forEach(function (p) { p.turn = 0; p.brows = p.activity === "think" ? "down" : null; p.mouth = "neutral"; p.hold = null; nextActivity(p); }); nextScenarioAt = f + (45 + Math.random() * 35) * FPS; }
+    if (t >= scenario.dur) { if (scenario.end) { scenario.end(); } scenario = null; actors = {}; people.forEach(function (p) { p.turn = 0; p.brows = p.activity === "think" ? "down" : null; p.mouth = "neutral"; p.hold = null; if (p === cole && p.benchFrom) { backToBench(); } else { nextActivity(p); } }); nextScenarioAt = f + (45 + Math.random() * 35) * FPS; }
+  }
+  function backToBench() {                                              // (T48) the scene is over: he takes up his tools again
+    if (review && review.cole && review.cole !== "solder") { cole.benchFrom = null; nextActivity(cole); return; }
+    setActivity(cole, "solder", review ? 1e4 : 12 + Math.random() * 14);
   }
   function neutral(p) { p.mouth = "neutral"; p.brows = null; p.turn = 0; p.lookTarget = { x: 0, y: 1 }; }
   // Maker in a scenario: her blinks, and hands that come up off the desk while she walks past them.
@@ -1146,13 +1166,13 @@
   var SCENARIOS = {
     // Cole sneaks a game on a red DS; Ilinca notices; he puts it away.
     ds: {
-      dur: 13,
+      dur: 13, bench: true,                                              // (from soldering: the station, board and tools stay on the desk)
       steps: [
         [0, function () { setActivity(cole, "ds", 99); faceOf(cole, { mouth: "smile", look: { x: 0, y: 1 }, turn: 0 }); }],
         [6.5, function () { faceOf(ilinca, { brows: "down", mouth: "flat" }); lookAt(ilinca, cole.x, faceLevel(cole)); }],
         [8.0, function () { faceOf(cole, { brows: "up", mouth: "o" }); lookAt(cole, ilinca.x, faceLevel(ilinca)); }],
         [9.0, function () { faceOf(cole, { brows: "sad", mouth: "frown", look: { x: 0, y: 1 }, turn: 0 }); setActivity(cole, "dsAway", 99); }],
-        [10.6, function () { setActivity(cole, "type", 99); faceOf(cole, { brows: null, mouth: "neutral" }); faceOf(ilinca, { brows: null, mouth: "smile" }); ilinca.turn = 0; ilinca.lookTarget = { x: 0, y: 1 }; }]
+        [10.6, function () { setActivity(cole, cole.benchFrom ? "solder" : "type", 99); faceOf(cole, { brows: null, mouth: "neutral" }); faceOf(ilinca, { brows: null, mouth: "smile" }); ilinca.turn = 0; ilinca.lookTarget = { x: 0, y: 1 }; }]
       ]
     },
     // Cole folds a paper airplane in three steps and throws it; it glides past Ilinca and out of the room, both watch it
@@ -1315,6 +1335,7 @@
     // leaves it for the shaker (T47: the desk mug is another size). Frame numbers below are counted from the push.
     shake: {
       dur: 11.5,
+      when: function () { return cole.activity !== "solder"; },        // (never while he solders: the shaker would slide through his tools on the desk)
       steps: [
         [0, function () { setActivity(cole, "shake", 99); faceOf(cole, { mouth: "smile", look: { x: 0, y: 0 }, turn: 0 }); }],
         // he stops shaking and holds it on the desk top for a moment (shake2: the shaker 3 px above where it will stand)
