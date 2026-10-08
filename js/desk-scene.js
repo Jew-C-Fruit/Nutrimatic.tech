@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.23.1
+ * Version 0.23.2
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -179,6 +179,10 @@
  *   the station and the board on the desk and his tools lying flat at their audited places (p.benchFrom), and when it ends
  *   he goes back to soldering and picks them up (backToBench); caught with the DS he goes back to the board, not to a
  *   laptop; the station seal covers the DS poses ('hide' as facepalm, the DS poses at the box's top right corner) (v0.23.1)
+ * Modified: 2026-10-07 - Round-31 integration, T48 (proposed, separable): the airplane, the late-night yawns, the coffee and
+ *   the call do not start while he solders either: each puts his forearm, his mug or his hands flat on the desk right where
+ *   the board and the dropped tools lie, so the bench cannot stay through them; while he solders only the spark, the
+ *   pigeon and the DS can start (v0.23.2)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(i),
@@ -1179,6 +1183,7 @@
     // go (T42: "should glide to the side and out of frame when thrown").
     airplane: {
       dur: 7.5,
+      when: function () { return cole.activity !== "solder"; },        // (T48: his throwing arm and his hands at rest lie where the board and the tools would)
       steps: [
         [0, function () { setActivity(cole, "fold", 99); faceOf(cole, { look: { x: 0, y: 1 }, turn: 0, mouth: "smile" }); }],
         [2.4, function () { setActivity(cole, "throw", 99); lookAt(cole, ilinca.x, faceLevel(ilinca)); }],
@@ -1311,7 +1316,7 @@
     // Ilinca rolls off for coffee and comes back with two mugs.
     coffee: {
       dur: 15,
-      when: function () { return ilinca.activity !== "coffee" && cole.activity !== "coffee"; },
+      when: function () { return ilinca.activity !== "coffee" && cole.activity !== "coffee" && cole.activity !== "solder"; },   // (T48: his mug and hands lie where the board and the tools would)
       steps: [
         [0, function () { setActivity(ilinca, "rest", 99); lookAt(ilinca, cole.x, faceLevel(cole)); ilinca.mouth = "smile"; }],
         [0.8, function () { lookAt(cole, ilinca.x, faceLevel(ilinca)); cole.nodAt = frame + 2; cole.mouth = "smile"; }],
@@ -1369,7 +1374,7 @@
     },
     // Late: a yawn passes between them.
     latenight: {
-      dur: 7, when: function () { return isDark(hourNow()); },
+      dur: 7, when: function () { return isDark(hourNow()) && cole.activity !== "solder"; },   // (T48: his yawning arm and his hands at rest lie where the board and the tools would)
       steps: [
         [0, function () { setActivity(cole, "yawn", 99); cole.mouth = "yawn"; cole.lookTarget = { x: 0, y: -1 }; }],
         [1.8, function () { setActivity(cole, "rubEye", 99); cole.mouth = "neutral"; }],
@@ -1402,7 +1407,7 @@
     // The phone buzzes; good news; a fist pump.
     call: {
       dur: 11,
-      when: function () { return ilinca.activity !== "phone" && ilinca.activity !== "call"; },
+      when: function () { return ilinca.activity !== "phone" && ilinca.activity !== "call" && cole.activity !== "solder"; },   // (T48: his fist pump and his hands at rest lie where the board and the tools would)
       steps: [
         [0, function () { actors.buzz = { t0: frame }; }],
         [1.4, function () { setActivity(ilinca, "call", 99); actors.buzz = null; ilinca.phoneOnDesk = false; faceOf(ilinca, { mouth: "talk", look: { x: 0, y: 0 }, turn: 0 }); }],
