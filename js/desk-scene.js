@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.24.2
+ * Version 0.25.0
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -210,9 +210,18 @@
  *   no scene starts in the middle of a greeting; the shake's shaker stops 49 px from her in the wide room (2 clear px from
  *   every pose of hers and of his) and, on a phone where the two of them sit too close for it, she reaches for it 6 px
  *   before its stop and keeps it after drinking (L.shake) (v0.24.2)
+ * Modified: 2026-10-27 - T128 (Cole: "For the moment, we can give them everlasting cups of coffee. They can sit on the table,
+ *   steaming gently"): the coffee run is shelved (COFFEE_RUN, off; its code kept). Each of them has a red mug standing on
+ *   the desk all the time, at the size of the mug in his hand (T94: one mug size, the bigger one), on their outer side by
+ *   their lamp, where nothing else they do reaches (T48: the coffee poses' spot in front of them is where the laptop, the
+ *   paper, the board and the hands go); a wisp of steam rises from each in a slow loop, out of step with the other. Their
+ *   coffee lifts it from there to the lips (sip) and sets it back, the hands at rest between sips (the poses that hold it
+ *   on the desk in front, mug and mugWave, are no longer drawn); no mug on the desk while one is held. To make room the
+ *   lamps stand a little further out in the wide room (38, 298; the desk props at 16, 321, 345) and on a phone the white
+ *   lamp shows only its arm and shade, like the red one; the buzzing phone's marks go to its lower right, clear of her mug (v0.25.0)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
- * Test hooks: window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(i),
+ * Test hooks (.state().mugs: whether each one's mug stands on the desk): window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(i),
  *   .face(who, {mouth, brows, look}), .poses(who), .step(n), .state(), .review(o), .patchPoses(who, poses), .unpatchPoses(who), .still(on)
  */
 
@@ -244,10 +253,12 @@
   // those places, `win` etc. are the drawn room's (the fallback when the pictures do not load).
   var LAYOUTS = {
     wide:   { W: 360, H: 160, cole: 124, ilinca: 226, shake: { stop: 49 }, poster: { x: 14, y: 20, w: 58, h: 62 }, clock: { x: 88, y: 34 }, win: { x: 280, y: 22, w: 66, h: 74 }, lamp: 177, pendant: 121, slots: [36, 272, 338, 12, 306],
-              art: { painting: { x: 7, y: 20 }, clock: { x: 88, y: 34, r: 7 }, win: { x: 262, y: 18, w: 88, h: 84 }, sky: { x: 254, y: 15 }, lamps: [40, 294], slots: [18, 318, 344], catY: 141, pendants: [96, 132, 216, 244], deskEdge: 132 } },
+              art: { painting: { x: 7, y: 20 }, clock: { x: 88, y: 34, r: 7 }, win: { x: 262, y: 18, w: 88, h: 84 }, sky: { x: 254, y: 15 }, lamps: [38, 298], slots: [16, 321, 345], catY: 141, pendants: [96, 132, 216, 244], deskEdge: 132 } },
     narrow: { W: 240, H: 160, cole: 80, ilinca: 172, shake: { stop: 43, reach: 6, keep: true }, poster: { x: 1, y: 20, w: 51, h: 50 }, clock: { x: 98, y: 30 }, win: { x: 190, y: 22, w: 46, h: 66 }, lamp: 112, pendant: 126, slots: [226, 10],
               art: { painting: { x: 1, y: 18 }, clock: { x: 99, y: 31, r: 7 }, win: { x: 192, y: 20, w: 44, h: 70 }, sky: { x: 130, y: 3 }, lamps: [-4, 241], slots: [], catY: 141, pendants: [66, 118, 148, 175], deskEdge: 134 } }
   };
+  // (T128: the wide room's lamps 2 px (red) and 4 px (white) further out than in round 31 (40, 294), and the desk props with
+  // them (18, 318, 344), so each one's standing mug has 2 clear pixels from its lamp's foot, the props and every pose; see MUG)
   // The environment pictures. Until they have loaded (or if they never do) the room is drawn in code as before.
   var ENV = { ready: false, img: {} };
   (function () {
@@ -458,7 +469,7 @@
     for (var i = 0; i < 2; i++) {
       var q = lampGeom(i), im = ENV.img[i === 0 ? "lamp-red" : "lamp-white"], on = lampIsOn(i, h), back = part === "back";
       if (!back && on && !isDark(h)) { g.save(); g.beginPath(); g.rect(0, DESK_Y, W, H - DESK_Y); g.clip(); slantCone(q, 0.10, false, 20); g.restore(); }   // by day a working lamp shows only faintly, on the desk (over his shirt it read as a third arm: T56)
-      var cut = L === LAYOUTS.narrow && i === 0 ? q.y + 29 : H;        // on a phone only the red lamp's arm and shade are in the frame: the corner of its foot read as a stray red blob
+      var cut = L === LAYOUTS.narrow ? q.y + 29 : H;                    // on a phone only the lamps' arms and shades are in the frame: the corner of the red one's foot read as a stray red blob, and her standing mug needs the white one's place (T128)
       g.save(); g.beginPath(); if (back) { g.rect(0, 0, W, Math.min(DESK_Y, cut)); } else { g.rect(0, DESK_Y, W, Math.max(0, cut - DESK_Y)); } g.clip();
       if (q.flip) { g.translate(q.x + im.width, q.y); g.scale(-1, 1); g.drawImage(im, 0, 0); } else { g.drawImage(im, q.x, q.y); }
       g.restore();
@@ -651,6 +662,61 @@
     if (steam) { var k = (f >> 2) % 3; px(x - 2 + k, y - 14, C.smoke2); px(x + 1 - k, y - 17, C.smoke2); px(x - 1 + k, y - 20, C.smoke2); }
   }
   function steam(x, y, f) { var k = (f >> 2) % 3; px(x - 1 + k, y, C.smoke2); px(x + 2 - k, y - 3, C.smoke2); px(x + k, y - 6, C.smoke2); }
+  // T128 (Cole, 2026-10-27: "For the moment, we can give them everlasting cups of coffee. They can sit on the table, steaming
+  // gently"): each of them has a red mug standing on the desk all the time. It is the mug in his hand (T94: one mug size, the
+  // bigger one): 15 x 22 like the mug his coffee pose holds on the desk (outline, dark left side, red, a highlight as in his
+  // sip), full of coffee under its rim, its handle 5 px. Where the coffee poses hold it, in front of each of them, the laptop,
+  // the paper, the board, the DS and the hands lie in every other activity (T48: his mug had lain where the board goes), so it
+  // stands on each one's outer side, by their lamp, on the desk's back row: Cole's left of his elbows, Ilinca's right of hers,
+  // 2 clear pixels from every pose either of them takes there (his throw the nearest), from the lamps (moved a little out for
+  // it, LAYOUTS), the desk props, her phone and his station and tools. Maker is never further back on the desk than row 137,
+  // so she always passes in front of it. Handles outward: his on the left, as in his hand; hers on the right (on her left
+  // her elbow leaves no room for it). Hand-drawn maps: k line, f dark red, g red, h highlight, c coffee.
+  var MUG_BODY = ['..kkkkkkkkkkk..',
+                  '.kgcccccccccgk.',
+                  'kgcccccccccccgk',
+                  'kgggggggggggggk'];
+  while (MUG_BODY.length < 20) { MUG_BODY.push('kfggghggggggggk'); }     // (sixteen rows of its side)
+  MUG_BODY.push('.kkgggggggggkk.', '...kkkkkkkkk...');
+  var MUG_HANDLE = ['.kkkk', 'kgggg', 'kgkkk', 'kgk..', 'kgk..', 'kgkkk', 'kgggg', '.kkkk'];   // its rows 5-12, drawn on his left (mirrored on her right)
+  var MUG_COL = { k: C.line, f: C.mugS, g: C.mug, h: "#ff5a72", c: "#3b2012" };   // (the held mug's own colours)
+  var MUG_DX = { cole: -73, ilinca: 45 }, MUG_Y = DESK_Y + 1;          // its body's left column from their middle, its bottom row (the desk's back row)
+  var MUG_HELD = { sip: 1, mug: 1, mugWave: 1, carry: 1 };              // poses with the mug in the hand: then none stands on the desk
+  // The steam: a dash of three pixels rising a row a frame over the mug's outer side and fading (a, b, c: three strengths),
+  // six frames of a quarter second, the two mugs half a loop apart; never while it is held. Clear of the lamps' shades above
+  // (rows 7 to 1 over the rim, the outer three columns inside it). Rows top to bottom, columns from the outside in. By day
+  // white over a grey wall (her window's ledge in the wide room) and a cool pale grey over the white brick, where white did
+  // not show; after dark the room is dimmed after everything is drawn, which would leave it darker than the wall, so the
+  // steam that still shows (nothing drawn over it since, Maker passing in front) is laid on again after the dimming in
+  // white, as the bulbs are (steamShown).
+  var STEAM = [['c..', 'c..', '.b.', '...', '...', '...', '..a'],     // (drifting outward as it rises, 2 px clear of the shades)
+               ['c..', 'c..', '...', '...', '...', '..a', '..a'],
+               ['c..', '...', '...', '...', '.a.', '..a', '..a'],
+               ['...', '...', '...', '.b.', '.a.', '..a', '...'],
+               ['...', '...', '.b.', '.b.', '.a.', '...', '...'],
+               ['...', 'c..', '.b.', '.b.', '...', '...', '...']];
+  var STEAM_DAY = { a: 0.65, b: 0.42, c: 0.22 }, STEAM_NIGHT = { a: 0.42, b: 0.26, c: 0.14 }, steamShown = [];
+  function mugStands(p) { return !MUG_HELD[p.drawn && p.drawn.name]; }
+  function drawStandingMug(p, f) {
+    if (!mugStands(p)) { return; }                                     // at the lips: the one mug is in the hand, and no steam
+    var x0 = p.x + MUG_DX[p.name], top = MUG_Y - MUG_BODY.length + 1, out = p === cole ? -1 : 1, i, j;   // out: the side its handle and steam are on
+    for (j = 0; j < MUG_BODY.length; j++) { for (i = 0; i < MUG_BODY[j].length; i++) { var c = MUG_COL[MUG_BODY[j][i]]; if (c) { px(x0 + i, top + j, c); } } }
+    for (j = 0; j < MUG_HANDLE.length; j++) { for (i = 0; i < 5; i++) { var ch = MUG_COL[MUG_HANDLE[j][out < 0 ? i : 4 - i]]; if (ch) { px(out < 0 ? x0 - 5 + i : x0 + 15 + i, top + 5 + j, ch); } } }
+    var fr = STEAM[(Math.floor(f / 3) + (p === cole ? 0 : 3)) % STEAM.length], sx = out < 0 ? x0 + 2 : x0 + 12, day = 1 - nightAmount(hourNow());
+    for (j = 0; j < fr.length; j++) {
+      for (i = 0; i < 3; i++) {
+        var t = fr[j][i]; if (t === ".") { continue; }
+        var x = sx - out * i, y = top - fr.length + j;
+        if (day > 0) { var w = g.getImageData(x, y, 1, 1).data, pale = luma([w[0], w[1], w[2]]) > 212; px(x, y, "rgba(" + (pale ? "176,186,202," : "255,255,255,") + (STEAM_DAY[t] * day).toFixed(3) + ")"); }
+        steamShown.push([x, y, t]);
+      }
+    }
+  }
+  function rgbAt(x, y) { var d = g.getImageData(x, y, 1, 1).data; return d[0] + "," + d[1] + "," + d[2]; }
+  // (after dark: which steam pixels nothing has been drawn over since, and their white after the dimming)
+  function steamMark() { steamShown.forEach(function (s) { s[3] = rgbAt(s[0], s[1]); }); }
+  function steamKept() { steamShown = steamShown.filter(function (s) { return rgbAt(s[0], s[1]) === s[3]; }); }
+  function steamAfterDark(n) { steamShown.forEach(function (s) { px(s[0], s[1], "rgba(255,255,255," + (STEAM_NIGHT[s[2]] * n).toFixed(3) + ")"); }); }
   // Fourth spark rework (T67/T84, audit of 99c05d7; "Eliminating object clipping is essential"): the station's T holder is gone.
   // The iron no longer goes in it (held while soldering, laid on the desk in the spark and the wave), and it stood exactly
   // where his arms go: in facepalm its crossbar lay on his lap hand's outline and its stem ran down the hand's side leaving
@@ -777,8 +843,9 @@
     for (var j = 0; j < PICK_FLAT.length; j++) { for (var i = 0; i < PICK_FLAT[j].length; i++) { var ch = PICK_FLAT[j][i]; if (col[ch]) { px(x0 + i, y0 + j, col[ch]); } } }
   }
 
-  // Where Ilinca's phone lies when she isn't holding it: on her right, clear of her laptop and her arm.
-  function phoneSpot() { return ilinca.x + 40; }
+  // Where Ilinca's phone lies when she isn't holding it: on her right, clear of her laptop and her arm (T128: 2 px further in,
+  // so buzzing, a row up and hopping a pixel right, it keeps 2 px from her mug's foot).
+  function phoneSpot() { return ilinca.x + 38; }
   function propPhoneOnDesk(x) { var y = deskAt(0.5); rect(x - 5, y - 2, 10, 2, C.phone); hline(x - 4, y - 2, 8, C.phoneTop); }   // face down, its blue back up: the phone in her hand
   // A paper airplane seen from above at a slant, nose in dir (1 = right), its middle at x, y: the near wing white, the
   // far wing in shade, the crease between (T42: the old one read as a paper football; T57: as long as the folded one). The
@@ -876,11 +943,13 @@
   var WRITING = ["write", "write", "write1", "write1", "write2", "write2", "write2", "write1", "write", "write", "write", "write1", "write2", "write", "write", "write"];
   function poseOf(p, f) {
     var a = p.activity, name = POSE_OF[a] || (p.poses[a] ? a : "rest");
-    if (a === "coffee") { name = ((p.actFrame % 40) >= 12 && (p.actFrame % 40) < 26) ? "sip" : "mug"; }
+    // (T128: between sips the hands rest on the desk, the mug standing beside them; the sip lifts it from there. The mug
+    // pose held it on the desk in front, where the laptop and the rest go: drawn there it would jump along the desk)
+    if (a === "coffee") { name = ((p.actFrame % 40) >= 12 && (p.actFrame % 40) < 26) ? "sip" : "rest"; }
     if (p.react === "surprise") { name = "surprise"; }
     else if (p.gesture && a === "rest") { name = "talk"; }      // a hand joins in only when it is free (not from thinking: chin on hand to talking arms read as a shoulder jump, T58/j)
     if (a === "wave" && p.react === "greet") {                           // T33: the hand comes up and stays; the other arm stays as it was
-      var from = p.greetAct === "coffee" ? "mug" : (POSE_OF[p.greetAct] || p.greetAct);
+      var from = p.greetAct === "coffee" ? "rest" : (POSE_OF[p.greetAct] || p.greetAct);   // (from a coffee the mug stands on the desk: T128)
       name = p.poses[from + "Wave"] ? from + "Wave" : p.poses.restWave ? "restWave" : "wave";
     }
     if (name === "wave" && p.poses.wave2 && (a === "fan" || p.name === "ilinca") && ((p.actFrame >> 2) % 2)) { name = "wave2"; }   // her wave rocks a pixel; his only fans smoke
@@ -1038,6 +1107,7 @@
         if (e2.kind === "plane") { propPlane(e2.x, deskAt(0.7), e2.dir); } else if (e2.kind === "bottle") { propArt("bottle", e2.x, deskAt(0.5) + 1); }
         else if (e2.kind === "mug") { propArt("mug", e2.x, deskAt(0.55) + 1); if (e2.steam) { steam(e2.x - 1, deskAt(0.55) - 11, f); } }
       }
+      people.forEach(function (p) { drawStandingMug(p, f); });          // T128: their everlasting mugs (the room drawn in code, while the pictures load, keeps its own desk set)
       return;
     }
     for (var i = 0; i < L.slots.length && i < set.length; i++) {
@@ -1148,6 +1218,10 @@
 
   /* ---------- scenarios: little scripted scenes ---------- */
   var scenario = null, nextScenarioAt = 22 * FPS, actors = {};
+  // T128 (Cole, 2026-10-27: "The coffee run is sort of a non-starter because a lot will be needed that just isn't there. She'll
+  // have to be standing, walk across the frame behind the desk. ... Eventually we can get the walking around thing working"):
+  // the coffee run (SCENARIOS.coffee: she rolls off and back with two mugs, `carry`) is kept but never plays while this is off.
+  var COFFEE_RUN = false;
   var review = null;   // the approval page's hold (test hooks): {cole, ilinca, greet, relay, petter, pointer}
   var still = false;   // test hook: no blinks, no passing expressions, no glancing about, clouds at rest (exact captures)
   function startScenario(name) {
@@ -1402,10 +1476,11 @@
       },
       end: catEnd
     },
-    // Ilinca rolls off for coffee and comes back with two mugs.
+    // Ilinca rolls off for coffee and comes back with two mugs. Shelved (T128, COFFEE_RUN): it never starts. If it comes
+    // back, the mugs she brings are the two standing on the desk (drawStandingMug), not two more.
     coffee: {
       dur: 15,
-      when: function () { return ilinca.activity !== "coffee" && cole.activity !== "coffee" && !soldering(); },   // (T48: his mug and hands lie where the board and the tools would)
+      when: function () { return COFFEE_RUN && ilinca.activity !== "coffee" && cole.activity !== "coffee" && !soldering(); },   // (T48: his mug and hands lie where the board and the tools would)
       steps: [
         [0, function () { setActivity(ilinca, "rest", 99); lookAt(ilinca, cole.x, faceLevel(cole)); ilinca.mouth = "smile"; }],
         [0.8, function () { lookAt(cole, ilinca.x, faceLevel(ilinca)); cole.nodAt = frame + 2; cole.mouth = "smile"; }],
@@ -1425,8 +1500,8 @@
     // pick, round 31: "Slide it"; nobody moves in their seat). It slides along the desk top toward the front edge, slowing
     // (4 px a frame at first, never more), and stops at her left, clear of her laptop, paper and mug and of his hands; she
     // keeps working until it is almost there, reaches for it, lifts it and drinks, and sets it down where she took it.
-    // Her laptop or paper stays on the desk meanwhile (T48); a mug drunk from is part of her pose and goes when her hand
-    // leaves it for the shaker (T47: the desk mug is another size). Frame numbers below are counted from the push.
+    // Her laptop or paper stays on the desk meanwhile (T48); a mug she was drinking from stands at her side again as her
+    // hand leaves it for the shaker (T128). Frame numbers below are counted from the push.
     shake: {
       dur: 11.5,
       when: function () { return !soldering(); },        // (never while he solders: the shaker would slide through his tools on the desk)
@@ -1506,7 +1581,9 @@
         [8.6, function () { ilinca.gesture = false; ilinca.mouth = "laugh"; setActivity(cole, "fistpump", 99); cole.mouth = "laugh"; }],
         [10.2, function () { setActivity(cole, "rest", 99); cole.mouth = "smile"; ilinca.mouth = "smile"; }]
       ],
-      drawFront: function (t, f) { var b = actors.buzz; if (b && ilinca.phoneOnDesk) { var x = phoneSpot() + ((f % 2) ? 1 : -1), py = deskAt(0.5) - 1; var side = x > ilinca.x ? 1 : -1; rect(x - 5, py - 2, 10, 2, C.phone); hline(x - 4, py - 2, 8, C.phoneTop); px(x + 7 * side, py - 5, C.greyLight); px(x + 9 * side, py - 8, C.greyLight); } }   // the one phone, hopping; its buzz on the side away from her sleeve
+      // (T128: her mug stands above and right of the phone, where the buzz's two marks went up; they go down to its right now,
+      // on the desk top in front of the mug, still on the side away from her sleeve)
+      drawFront: function (t, f) { var b = actors.buzz; if (b && ilinca.phoneOnDesk) { var x = phoneSpot() + ((f % 2) ? 1 : -1), py = deskAt(0.5) - 1; var side = x > ilinca.x ? 1 : -1; rect(x - 5, py - 2, 10, 2, C.phone); hline(x - 4, py - 2, 8, C.phoneTop); px(x + 7 * side, py + 1, C.greyLight); px(x + 9 * side, py + 3, C.greyLight); } }   // the one phone, hopping; its buzz on the side away from her sleeve
     }
   };
   var SCENARIO_NAMES = Object.keys(SCENARIOS);
@@ -1711,7 +1788,8 @@
     if (art) { g.drawImage(ENV.img["desk-" + layoutName], 0, 0); } else { drawDesk(); }
     people.forEach(drawDeskPropUnder); people.forEach(drawOnDesk); people.forEach(drawLaptopOut); people.forEach(drawDeskPropOver);
     if (art) { drawLampsArt(h, "front"); } else { drawLampBase(); }
-    drawProps(f);
+    steamShown = []; drawProps(f);
+    var night = art ? nightAmount(h) : 0; if (night > 0.02) { steamMark(); }   // (T128: the steam, laid on again after the dimming where nothing covers it)
     if (!art) { drawLampCone(); drawLamp(); }
     people.forEach(drawNamePlate);
     if (scenario && scenario.drawFront) { scenario.drawFront(t, f); }
@@ -1719,9 +1797,11 @@
     shadeFig = art && dark && lampIsOn(0, h) && handsOffWork(cole) && !cole.hidden;   // T84: his figure keeps out of his lamp's beam
     if (shadeFig) { figureMask(cole, f); }
     var glow = dark && art ? bulbsShowing(h) : [];                       // (the lamps stand behind them now: only what still shows)
+    if (night > 0.02) { steamKept(); }
     drawNight(h, f);
     if (art) { g = back; g.drawImage(fg, 0, 0); }
     if (dark) { if (art) { glow.forEach(function (q) { px(q[0], q[1], C.bulb); }); } else { drawPendant(true); drawLamp(); } }   // the bulbs glow through the dark
+    if (night > 0.02) { steamAfterDark(night); }
     blit2();
   }
   function blit2() { ctx.imageSmoothingEnabled = false; ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.drawImage(off, 0, 0, canvas.width, canvas.height); }
@@ -1805,6 +1885,6 @@
     face: function (n, o) { var p = who(n); faceOf(p, o || {}); if (o && o.look) { p.look = { x: o.look.x, y: o.look.y }; } if (o && o.blink) { p.blink = 2; } p.actUntil = frame + 1e6; render(frame); },
     step: function (n) { for (var i = 0; i < (n || 1); i++) { frame++; update(frame); } render(frame); },
     poses: function (n) { return Object.keys(who(n).poses); },
-    state: function () { return { layout: layoutName, size: [W, H], cole: cole.activity, ilinca: ilinca.activity, poses: [cole.drawn ? cole.drawn.name : null, ilinca.drawn ? ilinca.drawn.name : null], set: setIndex, hour: hourNow(), running: running, convo: !!convo, scenario: scenario ? scenario.name : null, lamp: { on: lamp.on, x: Math.round(lamp.hx) }, art: ENV.ready, lamps: [lampIsOn(0, hourNow()), lampIsOn(1, hourNow())], cat: actors.cat ? { x: Math.round(actors.cat.x), y: Math.round(actors.cat.y || 0), state: actors.cat.state, behind: !!actors.cat.behind } : null, laptopOut: [cole.laptopOut, ilinca.laptopOut], down: [cole.lookDown, ilinca.lookDown], react: [cole.react, ilinca.react], review: !!review }; }
+    state: function () { return { layout: layoutName, size: [W, H], cole: cole.activity, ilinca: ilinca.activity, poses: [cole.drawn ? cole.drawn.name : null, ilinca.drawn ? ilinca.drawn.name : null], set: setIndex, hour: hourNow(), running: running, convo: !!convo, scenario: scenario ? scenario.name : null, lamp: { on: lamp.on, x: Math.round(lamp.hx) }, art: ENV.ready, lamps: [lampIsOn(0, hourNow()), lampIsOn(1, hourNow())], cat: actors.cat ? { x: Math.round(actors.cat.x), y: Math.round(actors.cat.y || 0), state: actors.cat.state, behind: !!actors.cat.behind } : null, laptopOut: [cole.laptopOut, ilinca.laptopOut], mugs: [mugStands(cole), mugStands(ilinca)], down: [cole.lookDown, ilinca.lookDown], react: [cole.react, ilinca.react], review: !!review }; }
   };
 })();
