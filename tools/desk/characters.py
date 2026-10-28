@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - characters.py
-Version 1.5.1
+Version 1.5.2
 
 Created: 2026-10-02 - Cole and Ilinca as sprites: generated bases finished by hand in the face, cut into layers (v1.0.0)
 Modified: 2026-10-02 - Cole's resting mouth is a half smile, not a straight line (v1.0.1)
@@ -20,6 +20,10 @@ Modified: 2026-10-04 - T22 ("My looking down face looks distorted with a very po
   two rows shorter), his own looking-down and closed eyes; the generated looking-down picture is no longer used (v1.5.0)
 Modified: 2026-10-06 - Ilinca's looking-down head keeps inside her base head's outline below the chin (T78/T79: her neck
   moved with her nods) (v1.5.1)
+Modified: 2026-10-28 - Cole: "cole's face outline has an odd gap. this is true everywhere": his right cheek's outline ran out two
+  rows above the jaw's (skin met the wall at (50, 38-39)) and his temple's met the hairline with a pixel of wall between
+  ((53, 19)): both closed, in the head and so in the looking-down head made from it, whose jaw also gets its corner
+  pixel where its rows close up ((49, 42)) (v1.5.2)
 
 characters.py - Cole and Ilinca for the desk scene.
 
@@ -71,6 +75,8 @@ class Cole:
         s.put(52, 30, c.K)
         for y in range(31, 36): s.put(51, y, c.K)
         s.put(50, 36, c.K); s.put(50, 37, c.K)
+        s.put(50, 38, c.K); s.put(50, 39, c.K)                               # (r33-live, Cole: "cole's face outline has an odd gap": the cheek's line runs on into the jaw's, one 1-px corner)
+        s.put(53, 19, c.K)                                                   # (and his temple's outline closes against the hairline: skin had met the wall there)
         s.put(53, 30, None); s.put(54, 28, None); s.put(54, 29, None)
         s.put(34, 20, c.SM); s.put(34, 21, c.SM); s.put(34, 22, c.SM)
         # glasses: black top bar and sides, thin gold lower rims
@@ -192,6 +198,7 @@ class Cole:
         for y in range(b.h):
             sy = c.down_src_row(y)
             if 0 <= sy < b.h: s.idx[y] = b.idx[sy]
+        s.put(49, 42, c.K)                                                   # (r33-live: where the rows close up, the jaw's line steps two pixels: its corner, so no skin meets the wall)
         return s
 
     @classmethod

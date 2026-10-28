@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.27.2
+ * Version 0.27.3
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -250,6 +250,8 @@
  *   exactly on the screen's top edge, as if resting on it; the hand to his mouth, Y1, when he is not typing); on the call
  *   she tells him the news with her hands back at her laptop (her talking forearm ran down its edge); the test state says
  *   whose laptop or paper is on the desk (.state().work), the kept ones included (v0.27.2)
+ * Modified: 2026-10-28 - T141 ("paper moves under ilinca's hand", on the go-live page): with writing off, asked to write
+ *   (the approval page's cards held her at her paper) they type, so no sheet is on the desk (v0.27.3)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks (.state().mugs: whether each one's mug stands on the desk): window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(i),
@@ -1289,6 +1291,10 @@
   function leaveWork(p) { if (!p.deskProp && (p.activity === "type" || p.activity === "write")) { p.deskProp = p.resume = p.activity; } }
   function resumeWork(p, secs) { var a = p.resume; p.deskProp = null; p.resume = null; setActivity(p, a, secs); }
   function setActivity(p, a, seconds) {
+    // (T141, Cole on the go-live page: "paper moves under ilinca's hand": writing is off, but a hold of the test hooks (the
+    // approval page's cards) still sat her at her paper, whose writing frames move the sheet with the hand. Off is off: asked
+    // to write while writing is off, they type; no paper is ever on the desk)
+    if (a === "write" && !SCENE_ON[p === cole ? "coleWrite" : "ilincaWrite"]) { a = "type"; }
     // T48 (round-31 integration): a scene that takes his hands off the board while he solders (scenario.bench) leaves the
     // bench as the spark does: the station and the board stay on the desk and his tools lie on it (p.benchFrom: stationShows,
     // leftOnDesk, restingIron, restingPick); he picks them up again when he goes back to soldering

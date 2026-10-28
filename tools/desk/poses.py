@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - poses.py
-Version 1.16.0
+Version 1.16.1
 
 Created: 2026-10-02 - The figures' body poses, from generated pictures, as layers under the base head; the neck, and
   Ilinca's top, taken from the base so every pose joins the same head; front boxes by eye (v1.0.0)
@@ -133,6 +133,8 @@ Modified: 2026-10-28 - T128 follow-up (Cole: "On coffee drinking, what's missing
 Modified: 2026-10-28 - r33-live (go-live): Cole's picks from the hand pages (hand_maps.py: TB, P1, R2, Y1, D1, S2, E2, E3)
   laid over the built poses last; the visit's laptop graft of the old petting pose goes; 'hide' cut by the desk's back
   edge (T137) (v1.16.0)
+Modified: 2026-10-28 - r33-live, Cole: "cole's face outline has an odd gap": wherever skin met the wall in a pose that plays,
+  its outline closed (her waving hand, wave2 with it; her talking hand) (v1.16.1)
 
 Every activity in the scene is drawn with a body pose: the whole torso with arms, hands and whatever they hold, made
 by the image model from the figure's own portrait (pose_sprites.py says how) and reduced to a sprite on the base
@@ -1247,7 +1249,10 @@ MANUAL = {
                      post=type_arms(0, 0),
                      frames={'type1': {'edits': type_arms(1, 0)}, 'type3': {'edits': type_arms(2, 0)},
                              'type2': {'edits': type_arms(0, -1)}, 'typetrack': {'edits': type_arms(0, -2)}}),
-        'wave': dict(frames={'wave2': ((-12, 12, 12, 38), 1, 0)}),          # a casual wave: the hand rocks a pixel
+        # (r33-live, after Cole's "face outline has an odd gap": no skin meets the wall: her waving hand's fingertip, thumb
+        # tip and the V beside the thumb get their outline, the notch at the heel of her hand its bottom; wave2 follows)
+        'wave': dict(frames={'wave2': ((-12, 12, 12, 38), 1, 0)},          # a casual wave: the hand rocks a pixel
+                     post=[('rows', -2, 16, ['q']), ('rows', -9, 23, ['k']), ('rows', -7, 24, ['k']), ('rows', 5, 28, ['kkk'])]),
         # her reaching sleeve ended in a spike up into her hair: its top is cut level at the shoulder, under the hair
         'petcat': dict(fix=[('erase', -38, 60, 32, 94, CAT_GREYS), ('clear', 0, 30, 16, 45), ('rows', 4, 46, ['kkkkkk'])], frames={'petcat2': ((-18, 54, 14, 76), 2, 0)}),
         # as Cole's: Maker at the front edge. T60: the stand-in cat cleared once (not again after the hole filling, which
@@ -1305,7 +1310,8 @@ MANUAL = {
         # hands and sleeves that are in front of her hair
         # T82 (the pose after the call): the wall that showed under her raised arm, between her elbow and her side, closed by the
         # desk, is her blazer, the lower outline running on along the desk
-        'talk': dict(front=(-16, 28, 14, 64), front_mode='limb', post=[('rows', 3, 80, ['....JJJ', '...JJJJ', '..JJJJJ', 'kkkkkkk'])]),
+        'talk': dict(front=(-16, 28, 14, 64), front_mode='limb', post=[('rows', 3, 80, ['....JJJ', '...JJJJ', '..JJJJJ', 'kkkkkkk'])],
+                     paint=[('front_body', -9, 34, ['k'])]),                # (r33-live: the V between two fingers closed at its foot: skin had met the wall)
         # re-audit: the phone at her ear in the held phone's blue (its edge showed grey)
         # T82: both arms on the desk, her blazer and top down to it (CALL_LOW); call1 is the same with the free hand a pixel along
         'call': dict(keep_chest=True, fix=[('recolour', 14, 30, 16, 37, {'#5f6368': '#3d5f99'})], front=(4, 24, 15, 46), front_mode='notface', front_face=True,
