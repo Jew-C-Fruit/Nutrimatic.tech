@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.25.0
+ * Version 0.25.1
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -219,6 +219,10 @@
  *   on the desk in front, mug and mugWave, are no longer drawn); no mug on the desk while one is held. To make room the
  *   lamps stand a little further out in the wide room (38, 298; the desk props at 16, 321, 345) and on a phone the white
  *   lamp shows only its arm and shade, like the red one; the buzzing phone's marks go to its lower right, clear of her mug (v0.25.0)
+ * Modified: 2026-10-27 - Audit of T128 (6e92bba): her phone back where it lay (2 px in it came within a pixel of her sipping
+ *   sleeve); buzzing it hops sideways on the desk without rising a row, so it keeps 2 px from every pose of hers and from her
+ *   mug's foot. The steam is laid on last at every hour in one colour taken from the lit wall behind it, a little darker
+ *   on a pale wall, lighter on a dark one (at dawn and dusk the day and night steam had cancelled out) (v0.25.1)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks (.state().mugs: whether each one's mug stands on the desk): window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(i),
@@ -684,39 +688,45 @@
   var MUG_HELD = { sip: 1, mug: 1, mugWave: 1, carry: 1 };              // poses with the mug in the hand: then none stands on the desk
   // The steam: a dash of three pixels rising a row a frame over the mug's outer side and fading (a, b, c: three strengths),
   // six frames of a quarter second, the two mugs half a loop apart; never while it is held. Clear of the lamps' shades above
-  // (rows 7 to 1 over the rim, the outer three columns inside it). Rows top to bottom, columns from the outside in. By day
-  // white over a grey wall (her window's ledge in the wide room) and a cool pale grey over the white brick, where white did
-  // not show; after dark the room is dimmed after everything is drawn, which would leave it darker than the wall, so the
-  // steam that still shows (nothing drawn over it since, Maker passing in front) is laid on again after the dimming in
-  // white, as the bulbs are (steamShown).
+  // (rows 7 to 1 over the rim, the outer three columns inside it). Rows top to bottom, columns from the outside in. It is laid
+  // on last, after the night's dimming and the lamps' light, where nothing has been drawn over it since the mugs (Maker
+  // passing in front), as the bulbs are (steamShown), each pixel STEAM_D levels from the lit wall pixel behind it: darker
+  // and a little cooler (blue taken down less) where the wall behind the wisp is pale (its middle brightness: the brick by
+  // day and at dawn and dusk), lighter where it is darker (night), one way for the whole wisp so it never mixes light and
+  // dark pixels (audit of 6e92bba: a day colour dimmed and a night white on top had cancelled out at dawn and dusk).
   var STEAM = [['c..', 'c..', '.b.', '...', '...', '...', '..a'],     // (drifting outward as it rises, 2 px clear of the shades)
                ['c..', 'c..', '...', '...', '...', '..a', '..a'],
                ['c..', '...', '...', '...', '.a.', '..a', '..a'],
                ['...', '...', '...', '.b.', '.a.', '..a', '...'],
                ['...', '...', '.b.', '.b.', '.a.', '...', '...'],
                ['...', 'c..', '.b.', '.b.', '...', '...', '...']];
-  var STEAM_DAY = { a: 0.65, b: 0.42, c: 0.22 }, STEAM_NIGHT = { a: 0.42, b: 0.26, c: 0.14 }, steamShown = [];
+  var STEAM_D = { a: 30, b: 20, c: 12 }, STEAM_COOL = [1, 0.95, 0.7], steamShown = [], steamBox = {};
   function mugStands(p) { return !MUG_HELD[p.drawn && p.drawn.name]; }
   function drawStandingMug(p, f) {
     if (!mugStands(p)) { return; }                                     // at the lips: the one mug is in the hand, and no steam
     var x0 = p.x + MUG_DX[p.name], top = MUG_Y - MUG_BODY.length + 1, out = p === cole ? -1 : 1, i, j;   // out: the side its handle and steam are on
     for (j = 0; j < MUG_BODY.length; j++) { for (i = 0; i < MUG_BODY[j].length; i++) { var c = MUG_COL[MUG_BODY[j][i]]; if (c) { px(x0 + i, top + j, c); } } }
     for (j = 0; j < MUG_HANDLE.length; j++) { for (i = 0; i < 5; i++) { var ch = MUG_COL[MUG_HANDLE[j][out < 0 ? i : 4 - i]]; if (ch) { px(out < 0 ? x0 - 5 + i : x0 + 15 + i, top + 5 + j, ch); } } }
-    var fr = STEAM[(Math.floor(f / 3) + (p === cole ? 0 : 3)) % STEAM.length], sx = out < 0 ? x0 + 2 : x0 + 12, day = 1 - nightAmount(hourNow());
-    for (j = 0; j < fr.length; j++) {
-      for (i = 0; i < 3; i++) {
-        var t = fr[j][i]; if (t === ".") { continue; }
-        var x = sx - out * i, y = top - fr.length + j;
-        if (day > 0) { var w = g.getImageData(x, y, 1, 1).data, pale = luma([w[0], w[1], w[2]]) > 212; px(x, y, "rgba(" + (pale ? "176,186,202," : "255,255,255,") + (STEAM_DAY[t] * day).toFixed(3) + ")"); }
-        steamShown.push([x, y, t]);
-      }
-    }
+    var fr = STEAM[(Math.floor(f / 3) + (p === cole ? 0 : 3)) % STEAM.length], sx = out < 0 ? x0 + 2 : x0 + 12;
+    for (j = 0; j < fr.length; j++) { for (i = 0; i < 3; i++) { if (fr[j][i] !== ".") { steamShown.push([sx - out * i, top - fr.length + j, fr[j][i], null, p.name]); } } }   // (drawn last: steamDraw)
+    steamBox[p.name] = [out < 0 ? sx : sx - 2, top - fr.length];       // (the wisp's 3 x 7 box)
   }
   function rgbAt(x, y) { var d = g.getImageData(x, y, 1, 1).data; return d[0] + "," + d[1] + "," + d[2]; }
-  // (after dark: which steam pixels nothing has been drawn over since, and their white after the dimming)
+  // (which steam pixels nothing has been drawn over since the mugs, and each one's colour from the finished pixel behind it)
   function steamMark() { steamShown.forEach(function (s) { s[3] = rgbAt(s[0], s[1]); }); }
   function steamKept() { steamShown = steamShown.filter(function (s) { return rgbAt(s[0], s[1]) === s[3]; }); }
-  function steamAfterDark(n) { steamShown.forEach(function (s) { px(s[0], s[1], "rgba(255,255,255," + (STEAM_NIGHT[s[2]] * n).toFixed(3) + ")"); }); }
+  function steamDraw() {
+    var pale = {};
+    Object.keys(steamBox).forEach(function (n) {                       // the wall behind each wisp: its middle brightness (the mortar lines are few)
+      var b = steamBox[n], d = g.getImageData(b[0], b[1], 3, 7).data, ls = [];
+      for (var k = 0; k < d.length; k += 4) { ls.push(luma([d[k], d[k + 1], d[k + 2]])); }
+      ls.sort(function (u, v) { return u - v; }); pale[n] = ls[ls.length >> 1] > 170;
+    });
+    steamShown.forEach(function (s) {
+      var d = g.getImageData(s[0], s[1], 1, 1).data, k = STEAM_D[s[2]], dn = pale[s[4]];
+      px(s[0], s[1], "rgb(" + [0, 1, 2].map(function (i) { return clamp(Math.round(d[i] + (dn ? -k * STEAM_COOL[i] : k)), 0, 255); }).join(",") + ")");
+    });
+  }
   // Fourth spark rework (T67/T84, audit of 99c05d7; "Eliminating object clipping is essential"): the station's T holder is gone.
   // The iron no longer goes in it (held while soldering, laid on the desk in the spark and the wave), and it stood exactly
   // where his arms go: in facepalm its crossbar lay on his lap hand's outline and its stem ran down the hand's side leaving
@@ -843,9 +853,9 @@
     for (var j = 0; j < PICK_FLAT.length; j++) { for (var i = 0; i < PICK_FLAT[j].length; i++) { var ch = PICK_FLAT[j][i]; if (col[ch]) { px(x0 + i, y0 + j, col[ch]); } } }
   }
 
-  // Where Ilinca's phone lies when she isn't holding it: on her right, clear of her laptop and her arm (T128: 2 px further in,
-  // so buzzing, a row up and hopping a pixel right, it keeps 2 px from her mug's foot).
-  function phoneSpot() { return ilinca.x + 38; }
+  // Where Ilinca's phone lies when she isn't holding it: on her right, clear of her laptop and her arm, 2 px from her mug's foot
+  // (T128) and from her sleeve in every pose she takes while it lies there (the sip's the nearest).
+  function phoneSpot() { return ilinca.x + 40; }
   function propPhoneOnDesk(x) { var y = deskAt(0.5); rect(x - 5, y - 2, 10, 2, C.phone); hline(x - 4, y - 2, 8, C.phoneTop); }   // face down, its blue back up: the phone in her hand
   // A paper airplane seen from above at a slant, nose in dir (1 = right), its middle at x, y: the near wing white, the
   // far wing in shade, the crease between (T42: the old one read as a paper football; T57: as long as the folded one). The
@@ -1582,8 +1592,9 @@
         [10.2, function () { setActivity(cole, "rest", 99); cole.mouth = "smile"; ilinca.mouth = "smile"; }]
       ],
       // (T128: her mug stands above and right of the phone, where the buzz's two marks went up; they go down to its right now,
-      // on the desk top in front of the mug, still on the side away from her sleeve)
-      drawFront: function (t, f) { var b = actors.buzz; if (b && ilinca.phoneOnDesk) { var x = phoneSpot() + ((f % 2) ? 1 : -1), py = deskAt(0.5) - 1; var side = x > ilinca.x ? 1 : -1; rect(x - 5, py - 2, 10, 2, C.phone); hline(x - 4, py - 2, 8, C.phoneTop); px(x + 7 * side, py + 1, C.greyLight); px(x + 9 * side, py + 3, C.greyLight); } }   // the one phone, hopping; its buzz on the side away from her sleeve
+      // on the desk top in front of the mug, still on the side away from her sleeve. Audit of 6e92bba: it hops sideways where it
+      // lies, no longer a row up, so between her sipping sleeve and her mug's foot it keeps 2 px from both)
+      drawFront: function (t, f) { var b = actors.buzz; if (b && ilinca.phoneOnDesk) { var x = phoneSpot() + ((f % 2) ? 1 : -1), py = deskAt(0.5); var side = x > ilinca.x ? 1 : -1; rect(x - 5, py - 2, 10, 2, C.phone); hline(x - 4, py - 2, 8, C.phoneTop); px(x + 7 * side, py, C.greyLight); px(x + 9 * side, py + 2, C.greyLight); } }   // the one phone, hopping; its buzz on the side away from her sleeve
     }
   };
   var SCENARIO_NAMES = Object.keys(SCENARIOS);
@@ -1788,8 +1799,8 @@
     if (art) { g.drawImage(ENV.img["desk-" + layoutName], 0, 0); } else { drawDesk(); }
     people.forEach(drawDeskPropUnder); people.forEach(drawOnDesk); people.forEach(drawLaptopOut); people.forEach(drawDeskPropOver);
     if (art) { drawLampsArt(h, "front"); } else { drawLampBase(); }
-    steamShown = []; drawProps(f);
-    var night = art ? nightAmount(h) : 0; if (night > 0.02) { steamMark(); }   // (T128: the steam, laid on again after the dimming where nothing covers it)
+    steamShown = []; steamBox = {}; drawProps(f);
+    if (art) { steamMark(); }                                            // (T128: the steam goes on last, where nothing covers it)
     if (!art) { drawLampCone(); drawLamp(); }
     people.forEach(drawNamePlate);
     if (scenario && scenario.drawFront) { scenario.drawFront(t, f); }
@@ -1797,11 +1808,11 @@
     shadeFig = art && dark && lampIsOn(0, h) && handsOffWork(cole) && !cole.hidden;   // T84: his figure keeps out of his lamp's beam
     if (shadeFig) { figureMask(cole, f); }
     var glow = dark && art ? bulbsShowing(h) : [];                       // (the lamps stand behind them now: only what still shows)
-    if (night > 0.02) { steamKept(); }
+    if (art) { steamKept(); }
     drawNight(h, f);
     if (art) { g = back; g.drawImage(fg, 0, 0); }
     if (dark) { if (art) { glow.forEach(function (q) { px(q[0], q[1], C.bulb); }); } else { drawPendant(true); drawLamp(); } }   // the bulbs glow through the dark
-    if (night > 0.02) { steamAfterDark(night); }
+    if (art) { steamDraw(); }
     blit2();
   }
   function blit2() { ctx.imageSmoothingEnabled = false; ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.drawImage(off, 0, 0, canvas.width, canvas.height); }
