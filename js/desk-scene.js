@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.25.1
+ * Version 0.26.0
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -223,6 +223,15 @@
  *   sleeve); buzzing it hops sideways on the desk without rising a row, so it keeps 2 px from every pose of hers and from her
  *   mug's foot. The steam is laid on last at every hour in one colour taken from the lit wall behind it, a little darker
  *   on a pale wall, lighter on a dark one (at dawn and dusk the day and night steam had cancelled out) (v0.25.1)
+ * Modified: 2026-10-28 - T128 follow-up, Cole: "the coffee mugs should be nudged slightly down (forward) on the desk" and "On
+ *   coffee drinking, what's missing is the mug in hand on table stage before the drink": the mugs stand 3 rows further
+ *   forward (bottom row 138); Maker walking behind one (at a laptop) has it drawn in front of her. Their coffee is one sip
+ *   now: the hands at rest, a reach, the hand round the mug where it stands (held a beat, still steaming), the lift in 21
+ *   steps (the mug at most 4 px a step) to the sip (his M0-R; hers the same mirrored to her mouth, her left hand, her right
+ *   in her lap), the same steps down, the mug set down and held a moment, the hand back (COFFEE_SEQ; frames from
+ *   tools/desk/coffee_frames.py). Maker passing lifts the mug the same way and puts it back from where it was (holdcup).
+ *   A pose's 'u' columns end at the desk's edge, as a pose under the desk does (her arm in her lap). Her phone lies 2 px in
+ *   and buzzing hops a pixel to her side only, 2 px from her mug and from her in every pose (v0.26.0)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks (.state().mugs: whether each one's mug stands on the desk): window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(i),
@@ -682,10 +691,14 @@
                   'kgggggggggggggk'];
   while (MUG_BODY.length < 20) { MUG_BODY.push('kfggghggggggggk'); }     // (sixteen rows of its side)
   MUG_BODY.push('.kkgggggggggkk.', '...kkkkkkkkk...');
-  var MUG_HANDLE = ['.kkkk', 'kgggg', 'kgkkk', 'kgk..', 'kgk..', 'kgkkk', 'kgggg', '.kkkk'];   // its rows 5-12, drawn on his left (mirrored on her right)
-  var MUG_COL = { k: C.line, f: C.mugS, g: C.mug, h: "#ff5a72", c: "#3b2012" };   // (the held mug's own colours)
-  var MUG_DX = { cole: -73, ilinca: 45 }, MUG_Y = DESK_Y + 1;          // its body's left column from their middle, its bottom row (the desk's back row)
-  var MUG_HELD = { sip: 1, mug: 1, mugWave: 1, carry: 1 };              // poses with the mug in the hand: then none stands on the desk
+  var MUG_HANDLE = ['.kkkk', 'kgggg', 'kgkkk', 'kgk..', 'kgkkk', 'kgggg', '.kkkk'];   // its rows 3-9, drawn on his left (mirrored on her right; T128 follow-up: rows 3-9, so 4 rows into the desk it keeps 2 px from the lamps' feet)
+  var MUG_COL = { k: C.line, f: C.mugS, g: C.mug, h: "#ff5a72", c: "#3b2012" };   // (the held mug's own colours; her outline her own near-black)
+  // (T128 follow-up, Cole: "nudged slightly down (forward) on the desk": its bottom row 138, 4 rows into the desk top)
+  var MUG_DX = { cole: -73, ilinca: 45 }, MUG_Y = DESK_Y + 4;          // its body's left column from their middle, its bottom row
+  var MUG_HELD = { sip: 1, mug: 1, mugWave: 1, carry: 1, coffeeSip: 1 };   // poses with the mug in the hand: then none stands on the desk
+  // (the coffee frames: lifted, the mug is in the hand; held on the desk, the pose draws it where it stands and the scene only
+  // its steam; reaching, the scene draws it)
+  function mugHeld(n) { return !!MUG_HELD[n] || /^coffeeLift/.test(n || ""); }
   // The steam: a dash of three pixels rising a row a frame over the mug's outer side and fading (a, b, c: three strengths),
   // six frames of a quarter second, the two mugs half a loop apart; never while it is held. Clear of the lamps' shades above
   // (rows 7 to 1 over the rim, the outer three columns inside it). Rows top to bottom, columns from the outside in. It is laid
@@ -701,19 +714,24 @@
                ['...', '...', '.b.', '.b.', '.a.', '...', '...'],
                ['...', 'c..', '.b.', '.b.', '...', '...', '...']];
   var STEAM_D = { a: 30, b: 20, c: 12 }, STEAM_COOL = [1, 0.95, 0.7], steamShown = [], steamBox = {};
-  function mugStands(p) { return !MUG_HELD[p.drawn && p.drawn.name]; }
+  function mugStands(p) { return !mugHeld(p.drawn && p.drawn.name); }
   function drawStandingMug(p, f) {
     if (!mugStands(p)) { return; }                                     // at the lips: the one mug is in the hand, and no steam
-    var x0 = p.x + MUG_DX[p.name], top = MUG_Y - MUG_BODY.length + 1, out = p === cole ? -1 : 1, i, j;   // out: the side its handle and steam are on
-    for (j = 0; j < MUG_BODY.length; j++) { for (i = 0; i < MUG_BODY[j].length; i++) { var c = MUG_COL[MUG_BODY[j][i]]; if (c) { px(x0 + i, top + j, c); } } }
-    for (j = 0; j < MUG_HANDLE.length; j++) { for (i = 0; i < 5; i++) { var ch = MUG_COL[MUG_HANDLE[j][out < 0 ? i : 4 - i]]; if (ch) { px(out < 0 ? x0 - 5 + i : x0 + 15 + i, top + 5 + j, ch); } } }
+    var x0 = p.x + MUG_DX[p.name], top = MUG_Y - MUG_BODY.length + 1, out = p === cole ? -1 : 1, i, j, col = function (k) { return k === "k" && p === ilinca ? "#0b0503" : MUG_COL[k]; };   // out: the side its handle and steam are on
+    if (!(p.drawn && p.drawn.name === "coffeeHold")) {                // (held on the desk the pose draws it)
+      for (j = 0; j < MUG_BODY.length; j++) { for (i = 0; i < MUG_BODY[j].length; i++) { var c = col(MUG_BODY[j][i]); if (c) { px(x0 + i, top + j, c); } } }
+      for (j = 0; j < MUG_HANDLE.length; j++) { for (i = 0; i < 5; i++) { var ch = col(MUG_HANDLE[j][out < 0 ? i : 4 - i]); if (ch) { px(out < 0 ? x0 - 5 + i : x0 + 15 + i, top + 3 + j, ch); } } }
+    }
     var fr = STEAM[(Math.floor(f / 3) + (p === cole ? 0 : 3)) % STEAM.length], sx = out < 0 ? x0 + 2 : x0 + 12;
     for (j = 0; j < fr.length; j++) { for (i = 0; i < 3; i++) { if (fr[j][i] !== ".") { steamShown.push([sx - out * i, top - fr.length + j, fr[j][i], null, p.name]); } } }   // (drawn last: steamDraw)
     steamBox[p.name] = [out < 0 ? sx : sx - 2, top - fr.length];       // (the wisp's 3 x 7 box)
   }
+  // (T128 follow-up: the mug 4 rows into the desk top; Maker comes no further back than row 137, at a laptop: there, near the
+  // mug, she is behind it, and it is drawn after her)
+  function catBehindMug(p) { var c = actors.cat; return !!c && c.y < MUG_Y && Math.abs(c.x - (p.x + MUG_DX[p.name] + 7)) < 50; }
   function rgbAt(x, y) { var d = g.getImageData(x, y, 1, 1).data; return d[0] + "," + d[1] + "," + d[2]; }
   // (which steam pixels nothing has been drawn over since the mugs, and each one's colour from the finished pixel behind it)
-  function steamMark() { steamShown.forEach(function (s) { s[3] = rgbAt(s[0], s[1]); }); }
+  function steamMark() { steamShown.forEach(function (s) { if (s[3] === null) { s[3] = rgbAt(s[0], s[1]); } }); }
   function steamKept() { steamShown = steamShown.filter(function (s) { return rgbAt(s[0], s[1]) === s[3]; }); }
   function steamDraw() {
     var pale = {};
@@ -854,8 +872,8 @@
   }
 
   // Where Ilinca's phone lies when she isn't holding it: on her right, clear of her laptop and her arm, 2 px from her mug's foot
-  // (T128) and from her sleeve in every pose she takes while it lies there (the sip's the nearest).
-  function phoneSpot() { return ilinca.x + 40; }
+  // (T128; the mug 4 rows into the desk now: the phone 2 px further in) and from her in every pose she takes while it lies there.
+  function phoneSpot() { return ilinca.x + 38; }
   function propPhoneOnDesk(x) { var y = deskAt(0.5); rect(x - 5, y - 2, 10, 2, C.phone); hline(x - 4, y - 2, 8, C.phoneTop); }   // face down, its blue back up: the phone in her hand
   // A paper airplane seen from above at a slant, nose in dir (1 = right), its middle at x, y: the near wing white, the
   // far wing in shade, the crease between (T42: the old one read as a paper football; T57: as long as the folded one). The
@@ -880,7 +898,7 @@
     Object.keys(a.poses || {}).forEach(function (k) {
       var q = a.poses[k], props = {};
       Object.keys(q.p || {}).forEach(function (n) { props[n] = bake(q.p[n], a.pal); });
-      poses[k] = { body: bake(q.b, a.pal), front: q.f ? bake(q.f, a.pal) : null, frontBody: q.fb ? bake(q.fb, a.pal) : null, over: q.o ? bake(q.o, a.pal) : null, pts: q.pts || {}, props: props, ownHead: !!q.oh };
+      poses[k] = { body: bake(q.b, a.pal), front: q.f ? bake(q.f, a.pal) : null, frontBody: q.fb ? bake(q.fb, a.pal) : null, over: q.o ? bake(q.o, a.pal) : null, pts: q.pts || {}, props: props, ownHead: !!q.oh, under: q.u || null };
     });
     if (!poses.rest) { poses.rest = { body: bake(a.torso, a.pal), front: null, pts: {} }; }
     return {
@@ -951,11 +969,43 @@
   // Writing: the hand moves along the line in small steps and comes back (write1 and write2 are the write pose with
   // the hand moved one and two pixels on).
   var WRITING = ["write", "write", "write1", "write1", "write2", "write2", "write2", "write1", "write", "write", "write", "write1", "write2", "write", "write", "write"];
+  // T128 follow-up (Cole, 2026-10-28: "On coffee drinking, what's missing is the mug in hand on table stage before the drink"):
+  // a coffee is one sip, 10 s: the hands at rest, the reach (2 frames each of two), the hand round the mug where it stands
+  // (a beat, 1 s), the lift in COFFEE_LIFT steps of at most 4 px for the mug, the sip (14 frames), the same steps down, the
+  // mug held on the desk a moment, the hand back, at rest again; a longer coffee repeats it. "SIP" is his 'sip' (M0-R) or
+  // her 'coffeeSip'.
+  var COFFEE_LIFT = 22, COFFEE_SEQ = (function () {
+    var q = [], i, add = function (n, k) { for (var j = 0; j < k; j++) { q.push(n); } };
+    add(null, 24); add("coffeeReach1", 2); add("coffeeReach2", 2); add("coffeeHold", 12);
+    for (i = 1; i <= COFFEE_LIFT; i++) { add("coffeeLift" + i, 1); }
+    add("SIP", 14);
+    for (i = COFFEE_LIFT; i >= 1; i--) { add("coffeeLift" + i, 1); }
+    add("coffeeHold", 8); add("coffeeReach2", 2); add("coffeeReach1", 2);
+    while (q.length < 120) { q.push(null); }
+    return q;
+  })();
+  var SIP_AT = COFFEE_SEQ.indexOf("SIP"), DOWN_AT = SIP_AT + 14, LIFT_AT = COFFEE_SEQ.indexOf("coffeeLift1");
+  // Maker passing (holdcup): the mug lifted the same way, from wherever the coffee had got to, and held at the lips
+  var HOLDCUP = [24, 24, 26, 26, 28, 28, 28, 28].concat((function () { var q = []; for (var i = LIFT_AT; i <= SIP_AT; i++) { q.push(i); } return q; })());
+  function coffeePose(p, k) {
+    var n = COFFEE_SEQ[k % COFFEE_SEQ.length]; if (n === "SIP") { n = p.poses.coffeeSip ? "coffeeSip" : "sip"; }
+    return n && p.poses[n] ? n : null;
+  }
+  function holdcupFrom(p) {                                            // where in HOLDCUP to start: the frame the coffee was showing
+    var k = p.activity === "coffee" ? p.actFrame % COFFEE_SEQ.length : 0;
+    if (k >= LIFT_AT && k <= SIP_AT) { return HOLDCUP.indexOf(k); }
+    if (k > SIP_AT && k < DOWN_AT + COFFEE_LIFT) { return k < DOWN_AT ? HOLDCUP.length - 1 : HOLDCUP.indexOf(LIFT_AT + (DOWN_AT + COFFEE_LIFT - 1 - k)); }
+    return (k >= 28 && k < LIFT_AT) || (k >= DOWN_AT + COFFEE_LIFT && k < DOWN_AT + COFFEE_LIFT + 8) ? 4 : 0;
+  }
+  function coffeeFromHoldcup(p) {                                      // back from it: the coffee goes on from the same frame, on the way down
+    var j = HOLDCUP[Math.min(HOLDCUP.length - 1, (p.cupAt || 0) + p.actFrame)];
+    return j >= SIP_AT ? DOWN_AT : j >= LIFT_AT ? DOWN_AT + COFFEE_LIFT - 1 - (j - LIFT_AT) : j >= 28 ? DOWN_AT + COFFEE_LIFT : DOWN_AT + COFFEE_LIFT + 8;
+  }
   function poseOf(p, f) {
     var a = p.activity, name = POSE_OF[a] || (p.poses[a] ? a : "rest");
-    // (T128: between sips the hands rest on the desk, the mug standing beside them; the sip lifts it from there. The mug
-    // pose held it on the desk in front, where the laptop and the rest go: drawn there it would jump along the desk)
-    if (a === "coffee") { name = ((p.actFrame % 40) >= 12 && (p.actFrame % 40) < 26) ? "sip" : "rest"; }
+    // (T128: the mug stands at their side; the coffee is the reach, the hold, the lift in steps, the sip and back: COFFEE_SEQ)
+    if (a === "coffee") { name = coffeePose(p, p.actFrame) || "rest"; }
+    if (a === "holdcup") { name = coffeePose(p, HOLDCUP[Math.min(HOLDCUP.length - 1, (p.cupAt || 0) + p.actFrame)]) || name; }
     if (p.react === "surprise") { name = "surprise"; }
     else if (p.gesture && a === "rest") { name = "talk"; }      // a hand joins in only when it is free (not from thinking: chin on hand to talking arms read as a shoulder jump, T58/j)
     if (a === "wave" && p.react === "greet") {                           // T33: the hand comes up and stays; the other arm stays as it was
@@ -1004,8 +1054,8 @@
     var o = origin(p), name = poseOf(p, f), pose = p.poses[name];
     var jig = 0;                                                         // the body never jumps under the head (shaking moves only the arms: shake2)
     p.drawn = { o: o, pose: pose, name: name, jig: jig };
-    var under = UNDER_DESK[name];                                        // hands under the desk: nothing below its back edge (round-31 audit)
-    if (under) { g.save(); g.beginPath(); g.rect(0, 0, W, deskEdge()); g.clip(); }
+    var under = UNDER_DESK[name] || pose.under;                          // hands under the desk: nothing below its back edge (round-31 audit)
+    if (under) { g.save(); g.beginPath(); underClip(pose, o); g.clip(); }
     blit(pose.body, o.x, o.y + jig);
     if (!pose.ownHead) {                                                 // (a picture that brings its own head: leaning back)
       drawHead(p, o);
@@ -1025,11 +1075,17 @@
   // Hands, forearms and what they hold lie on the desk: that part of the pose is drawn again once the desk is there.
   // While her laptop is left on the desk (the shake break), the hands at its keyboard stay behind it as when typing: below
   // the desk line nothing of them is drawn where the laptop stands (their tips had stuck out under its front edge).
+  // (a pose under the desk ends at its edge; a pose's 'under' columns only: her coffee frames' arm in her lap, T128)
+  function underClip(pose, o) {
+    var e = deskEdge(), u = pose.under; g.rect(0, 0, W, e);
+    if (u) { g.rect(0, e, o.x + u[0], H - e); g.rect(o.x + u[1] + 1, e, W, H - e); }
+  }
   function drawOnDesk(p) {
     var d = p.drawn; if (p.hidden || !d || UNDER_DESK[d.name]) { return; }   // (hands under the desk: none of it is on the desk)
-    var lap = p.deskProp === "type" && p.poses.type && p.poses.type.props.laptop;
+    var lap = p.deskProp === "type" && p.poses.type && p.poses.type.props.laptop, u = d.pose.under;
     g.save(); g.beginPath();
     if (lap) { var lx0 = d.o.x - Math.round(p.slide) + lap.x, lx1 = lx0 + lap.w; g.rect(0, DESK_Y, lx0, H - DESK_Y); g.rect(lx1, DESK_Y, W - lx1, H - DESK_Y); }
+    else if (u) { g.rect(0, DESK_Y, d.o.x + u[0], H - DESK_Y); g.rect(d.o.x + u[1] + 1, DESK_Y, W, H - DESK_Y); }   // (her arm in her lap stays under it)
     else { g.rect(0, DESK_Y, W, H - DESK_Y); }
     g.clip();
     blit(d.pose.body, d.o.x, d.o.y + d.jig); if (d.pose.frontBody) { blit(d.pose.frontBody, d.o.x, d.o.y + d.jig); } if (d.pose.front) { blit(d.pose.front, d.o.x, d.o.y + d.jig + p.headDy); }
@@ -1117,7 +1173,7 @@
         if (e2.kind === "plane") { propPlane(e2.x, deskAt(0.7), e2.dir); } else if (e2.kind === "bottle") { propArt("bottle", e2.x, deskAt(0.5) + 1); }
         else if (e2.kind === "mug") { propArt("mug", e2.x, deskAt(0.55) + 1); if (e2.steam) { steam(e2.x - 1, deskAt(0.55) - 11, f); } }
       }
-      people.forEach(function (p) { drawStandingMug(p, f); });          // T128: their everlasting mugs (the room drawn in code, while the pictures load, keeps its own desk set)
+      people.forEach(function (p) { if (!catBehindMug(p)) { drawStandingMug(p, f); } });   // T128: their everlasting mugs (the room drawn in code, while the pictures load, keeps its own desk set)
       return;
     }
     for (var i = 0; i < L.slots.length && i < set.length; i++) {
@@ -1261,7 +1317,11 @@
   var HANDS_DOWN = { rest: 1, type: 1, write: 1, think: 1, coffee: 1 }, HAND_REACH = 44;
   function catHalf() { var w = MAKER && MAKER.walk0 ? MAKER.walk0.w : 64; return Math.round(w * 0.45); }   // half her length on the desk, nose to rump
   function catReach() { return HAND_REACH + catHalf() - 4; }
-  function handsAway(p) { setActivity(p, p.activity === "coffee" && p.poses.sip ? "holdcup" : "underdesk", 99); }
+  function handsAway(p) { var from = holdcupFrom(p); setActivity(p, p.activity === "coffee" && p.poses.sip ? "holdcup" : "underdesk", 99); p.cupAt = from; }
+  function handsBack(p) {                                              // (T128 follow-up: a coffee goes on where the lifted mug is)
+    var k = p.activity === "holdcup" && p.catLift === "coffee" ? coffeeFromHoldcup(p) : 0;
+    setActivity(p, p.catLift, 99); p.actFrame = k;
+  }
   function catTick(c, f) {
     if (!c.nextBlink) { c.nextBlink = f + 12 + Math.random() * 24; }
     if (f >= c.nextBlink) { c.blinkUntil = f + 2; c.nextBlink = f + 14 + Math.random() * 26; }
@@ -1270,7 +1330,7 @@
       if (p.hidden || p.held) { return; }
       var reach = catReach(), near = c.state === "walk" && Math.abs(c.x - p.x) < reach;
       if (near && !p.catLift && HANDS_DOWN[p.activity]) { p.catLift = p.activity; handsAway(p); }                     // hands go under the desk as she passes
-      else if (!near && p.catLift && (Math.abs(c.x - p.x) > reach + 6 || (c.state !== "walk" && p !== actors.petter))) { setActivity(p, p.catLift, 99); p.catLift = null; }   // she has passed, or settled further along
+      else if (!near && p.catLift && (Math.abs(c.x - p.x) > reach + 6 || (c.state !== "walk" && p !== actors.petter))) { handsBack(p); p.catLift = null; }   // she has passed, or settled further along
     });
   }
   // Lying at the desk's front edge her tail hangs over it: a chain of short segments from the root, swinging like a
@@ -1301,7 +1361,7 @@
   }
   function catEnd() {
     people.forEach(function (p) {
-      if (p.catLift) { setActivity(p, p.catLift, 99); }
+      if (p.catLift) { handsBack(p); }
       if (/^pet/.test(p.activity) || p.activity === "underdesk") { setActivity(p, p.keepProps || "rest", 99); }   // no hand left stroking a cat that has gone, none left under the desk
       p.catLift = null; p.held = false; p.laptopOut = false; p.keepProps = null;
     });
@@ -1591,10 +1651,9 @@
         [8.6, function () { ilinca.gesture = false; ilinca.mouth = "laugh"; setActivity(cole, "fistpump", 99); cole.mouth = "laugh"; }],
         [10.2, function () { setActivity(cole, "rest", 99); cole.mouth = "smile"; ilinca.mouth = "smile"; }]
       ],
-      // (T128: her mug stands above and right of the phone, where the buzz's two marks went up; they go down to its right now,
-      // on the desk top in front of the mug, still on the side away from her sleeve. Audit of 6e92bba: it hops sideways where it
-      // lies, no longer a row up, so between her sipping sleeve and her mug's foot it keeps 2 px from both)
-      drawFront: function (t, f) { var b = actors.buzz; if (b && ilinca.phoneOnDesk) { var x = phoneSpot() + ((f % 2) ? 1 : -1), py = deskAt(0.5); var side = x > ilinca.x ? 1 : -1; rect(x - 5, py - 2, 10, 2, C.phone); hline(x - 4, py - 2, 8, C.phoneTop); px(x + 7 * side, py, C.greyLight); px(x + 9 * side, py + 2, C.greyLight); } }   // the one phone, hopping; its buzz on the side away from her sleeve
+      // (T128: her mug stands above and right of the phone, where the buzz's two marks went up; they go down to its left now, on
+      // the desk top in front of her, below her sleeves in every pose she can take while it buzzes)
+      drawFront: function (t, f) { var b = actors.buzz; if (b && ilinca.phoneOnDesk) { var x = phoneSpot() - ((f % 2) ? 1 : 0), py = deskAt(0.5); var side = x > ilinca.x ? 1 : -1; rect(x - 5, py - 2, 10, 2, C.phone); hline(x - 4, py - 2, 8, C.phoneTop); px(x - 7 * side, deskAt(0.5) + 1, C.greyLight); px(x - 9 * side, deskAt(0.5) + 3, C.greyLight); } }   // the one phone, hopping a pixel to the left and back (T128 follow-up: between her sleeves and her mug there is room for nothing more)
     }
   };
   var SCENARIO_NAMES = Object.keys(SCENARIOS);
@@ -1804,6 +1863,7 @@
     if (!art) { drawLampCone(); drawLamp(); }
     people.forEach(drawNamePlate);
     if (scenario && scenario.drawFront) { scenario.drawFront(t, f); }
+    if (art) { people.forEach(function (p) { if (catBehindMug(p)) { drawStandingMug(p, f); } }); steamMark(); }   // (a mug Maker walks behind)
     people.forEach(drawPetHand);
     shadeFig = art && dark && lampIsOn(0, h) && handsOffWork(cole) && !cole.hidden;   // T84: his figure keeps out of his lamp's beam
     if (shadeFig) { figureMask(cole, f); }
@@ -1881,7 +1941,7 @@
       Object.keys(list || {}).forEach(function (k) {
         var q = list[k], props = {};
         Object.keys(q.p || {}).forEach(function (m) { props[m] = bake(q.p[m], a.pal); });
-        p.poses[k] = { body: bake(q.b, a.pal), front: q.f ? bake(q.f, a.pal) : null, frontBody: q.fb ? bake(q.fb, a.pal) : null, over: q.o ? bake(q.o, a.pal) : null, pts: q.pts || {}, props: props, ownHead: !!q.oh };
+        p.poses[k] = { body: bake(q.b, a.pal), front: q.f ? bake(q.f, a.pal) : null, frontBody: q.fb ? bake(q.fb, a.pal) : null, over: q.o ? bake(q.o, a.pal) : null, pts: q.pts || {}, props: props, ownHead: !!q.oh, under: q.u || null };
       });
       render(frame); return Object.keys(list || {}).length;
     },
