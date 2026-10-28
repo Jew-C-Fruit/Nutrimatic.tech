@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.27.0
+ * Version 0.27.1
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -241,6 +241,11 @@
  *   D1 (the station's seal no longer drawn on it), soldering S2 (the iron's tip where its tip is), petting E2 on his paper
  *   and E3 in the visit (their hand boxes); her phone P1. His red lamp 3 px further out in the wide room (35; the left desk
  *   prop with it, 13) so his shake will clear it; no scene starts while he stretches (a stretch was held through it) (v0.27.0)
+ * Modified: 2026-10-28 - Audit of the go-live (Cole's standing rule: props never vanish): a short break from the laptop or the
+ *   paper (a stretch, the late-night yawn, the fist pump, her phone ringing) leaves it on the desk where it stood (p.deskProp,
+ *   as in the shake break), and the work goes on after it; anyone still at work when a scene ends works on a while; the DS
+ *   waits while he types (its console is held where the screen stands). His mug's steam a pixel further out, 2 px clear of
+ *   his lamp's shade (v0.27.1)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks (.state().mugs: whether each one's mug stands on the desk): window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(i),
@@ -758,7 +763,7 @@
       for (j = 0; j < MUG_BODY.length; j++) { for (i = 0; i < MUG_BODY[j].length; i++) { var c = col(MUG_BODY[j][i]); if (c) { px(x0 + i, top + j, c); } } }
       for (j = 0; j < MUG_HANDLE.length; j++) { for (i = 0; i < 5; i++) { var ch = col(MUG_HANDLE[j][out < 0 ? i : 4 - i]); if (ch) { px(out < 0 ? x0 - 5 + i : x0 + 15 + i, top + 3 + j, ch); } } }
     }
-    var fr = STEAM[(Math.floor(f / 3) + (p === cole ? 0 : 3)) % STEAM.length], sx = out < 0 ? x0 + 2 : x0 + 12;
+    var fr = STEAM[(Math.floor(f / 3) + (p === cole ? 0 : 3)) % STEAM.length], sx = out < 0 ? x0 + 1 : x0 + 12;   // (r33-live: his a pixel further out: 2 clear px from his lamp's shade at 35)
     for (j = 0; j < fr.length; j++) { for (i = 0; i < 3; i++) { if (fr[j][i] !== ".") { steamShown.push([sx - out * i, top - fr.length + j, fr[j][i], null, p.name]); } } }   // (drawn last: steamDraw)
     steamBox[p.name] = [out < 0 ? sx : sx - 2, top - fr.length];       // (the wisp's 3 x 7 box)
   }
@@ -1262,6 +1267,13 @@
 
   /* ---------- activities ---------- */
   var frame = 0;
+  // r33-live (audit of the go-live; Cole's standing rule: props never vanish): a short break from the laptop or the paper (a
+  // stretch, the late-night yawn, the fist pump, her phone ringing) leaves it on the desk where it stands while typing or
+  // writing, in front of them as it is then, the hands that stay on the desk behind it, none below its front edge (p.deskProp,
+  // as the shake break keeps her work: drawDeskPropOver, drawOnDesk, sheetLeft); the work goes on after the break (p.resume).
+  // A change of task (thinking, soldering, the phone, resting) puts it away as before: its hands and things need that place.
+  function leaveWork(p) { if (!p.deskProp && (p.activity === "type" || p.activity === "write")) { p.deskProp = p.resume = p.activity; } }
+  function resumeWork(p, secs) { var a = p.resume; p.deskProp = null; p.resume = null; setActivity(p, a, secs); }
   function setActivity(p, a, seconds) {
     // T48 (round-31 integration): a scene that takes his hands off the board while he solders (scenario.bench) leaves the
     // bench as the spark does: the station and the board stay on the desk and his tools lie on it (p.benchFrom: stationShows,
@@ -1273,10 +1285,12 @@
     if (p === ilinca) { p.phoneOnDesk = a !== "phone" && a !== "call"; }
   }
   function nextActivity(p) {
+    if (p.resume) { resumeWork(p, review ? 1e4 : 6 + Math.random() * 8); return; }   // (back to the laptop or the paper after a break)
     if (review && review[p.name]) { setActivity(p, review[p.name], 1e4); return; }
     var a = p.activities[(Math.random() * p.activities.length) | 0];
     if (a === p.activity) { a = p.activities[(Math.random() * p.activities.length) | 0]; }
     if (a === "stretch" && (other(p).activity === "stretch" || other(p).activity === "yawn")) { a = "rest"; }   // never both at once
+    if (a === "stretch") { leaveWork(p); }                               // (a stretch from the keyboard: the laptop stays, and back to it)
     var secs = a === "stretch" ? 2.5 : a === "coffee" ? 10 : a === "rest" ? 4 : 12 + Math.random() * 14;
     setActivity(p, a, secs);
   }
@@ -1353,7 +1367,7 @@
     var t = (f - scenario.t0) / FPS;
     scenario.steps.forEach(function (s) { if (!s.done && t >= s.at) { s.done = true; s.fn(t); } });
     if (scenario.update) { scenario.update(t, f); }
-    if (t >= scenario.dur) { if (scenario.end) { scenario.end(); } scenario = null; actors = {}; people.forEach(function (p) { p.turn = 0; p.brows = p.activity === "think" ? "down" : null; p.mouth = "neutral"; p.hold = null; if (p === cole && p.benchFrom) { backToBench(); } else { nextActivity(p); } }); nextScenarioAt = f + (45 + Math.random() * 35) * FPS; }
+    if (t >= scenario.dur) { if (scenario.end) { scenario.end(); } scenario = null; actors = {}; people.forEach(function (p) { p.turn = 0; p.brows = p.activity === "think" ? "down" : null; p.mouth = "neutral"; p.hold = null; if (p === cole && p.benchFrom) { backToBench(); } else if (!p.resume && !review && (p.activity === "type" || p.activity === "write")) { setActivity(p, p.activity, 6 + Math.random() * 8); } else { nextActivity(p); } }); nextScenarioAt = f + (45 + Math.random() * 35) * FPS; }
   }
   function backToBench() {                                              // (T48) the scene is over: he takes up his tools again
     if (review && review.cole && review.cole !== "solder") { cole.benchFrom = null; nextActivity(cole); return; }
@@ -1437,6 +1451,7 @@
     // Cole sneaks a game on a red DS; Ilinca notices; he puts it away.
     ds: {
       dur: 13, bench: true,                                              // (from soldering: the station, board and tools stay on the desk)
+      when: function () { return cole.activity !== "type"; },            // (r33-live: the console is held where his laptop's screen stands: not while he types)
       steps: [
         [0, function () { setActivity(cole, "ds", 99); faceOf(cole, { mouth: "smile", look: { x: 0, y: 1 }, turn: 0 }); }],
         [6.5, function () { faceOf(ilinca, { brows: "down", mouth: "flat" }); lookAt(ilinca, cole.x, faceLevel(cole)); }],
@@ -1668,11 +1683,11 @@
     latenight: {
       dur: 7, when: function () { return SCENE_ON.lateNight && isDark(hourNow()) && !soldering(); },   // (T48: his yawning arm and his hands at rest lie where the board and the tools would)
       steps: [
-        [0, function () { setActivity(cole, "yawn", 99); cole.mouth = "yawn"; cole.lookTarget = { x: 0, y: -1 }; }],
+        [0, function () { leaveWork(cole); setActivity(cole, "yawn", 99); cole.mouth = "yawn"; cole.lookTarget = { x: 0, y: -1 }; }],   // (the laptop stays: leaveWork)
         [1.8, function () { setActivity(cole, "rubEye", 99); cole.mouth = "neutral"; }],
         [2.4, function () { lookAt(ilinca, cole.x, faceLevel(cole)); }],
-        [3.2, function () { setActivity(ilinca, "yawn", 99); ilinca.mouth = "yawn"; ilinca.turn = 0; ilinca.lookTarget = { x: 0, y: -1 }; }],
-        [5.0, function () { setActivity(ilinca, "rest", 99); ilinca.mouth = "smile"; setActivity(cole, "rest", 99); lookAt(cole, ilinca.x, faceLevel(ilinca)); cole.mouth = "smile"; }]
+        [3.2, function () { leaveWork(ilinca); setActivity(ilinca, "yawn", 99); ilinca.mouth = "yawn"; ilinca.turn = 0; ilinca.lookTarget = { x: 0, y: -1 }; }],
+        [5.0, function () { [ilinca, cole].forEach(function (p) { if (p.resume) { resumeWork(p, 99); } else { setActivity(p, "rest", 99); } }); ilinca.mouth = "smile"; lookAt(cole, ilinca.x, faceLevel(ilinca)); cole.mouth = "smile"; }]
       ]
     },
     // A bigger spark while soldering: a puff of smoke from the board, he starts back, then puts a hand to his head,
@@ -1702,11 +1717,11 @@
       when: function () { return ilinca.activity !== "phone" && ilinca.activity !== "call" && !soldering(); },   // (T48: his fist pump and his hands at rest lie where the board and the tools would)
       steps: [
         [0, function () { actors.buzz = { t0: frame }; }],
-        [1.4, function () { setActivity(ilinca, "call", 99); actors.buzz = null; ilinca.phoneOnDesk = false; faceOf(ilinca, { mouth: "talk", look: { x: 0, y: 0 }, turn: 0 }); }],
+        [1.4, function () { leaveWork(ilinca); setActivity(ilinca, "call", 99); actors.buzz = null; ilinca.phoneOnDesk = false; faceOf(ilinca, { mouth: "talk", look: { x: 0, y: 0 }, turn: 0 }); }],
         [5.6, function () { ilinca.mouth = "smile"; ilinca.nodAt = frame + 1; }],
         [7.0, function () { setActivity(ilinca, "rest", 99); lookAt(ilinca, cole.x, faceLevel(cole)); ilinca.gesture = true; ilinca.mouth = "talk"; lookAt(cole, ilinca.x, faceLevel(ilinca)); }],
-        [8.6, function () { ilinca.gesture = false; ilinca.mouth = "laugh"; setActivity(cole, "fistpump", 99); cole.mouth = "laugh"; }],
-        [10.2, function () { setActivity(cole, "rest", 99); cole.mouth = "smile"; ilinca.mouth = "smile"; }]
+        [8.6, function () { ilinca.gesture = false; ilinca.mouth = "laugh"; leaveWork(cole); setActivity(cole, "fistpump", 99); cole.mouth = "laugh"; }],
+        [10.2, function () { if (cole.resume) { resumeWork(cole, 99); } else { setActivity(cole, "rest", 99); } if (ilinca.resume) { resumeWork(ilinca, 99); } cole.mouth = "smile"; ilinca.mouth = "smile"; }]
       ],
       // (T128: her mug stands above and right of the phone, where the buzz's two marks went up; they go down to its left now, on
       // the desk top in front of her, below her sleeves in every pose she can take while it buzzes)
@@ -1721,7 +1736,7 @@
     scenario = null; actors = {}; convo = null; extras = [];
     people.forEach(function (p) {
       p.react = null; p.talking = false; p.gesture = false; p.turn = 0; p.turnUntil = 0; p.brows = null; p.mouth = "neutral"; p.hold = null; p.hidden = false; p.slide = 0;
-      p.held = false; p.laptopOut = false; p.keepProps = null; p.deskProp = null; p.benchFrom = null; p.catLift = null; p.petFrom = null; p.nodAt = 0; p.nod = 0; p.bob = 0; p.smileUntil = 0; p.lookTarget = { x: 0, y: 1 };
+      p.held = false; p.laptopOut = false; p.keepProps = null; p.deskProp = null; p.resume = null; p.benchFrom = null; p.catLift = null; p.petFrom = null; p.nodAt = 0; p.nod = 0; p.bob = 0; p.smileUntil = 0; p.lookTarget = { x: 0, y: 1 };
     });
   }
   function pickScenario() {
