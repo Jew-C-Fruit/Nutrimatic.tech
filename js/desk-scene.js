@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.26.0
+ * Version 0.27.0
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -232,10 +232,20 @@
  *   tools/desk/coffee_frames.py). Maker passing lifts the mug the same way and puts it back from where it was (holdcup).
  *   A pose's 'u' columns end at the desk's edge, as a pose under the desk does (her arm in her lap). Her phone lies 2 px in
  *   and buzzing hops a pixel to her side only, 2 px from her mug and from her in every pose (v0.26.0)
+ * Modified: 2026-10-28 - Go-live (Cole: "let's focus on getting some scenes DONE so we can bring this live, then we can take
+ *   our time improving it"; scenes not done: "switch off"): every unfinished scene or piece is off behind its own flag in
+ *   SCENE_ON (his and her writing, the spark, the airplane, the shake break, drinking coffee, his wave, his talking hand, the
+ *   high five, Maker's visits and laptop/paper scenes without a finished stroke), the code kept. His picks from the hand pages
+ *   are in the art (tools/desk/hand_maps.py): his resting pose R2 everywhere, its hidden arm ending at each layout's desk
+ *   edge (a pose's phone-layout body, 'bn'), thinking TB, the yawn Y1 with his face tipping back as he yawns, the handheld
+ *   D1 (the station's seal no longer drawn on it), soldering S2 (the iron's tip where its tip is), petting E2 on his paper
+ *   and E3 in the visit (their hand boxes); her phone P1. His red lamp 3 px further out in the wide room (35; the left desk
+ *   prop with it, 13) so his shake will clear it; no scene starts while he stretches (a stretch was held through it) (v0.27.0)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks (.state().mugs: whether each one's mug stands on the desk): window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(i),
- *   .face(who, {mouth, brows, look}), .poses(who), .step(n), .state(), .review(o), .patchPoses(who, poses), .unpatchPoses(who), .still(on)
+ *   .face(who, {mouth, brows, look}), .poses(who), .step(n), .state(), .review(o), .patchPoses(who, poses), .unpatchPoses(who), .still(on),
+ *   .scenesOn() (a copy of SCENE_ON)
  */
 
 (function () {
@@ -248,6 +258,30 @@
   var DESK_DEEP = 9, DESK_FRONT = DESK_Y + DESK_DEEP;
   function deskAt(d) { return DESK_Y + Math.round(d * DESK_DEEP); }
   var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // Go-live (Cole, 2026-10-28: "let's focus on getting some scenes DONE so we can bring this live, then we can take our time
+  // improving it"; a scene not done at launch: "switch off"). One flag per unfinished scene or piece: its code stays as it is,
+  // and true brings it back. (The coffee run keeps its own flag from T128, COFFEE_RUN.)
+  var SCENE_ON = {
+    coleWrite: false,       // his writing (WR6, one fix away: "sleeves are layered behind arms"): not one of his activities
+    ilincaWrite: false,     // her writing ("needs work" on the round-31 page): not one of hers
+    spark: false,           // the solder spark (K2, one fix away: the tools on the table too early, the board over his hands, the ending)
+    airplane: false,        // the paper airplane (PL2, one fix away: "hands become very small during the fold ...")
+    shake: false,           // the shake break: his shake, the slide, her take and drink (SK2, SL1, TK2, IS2 not all done)
+    coffee: false,          // drinking coffee, both (her IM1 "very messy"; his resting left in it to be replaced): the mugs stay
+                            // on the desk, steaming, and nobody lifts one (not as Maker passes either: that starts from a coffee)
+    coleWave: false,        // his wave hello (no pick: W2's upper arm and shoulder not OK'd): his greeting is always a nod
+    coleTalkHands: false,   // his talking hand (no TL pick): conversations go on, his hands stay at rest
+    highFive: false,        // the high five (no H pick; no scene has played it since T21, the airplane's release used its pose)
+    visitCole: true,        // Maker's visit, Cole stroking her (E3, OK'd)
+    visitColeTyping: false, // ... while he types: one hand stays at the laptop (petedgeLap was drawn on his old petting pose, not
+                            // on E3): the visit does not start while he types
+    visitIlinca: false,     // Maker's visit, Ilinca stroking her (IE1, IE3 one fix away; IE2 needs work)
+    laptopCole: false,      // Maker on his laptop (his arm reaching behind the screen, petlap: not on the hand pages)
+    laptopIlinca: true,     // Maker on her laptop (OK'd on the round-31 page)
+    paperCole: true,        // Maker on his paper, stroked with E2 (the pick); it only starts while he writes (coleWrite)
+    paperIlinca: false,     // Maker on her paper (her stroke IE2 needs work; her writing is off too)
+    lateNight: true         // the late-night yawn (his Y1, the pick)
+  };
 
   var ART = window.NutrimaticDeskArt;
   var host = document.querySelector("[data-desk-scene]");
@@ -266,12 +300,14 @@
   // those places, `win` etc. are the drawn room's (the fallback when the pictures do not load).
   var LAYOUTS = {
     wide:   { W: 360, H: 160, cole: 124, ilinca: 226, shake: { stop: 49 }, poster: { x: 14, y: 20, w: 58, h: 62 }, clock: { x: 88, y: 34 }, win: { x: 280, y: 22, w: 66, h: 74 }, lamp: 177, pendant: 121, slots: [36, 272, 338, 12, 306],
-              art: { painting: { x: 7, y: 20 }, clock: { x: 88, y: 34, r: 7 }, win: { x: 262, y: 18, w: 88, h: 84 }, sky: { x: 254, y: 15 }, lamps: [38, 298], slots: [16, 321, 345], catY: 141, pendants: [96, 132, 216, 244], deskEdge: 132 } },
+              art: { painting: { x: 7, y: 20 }, clock: { x: 88, y: 34, r: 7 }, win: { x: 262, y: 18, w: 88, h: 84 }, sky: { x: 254, y: 15 }, lamps: [35, 298], slots: [13, 321, 345], catY: 141, pendants: [96, 132, 216, 244], deskEdge: 132 } },
     narrow: { W: 240, H: 160, cole: 80, ilinca: 172, shake: { stop: 43, reach: 6, keep: true }, poster: { x: 1, y: 20, w: 51, h: 50 }, clock: { x: 98, y: 30 }, win: { x: 190, y: 22, w: 46, h: 66 }, lamp: 112, pendant: 126, slots: [226, 10],
               art: { painting: { x: 1, y: 18 }, clock: { x: 99, y: 31, r: 7 }, win: { x: 192, y: 20, w: 44, h: 70 }, sky: { x: 130, y: 3 }, lamps: [-4, 241], slots: [], catY: 141, pendants: [66, 118, 148, 175], deskEdge: 134 } }
   };
   // (T128: the wide room's lamps 2 px (red) and 4 px (white) further out than in round 31 (40, 294), and the desk props with
   // them (18, 318, 344), so each one's standing mug has 2 clear pixels from its lamp's foot, the props and every pose; see MUG)
+  // (r33-live: his red lamp 3 px further out again, 35, so his shake will clear it when it comes back (SK2's cap kept 2 px
+  // from the lamp at 35), and the left desk prop with it, 13: the papers, the widest at the foot, keep 2 clear px from it)
   // The environment pictures. Until they have loaded (or if they never do) the room is drawn in code as before.
   var ENV = { ready: false, img: {} };
   (function () {
@@ -781,8 +817,10 @@
   // of its corner, leaving a wedge of skin two pixels deep, (-2, 82-83): the crease brown and his line close it, both or
   // neither, by the guard's two-deep case.)
   var SEAL_SOLDER = [[-6, 85, "k"]], SEAL_LAP = [[7, 83, "b"], [8, 83, "k"]], SEAL_DS = [[15, 83, "k"], [-2, 82, "b"], [-2, 83, "k"]];
+  // (r33-live: the handheld D1 has its forearm's skin run across the box's top with its own outline; the box's outline is the
+  // line there, and SEAL_DS would paint a line and a crease onto that skin: not used, kept for the old DS poses)
   var STATION_SEAL = { facepalm: SEAL_LAP, solder: SEAL_SOLDER, solder1: SEAL_SOLDER, solderR: SEAL_SOLDER, solderR1: SEAL_SOLDER, solderL: SEAL_SOLDER, solderL1: SEAL_SOLDER,
-                       hide: SEAL_LAP, ds: SEAL_DS, ds1: SEAL_DS, ds2: SEAL_DS };
+                       hide: SEAL_LAP };
   // (round-31 integration audit: greeting from soldering his activity reads "wave"; the scenes that must not start while he
   // solders ask this instead)
   function soldering() { return cole.activity === "solder" || !!cole.benchFrom || (!!cole.react && cole.greetAct === "solder"); }
@@ -790,7 +828,7 @@
   function stationX() { return ENV.ready ? cole.x - 32 : cole.x - 50; }
   function stationBox() { var x = stationX(), b = deskAt(0.35) + 1; return { x0: x - 10, y0: b - 8, x1: x + 9, y1: b - 1 }; }   // as propSolderStation draws it
   function poseRGB(p, pose, sx, sy) {                                   // the colour his pose shows at a figure pixel (topmost layer), null where clear
-    var layers = pose.ownHead ? [[pose.body, 0]] : [[pose.front, p.headDy || 0], [pose.frontBody, 0], [pose.body, 0]];
+    var layers = pose.ownHead ? [[bodyOf(pose), 0]] : [[pose.front, p.headDy || 0], [pose.frontBody, 0], [bodyOf(pose), 0]];
     for (var i = 0; i < layers.length; i++) {
       var s = layers[i][0]; if (!s) { continue; }
       var lx = sx - s.x, ly = sy - layers[i][1] - s.y; if (lx < 0 || ly < 0 || lx >= s.w || ly >= s.h) { continue; }
@@ -898,7 +936,7 @@
     Object.keys(a.poses || {}).forEach(function (k) {
       var q = a.poses[k], props = {};
       Object.keys(q.p || {}).forEach(function (n) { props[n] = bake(q.p[n], a.pal); });
-      poses[k] = { body: bake(q.b, a.pal), front: q.f ? bake(q.f, a.pal) : null, frontBody: q.fb ? bake(q.fb, a.pal) : null, over: q.o ? bake(q.o, a.pal) : null, pts: q.pts || {}, props: props, ownHead: !!q.oh, under: q.u || null };
+      poses[k] = { body: bake(q.b, a.pal), bodyN: q.bn ? bake(q.bn, a.pal) : null, front: q.f ? bake(q.f, a.pal) : null, frontBody: q.fb ? bake(q.fb, a.pal) : null, over: q.o ? bake(q.o, a.pal) : null, pts: q.pts || {}, props: props, ownHead: !!q.oh, under: q.u || null };
     });
     if (!poses.rest) { poses.rest = { body: bake(a.torso, a.pal), front: null, pts: {} }; }
     return {
@@ -910,8 +948,8 @@
     };
   }
   // headDy lowers the head on the body (Ilinca's neck read too long).
-  var cole = makeCharacter("cole", { restMouth: "neutral", headDy: 0, workLook: { type: [0, 1], write: [0, 1], solder: [0, 1], ds: [0, 1] }, activities: ["type", "solder", "solder", "think", "coffee", "stretch", "rest", "type", "write"] });
-  var ilinca = makeCharacter("ilinca", { restMouth: "soft", headDy: 3, workLook: { type: [0, 1], write: [-1, 1], phone: [0, 1] }, activities: ["type", "type", "phone", "coffee", "think", "write", "write", "rest"] });   // no stretch for her (Cole)
+  var cole = makeCharacter("cole", { restMouth: "neutral", headDy: 0, workLook: { type: [0, 1], write: [0, 1], solder: [0, 1], ds: [0, 1] }, activities: ["type", "solder", "solder", "think", "coffee", "stretch", "rest", "type", "write"].filter(function (a) { return (a !== "write" || SCENE_ON.coleWrite) && (a !== "coffee" || SCENE_ON.coffee); }) });
+  var ilinca = makeCharacter("ilinca", { restMouth: "soft", headDy: 3, workLook: { type: [0, 1], write: [-1, 1], phone: [0, 1] }, activities: ["type", "type", "phone", "coffee", "think", "write", "write", "rest"].filter(function (a) { return (a !== "write" || SCENE_ON.ilincaWrite) && (a !== "coffee" || SCENE_ON.coffee); }) });   // no stretch for her (Cole)
   var people = [cole, ilinca];
   function other(p) { return p === cole ? ilinca : cole; }
   function who(n) { return n === "cole" ? cole : ilinca; }
@@ -926,6 +964,9 @@
   // it (the desk picture starts at row 134); the phone's room has wall down to row 133 and the desk from 134. Hands under
   // the desk (these poses) end exactly there: the pose is clipped at that row, and nothing of it goes on the desk.
   var UNDER_DESK = { hide: 1, petlap: 1, petlap2: 1 };
+  // (r33-live: a pose may have its own body for the phone layout, where the desk's back edge is two rows lower: R2's hidden
+  // arm runs on to it there and ends at row 85 in the wide room, as the hand round drew it, 'bn')
+  function bodyOf(pose) { return L === LAYOUTS.narrow && pose.bodyN ? pose.bodyN : pose.body; }
   // (one desk-edge setting per layout, art.deskEdge, also for his kept sheet's top edge: drawSheetBehind)
   function deskEdge() { return ENV.ready && L.art.deskEdge ? L.art.deskEdge : DESK_Y; }
 
@@ -1007,11 +1048,12 @@
     if (a === "coffee") { name = coffeePose(p, p.actFrame) || "rest"; }
     if (a === "holdcup") { name = coffeePose(p, HOLDCUP[Math.min(HOLDCUP.length - 1, (p.cupAt || 0) + p.actFrame)]) || name; }
     if (p.react === "surprise") { name = "surprise"; }
-    else if (p.gesture && a === "rest") { name = "talk"; }      // a hand joins in only when it is free (not from thinking: chin on hand to talking arms read as a shoulder jump, T58/j)
+    else if (p.gesture && a === "rest" && (p !== cole || SCENE_ON.coleTalkHands)) { name = "talk"; }      // a hand joins in only when it is free (not from thinking: chin on hand to talking arms read as a shoulder jump, T58/j); his stays at rest (SCENE_ON)
     if (a === "wave" && p.react === "greet") {                           // T33: the hand comes up and stays; the other arm stays as it was
       var from = p.greetAct === "coffee" ? "rest" : (POSE_OF[p.greetAct] || p.greetAct);   // (from a coffee the mug stands on the desk: T128)
       name = p.poses[from + "Wave"] ? from + "Wave" : p.poses.restWave ? "restWave" : "wave";
     }
+    if ((name === "talk" && p === cole && !SCENE_ON.coleTalkHands) || (/^highfive/.test(name) && !SCENE_ON.highFive)) { name = "rest"; }   // (go-live: off, SCENE_ON)
     if (name === "wave" && p.poses.wave2 && (a === "fan" || p.name === "ilinca") && ((p.actFrame >> 2) % 2)) { name = "wave2"; }   // her wave rocks a pixel; his only fans smoke
     if (name === "write" && p.poses.write1) { name = WRITING[(p.actFrame >> 1) % WRITING.length]; }
     if (name === "fold" && p.poses.fold3) { name = p.actFrame < 14 ? "fold" : "fold3"; }   // T42: the sheet folded, then the plane
@@ -1031,6 +1073,12 @@
   // a generated picture of each of them looking down (Cole's note 10); its eyes are open on the work and shut in a nod
   // (note 11: "the current look down is perfect for a nod").
   function drawHead(p, o) { blit(p.lookDown ? p.headDown : p.head, o.x, o.y + p.headDy); }
+  // His yawn (Y1; Cole, 2026-10-28: "face needs to move with yawn"): in his yawn video the head tips back as the yawn opens and
+  // comes forward again as it ends. As a nod moves the face a pixel down inside the head, the yawn moves it a pixel up (tilt
+  // -1: his shut eyes and raised brows; the mouth is under his hand) from YAWN_TIP[0] to YAWN_TIP[1] frames into it. (The whole
+  // head lifted a pixel instead doubled his jaw line against the neck below it: work/r33/live.)
+  var YAWN_TIP = [3, 17];
+  function yawnTip(p) { return p === cole && p.activity === "yawn" && !p.react && p.actFrame >= YAWN_TIP[0] && p.actFrame < YAWN_TIP[1]; }
   // A stretch: eyes shut, mouth open (the face keeps its own proportions: moving the features read as a different face).
   function stretching(p) { return p.activity === "stretch" && !p.react && !p.talking; }
   function drawFace(p, o, f) {
@@ -1056,7 +1104,7 @@
     p.drawn = { o: o, pose: pose, name: name, jig: jig };
     var under = UNDER_DESK[name] || pose.under;                          // hands under the desk: nothing below its back edge (round-31 audit)
     if (under) { g.save(); g.beginPath(); underClip(pose, o); g.clip(); }
-    blit(pose.body, o.x, o.y + jig);
+    blit(bodyOf(pose), o.x, o.y + jig);
     if (!pose.ownHead) {                                                 // (a picture that brings its own head: leaning back)
       drawHead(p, o);
       drawFace(p, o, f);
@@ -1088,7 +1136,7 @@
     else if (u) { g.rect(0, DESK_Y, d.o.x + u[0], H - DESK_Y); g.rect(d.o.x + u[1] + 1, DESK_Y, W, H - DESK_Y); }   // (her arm in her lap stays under it)
     else { g.rect(0, DESK_Y, W, H - DESK_Y); }
     g.clip();
-    blit(d.pose.body, d.o.x, d.o.y + d.jig); if (d.pose.frontBody) { blit(d.pose.frontBody, d.o.x, d.o.y + d.jig); } if (d.pose.front) { blit(d.pose.front, d.o.x, d.o.y + d.jig + p.headDy); }
+    blit(bodyOf(d.pose), d.o.x, d.o.y + d.jig); if (d.pose.frontBody) { blit(d.pose.frontBody, d.o.x, d.o.y + d.jig); } if (d.pose.front) { blit(d.pose.front, d.o.x, d.o.y + d.jig + p.headDy); }
     g.restore();
   }
   // The laptop (or the paper) stays on the desk while the hands are off it: lifted for the cat, or petting her.
@@ -1134,7 +1182,9 @@
     var o = origin(p); blit(q.props.laptop, o.x - Math.round(p.slide), o.y);
   }
   // A hand petting the cat lies on her: that part of the pose (a box in the figure's coordinates) goes on again after her.
-  var PET_HAND = { cole: { pet: [60, 72, 86, 100], pethead: [28, 60, 52, 82], petcat: [44, 54, 82, 84], petcat2: [44, 54, 82, 84], petedge: [31, 66, 56, 104], petedge2: [31, 66, 57, 104] },   // T62: the hand on her head; the other forearm rests behind her
+  // (r33-live: his E2 and E3 each have their own box, the stroking hand's, from the hand round's boxes.json; inside it, where
+  // she lies, those pictures leave their layer clear)
+  var PET_HAND = { cole: { pet: [60, 72, 86, 100], pethead: [28, 60, 52, 82], petcat: [52, 57, 69, 68], petcat2: [50, 58, 67, 67], petedge: [53, 67, 70, 78], petedge2: [51, 68, 68, 77] },   // T62: the hand on her head; the other forearm rests behind her
                    ilinca: { pet: [-20, 66, 2, 88], pethead: [12, 54, 40, 70], petcat: [-20, 52, 16, 78], petcat2: [-20, 52, 16, 78], petedge: [-29, 62, 24, 100], petedge2: [-29, 62, 24, 100] } };   // (petedge2's started at row 52 and redrew her body over her hair: re-audit)
   ["cole", "ilinca"].forEach(function (n) { var b = PET_HAND[n]; b.petedgeLap = b.petedge; b.petedgeLap2 = b.petedge2; });   // (the visit with the laptop on the desk)
   // Where Maker lies to be petted: the petting pictures were made with a cat under the hand (since erased); she lies
@@ -1145,7 +1195,7 @@
   function drawPetHand(p) {
     var d = p.drawn, box = d && PET_HAND[p.name][d.name]; if (!box || p.hidden || !actors.cat) { return; }
     g.save(); g.beginPath(); g.rect(d.o.x + box[0], d.o.y + box[1], box[2] - box[0], box[3] - box[1]); g.clip();
-    blit(d.pose.over && leftOnDesk(p) ? d.pose.over : d.pose.body, d.o.x, d.o.y + d.jig); g.restore();   // (only the arm, over the laptop: its shirt stays behind it)
+    blit(d.pose.over && leftOnDesk(p) ? d.pose.over : bodyOf(d.pose), d.o.x, d.o.y + d.jig); g.restore();   // (only the arm, over the laptop: its shirt stays behind it)
   }
 
   /* ---------- desk set per visit ---------- */
@@ -1363,7 +1413,7 @@
     people.forEach(function (p) {
       if (p.catLift) { handsBack(p); }
       if (/^pet/.test(p.activity) || p.activity === "underdesk") { setActivity(p, p.keepProps || "rest", 99); }   // no hand left stroking a cat that has gone, none left under the desk
-      p.catLift = null; p.held = false; p.laptopOut = false; p.keepProps = null;
+      p.catLift = null; p.petFrom = null; p.held = false; p.laptopOut = false; p.keepProps = null;
     });
   }
 
@@ -1379,6 +1429,10 @@
   function shakerSlide() { var x0 = cole.x + 3, x1 = ilinca.x - L.shake.stop; return { x0: x0, x1: x1, y0: DESK_Y + 2, y1: DESK_Y + 8, n: Math.ceil((x1 - x0) / 2) }; }
   function shakerAt(k) { var s = shakerSlide(), p = clamp(k / s.n, 0, 1), e = 1 - (1 - p) * (1 - p); return { x: Math.round(s.x0 + (s.x1 - s.x0) * e), y: Math.round(s.y0 + (s.y1 - s.y0) * e) }; }
 
+  // (go-live: which laptop or paper scene may play, SCENE_ON)
+  function laptopScene(p) {
+    return p.activity === "type" ? SCENE_ON[p === cole ? "laptopCole" : "laptopIlinca"] : p.activity === "write" ? SCENE_ON[p === cole ? "paperCole" : "paperIlinca"] : false;
+  }
   var SCENARIOS = {
     // Cole sneaks a game on a red DS; Ilinca notices; he puts it away.
     ds: {
@@ -1395,7 +1449,7 @@
     // go (T42: "should glide to the side and out of frame when thrown").
     airplane: {
       dur: 7.5,
-      when: function () { return !soldering(); },        // (T48: his throwing arm and his hands at rest lie where the board and the tools would)
+      when: function () { return SCENE_ON.airplane && !soldering(); },        // (T48: his throwing arm and his hands at rest lie where the board and the tools would)
       steps: [
         [0, function () { setActivity(cole, "fold", 99); faceOf(cole, { look: { x: 0, y: 1 }, turn: 0, mouth: "smile" }); }],
         [2.4, function () { setActivity(cole, "throw", 99); lookAt(cole, ilinca.x, faceLevel(ilinca)); }],
@@ -1447,9 +1501,10 @@
     // while and blinks at them; one of them pets her (eyes shut, content; the laptop or the paper stays on the desk); she
     // sits up, looks at each in turn (they look back), and goes. Never while Cole is soldering.
     visit: {
-      dur: 34, when: function () { return !soldering(); },
+      dur: 34, when: function () { return !soldering() && (SCENE_ON.visitIlinca || (SCENE_ON.visitCole && (SCENE_ON.visitColeTyping || cole.activity !== "type"))); },   // (go-live: SCENE_ON)
       setup: function () {
-        var petter = review && review.petter ? who(review.petter) : Math.random() < 0.5 ? cole : ilinca, spot = petSpot(petter), fromLeft = Math.random() < 0.5;
+        var mayCole = SCENE_ON.visitCole && (SCENE_ON.visitColeTyping || cole.activity !== "type");   // (go-live: SCENE_ON)
+        var petter = review && review.petter ? who(review.petter) : !SCENE_ON.visitIlinca ? cole : !mayCole ? ilinca : Math.random() < 0.5 ? cole : ilinca, spot = petSpot(petter), fromLeft = Math.random() < 0.5;
         actors.cat = { x: fromLeft ? -36 : W + 36, y: catY(), state: "walk", dir: fromLeft ? 1 : -1, spot: spot, phase: "in", lieDir: PET_RIG[petter.name].dir };
         actors.petter = petter;
       },
@@ -1457,7 +1512,9 @@
         [1.5, function () { people.forEach(function (p) { p.mouth = "smile"; }); }],
         // (round-31 audit, T91: the hands that came off the laptop or the paper go back under the desk, the laptop or the paper
         // staying there, and back to work once she has gone)
-        [19.0, function () { var p = actors.petter; if (p.keepProps) { p.catLift = p.keepProps; p.keepProps = null; setActivity(p, "underdesk", 99); } else { setActivity(p, "rest", 99); } p.held = false; actors.cat.shut = false; }],
+        // (r33-live: his hands stay under the desk until she has gone, whatever he was doing: back at rest his elbow, R2's, lay
+        // behind her rump, a sliver of it showing along her back; hands-back is catTick's, as when she passes)
+        [19.0, function () { var p = actors.petter; p.catLift = p.keepProps || p.petFrom || "rest"; p.keepProps = null; setActivity(p, "underdesk", 99); p.held = false; actors.cat.shut = false; }],
         [20.5, function () { var c = actors.cat; c.state = "sitside"; c.dir = cole.x < c.x ? -1 : 1; lookAt(cole, c.x, catY() - 30); cole.mouth = "smile"; }],
         [23.0, function () { var c = actors.cat; c.dir = -c.dir; lookAt(ilinca, c.x, catY() - 30); ilinca.mouth = "smile"; }],
         [25.5, function () { var c = actors.cat; c.state = "walk"; c.phase = "out"; c.dir = c.x < W / 2 ? -1 : 1; }],
@@ -1472,7 +1529,7 @@
           // round-31 audit (Cole's T91, "cole's paper disappears when maker shows up", here too): the laptop or the paper
           // stays on the desk while they stroke her; typing, one hand stays at the keyboard behind the screen (petedgeLap)
           var pp = actors.petter, keep = pp.catLift === "type" || pp.catLift === "write" ? pp.catLift : null;
-          pp.keepProps = keep; pp.catLift = null; pp.held = true;
+          pp.keepProps = keep; pp.petFrom = pp.catLift; pp.catLift = null; pp.held = true;
           setActivity(pp, keep === "type" && pp.poses.petedgeLap ? "petedgeLap" : pp.poses.petedge ? "petedge" : "pet", 99); pp.mouth = "smile"; c.shut = true; pp.lookTarget = aimAt(pp, c.x, c.y - 6);
         }
         else if (c.phase === "out") { c.x += 3 * c.dir; }
@@ -1486,9 +1543,9 @@
     // behind the screen, T88). She leaves,
     // thinks better of it, and comes back once more; the hands go back to work once she has gone.
     laptop: {
-      dur: 30, when: function () { return !soldering() && people.some(function (p) { return p.activity === "type" || p.activity === "write"; }); },
+      dur: 30, when: function () { return !soldering() && people.some(laptopScene); },
       setup: function () {
-        var cands = people.filter(function (p) { return p.activity === "type" || p.activity === "write"; }), v = cands[(Math.random() * cands.length) | 0];
+        var cands = people.filter(laptopScene), v = cands[(Math.random() * cands.length) | 0];
         var onLaptop = v.activity === "type", o = origin(v), box = onLaptop ? v.poses.type.props.laptop : v.poses.write && v.poses.write.props.paper;
         var sx = box ? o.x + box.x + (box.w / 2 | 0) : v.x, fromLeft = v === cole;
         if (!onLaptop) { sx = petSpot(v); }                              // on the paper she lies where the petting hand lands
@@ -1574,7 +1631,7 @@
     // hand leaves it for the shaker (T128). Frame numbers below are counted from the push.
     shake: {
       dur: 11.5,
-      when: function () { return !soldering(); },        // (never while he solders: the shaker would slide through his tools on the desk)
+      when: function () { return SCENE_ON.shake && !soldering(); },        // (never while he solders: the shaker would slide through his tools on the desk)
       steps: [
         [0, function () { setActivity(cole, "shake", 99); faceOf(cole, { mouth: "smile", look: { x: 0, y: 0 }, turn: 0 }); }],
         // he stops shaking and holds it on the desk top for a moment (shake2: the shaker 3 px above where it will stand)
@@ -1603,13 +1660,13 @@
         var s = actors.shaker; if (!s || s.state === "held") { return; }
         var q = shakerAt(s.state === "down" ? 1e6 : f - s.t0); if (ENV.ready) { propArt("bottle", q.x, q.y); } else { propBottle(q.x, q.y - 1); }
         var d = ilinca.drawn, box = d && PET_HAND.ilinca[d.name];            // her hand on it lies over it
-        if (box && !ilinca.hidden) { g.save(); g.beginPath(); g.rect(d.o.x + box[0], d.o.y + box[1], box[2] - box[0], box[3] - box[1]); g.clip(); blit(d.pose.body, d.o.x, d.o.y); g.restore(); }
+        if (box && !ilinca.hidden) { g.save(); g.beginPath(); g.rect(d.o.x + box[0], d.o.y + box[1], box[2] - box[0], box[3] - box[1]); g.clip(); blit(bodyOf(d.pose), d.o.x, d.o.y); g.restore(); }
       },
       end: function () { ilinca.deskProp = null; }
     },
     // Late: a yawn passes between them.
     latenight: {
-      dur: 7, when: function () { return isDark(hourNow()) && !soldering(); },   // (T48: his yawning arm and his hands at rest lie where the board and the tools would)
+      dur: 7, when: function () { return SCENE_ON.lateNight && isDark(hourNow()) && !soldering(); },   // (T48: his yawning arm and his hands at rest lie where the board and the tools would)
       steps: [
         [0, function () { setActivity(cole, "yawn", 99); cole.mouth = "yawn"; cole.lookTarget = { x: 0, y: -1 }; }],
         [1.8, function () { setActivity(cole, "rubEye", 99); cole.mouth = "neutral"; }],
@@ -1621,7 +1678,7 @@
     // A bigger spark while soldering: a puff of smoke from the board, he starts back, then puts a hand to his head,
     // frustrated (T38: "instead of looking frustrated or surprised I do a little dance"); she looks over, sympathetic.
     spark: {
-      dur: 6.5, when: function () { return cole.activity === "solder"; },
+      dur: 6.5, when: function () { return SCENE_ON.spark && cole.activity === "solder"; },
       steps: [
         [0, function () { var tip = posePoint(cole, "tip"); actors.puff = { t0: frame, x: tip ? tip.x : cole.x + 11, y: tip ? tip.y - 1 : DESK_Y - 12 }; }],   // at the iron's tip, whichever way he holds it
         [0.25, function () { var d = cole.drawn; cole.benchFrom = d && /^solder/.test(d.name) ? d.name : "solder"; faceOf(cole, { brows: "up", mouth: "o" }); setActivity(cole, "startle", 99); cole.lookTarget = { x: 0, y: 0 }; }],   // the station and the board stay where they are
@@ -1664,7 +1721,7 @@
     scenario = null; actors = {}; convo = null; extras = [];
     people.forEach(function (p) {
       p.react = null; p.talking = false; p.gesture = false; p.turn = 0; p.turnUntil = 0; p.brows = null; p.mouth = "neutral"; p.hold = null; p.hidden = false; p.slide = 0;
-      p.held = false; p.laptopOut = false; p.keepProps = null; p.deskProp = null; p.benchFrom = null; p.catLift = null; p.nodAt = 0; p.nod = 0; p.bob = 0; p.smileUntil = 0; p.lookTarget = { x: 0, y: 1 };
+      p.held = false; p.laptopOut = false; p.keepProps = null; p.deskProp = null; p.benchFrom = null; p.catLift = null; p.petFrom = null; p.nodAt = 0; p.nod = 0; p.bob = 0; p.smileUntil = 0; p.lookTarget = { x: 0, y: 1 };
     });
   }
   function pickScenario() {
@@ -1700,7 +1757,7 @@
   }
   function greet(p, relay) {
     p.react = relay ? "relay" : "greet"; p.greetAt = frame; p.greetStep = 0; p.greetAct = p.activity;
-    p.greetKind = (review && review.greet) || (Math.random() < 0.5 ? "nod" : "wave");                  // T54: a nod or a wave, not both
+    p.greetKind = p === cole && !SCENE_ON.coleWave ? "nod" : (review && review.greet) || (Math.random() < 0.5 ? "nod" : "wave");   // T54: a nod or a wave, not both (go-live: he nods, SCENE_ON.coleWave)
     p.reactUntil = frame + Math.round((relay ? 1.7 : p.greetKind === "nod" ? 1.5 : 2.2) * FPS);
   }
   function stepGreet(p, f) {
@@ -1809,7 +1866,7 @@
       p.look.x += (p.lookTarget.x - p.look.x) * 0.6; p.look.y += (p.lookTarget.y - p.look.y) * 0.6;
       if (still) { p.blink = 0; } else if (p.blink > 0) { p.blink--; } else if (--p.nextBlink <= 0) { p.blink = 2; p.nextBlink = 24 + Math.random() * 48; }
       if (!p.react && !(scenario && scenario.name === "spark")) { p.bob = 0; }
-      p.tilt = stretching(p) ? 0 : (p.nod > 0 || (p.workLook[p.activity] && !convo && !p.react && !(pointerActive && !scenario))) ? 1 : 0;
+      p.tilt = stretching(p) ? 0 : yawnTip(p) ? -1 : (p.nod > 0 || (p.workLook[p.activity] && !convo && !p.react && !(pointerActive && !scenario))) ? 1 : 0;
       p.lookDown = !!p.headDown && !stretching(p) && p.activity !== "stretch" && p.activity !== "coffee" && p.activity !== "holdcup" && p.activity !== "yawn" && p.activity !== "rubEye" && (p.nod > 0 || (!p.react && p.look.y > 0.5));     // at the work, the cat, a pointer on the desk; never over a coffee (T43)
       if (!still) { stepExpression(p, f); }
     }
@@ -1817,7 +1874,7 @@
       saidHello = true; var near = Math.abs(pointer.x - cole.x) < Math.abs(pointer.x - ilinca.x) ? cole : ilinca;
       if (!near.react) { near.mouth = "smile"; near.smileUntil = f + 2 * FPS; }
     }
-    if (!scenario && !convo && !review && f >= nextScenarioAt && !pointerActive && !cole.react && !ilinca.react) { if (!pickScenario()) { nextScenarioAt = f + 15 * FPS; } }
+    if (!scenario && !convo && !review && f >= nextScenarioAt && !pointerActive && !cole.react && !ilinca.react && cole.activity !== "stretch") { if (!pickScenario()) { nextScenarioAt = f + 15 * FPS; } }   // (go-live: not mid-stretch, which a scene would hold for its whole length)
     stepScenario(f);
     stepConvo(f);
     updateLamp(h);
@@ -1924,7 +1981,7 @@
   } else { start(); }
   document.addEventListener("visibilitychange", function () { if (document.hidden) { stop(); } else if (visible) { start(); } });
 
-  setActivity(cole, Math.random() < 0.6 ? "solder" : "type", 14); setActivity(ilinca, Math.random() < 0.5 ? "type" : "write", 16);
+  setActivity(cole, Math.random() < 0.6 ? "solder" : "type", 14); setActivity(ilinca, Math.random() < 0.5 || !SCENE_ON.ilincaWrite ? "type" : "write", 16);
   host.setAttribute("data-live", reduceMotion ? "still" : "on");
   resize();
   if (reduceMotion) { update(0); render(0); }
@@ -1941,7 +1998,7 @@
       Object.keys(list || {}).forEach(function (k) {
         var q = list[k], props = {};
         Object.keys(q.p || {}).forEach(function (m) { props[m] = bake(q.p[m], a.pal); });
-        p.poses[k] = { body: bake(q.b, a.pal), front: q.f ? bake(q.f, a.pal) : null, frontBody: q.fb ? bake(q.fb, a.pal) : null, over: q.o ? bake(q.o, a.pal) : null, pts: q.pts || {}, props: props, ownHead: !!q.oh, under: q.u || null };
+        p.poses[k] = { body: bake(q.b, a.pal), bodyN: q.bn ? bake(q.bn, a.pal) : null, front: q.f ? bake(q.f, a.pal) : null, frontBody: q.fb ? bake(q.fb, a.pal) : null, over: q.o ? bake(q.o, a.pal) : null, pts: q.pts || {}, props: props, ownHead: !!q.oh, under: q.u || null };
       });
       render(frame); return Object.keys(list || {}).length;
     },
@@ -1956,6 +2013,7 @@
     face: function (n, o) { var p = who(n); faceOf(p, o || {}); if (o && o.look) { p.look = { x: o.look.x, y: o.look.y }; } if (o && o.blink) { p.blink = 2; } p.actUntil = frame + 1e6; render(frame); },
     step: function (n) { for (var i = 0; i < (n || 1); i++) { frame++; update(frame); } render(frame); },
     poses: function (n) { return Object.keys(who(n).poses); },
+    scenesOn: function () { return JSON.parse(JSON.stringify(SCENE_ON)); },   // (go-live: which scenes are switched on)
     state: function () { return { layout: layoutName, size: [W, H], cole: cole.activity, ilinca: ilinca.activity, poses: [cole.drawn ? cole.drawn.name : null, ilinca.drawn ? ilinca.drawn.name : null], set: setIndex, hour: hourNow(), running: running, convo: !!convo, scenario: scenario ? scenario.name : null, lamp: { on: lamp.on, x: Math.round(lamp.hx) }, art: ENV.ready, lamps: [lampIsOn(0, hourNow()), lampIsOn(1, hourNow())], cat: actors.cat ? { x: Math.round(actors.cat.x), y: Math.round(actors.cat.y || 0), state: actors.cat.state, behind: !!actors.cat.behind } : null, laptopOut: [cole.laptopOut, ilinca.laptopOut], mugs: [mugStands(cole), mugStands(ilinca)], down: [cole.lookDown, ilinca.lookDown], react: [cole.react, ilinca.react], review: !!review }; }
   };
 })();

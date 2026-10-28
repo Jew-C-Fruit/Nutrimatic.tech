@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - export_js.py
-Version 1.7.0
+Version 1.8.0
 
 Created: 2026-10-02 - Writes js/desk-sprites.js from the sprite sources (v1.0.0)
 Modified: 2026-10-02 - Body poses (poses.py); layers run-length encoded, since there are now dozens of them (v1.1.0)
@@ -12,6 +12,7 @@ Modified: 2026-10-04 - Its eyes as frames too, open and closed (v1.4.1)
 Modified: 2026-10-04 - A pose's front layer drawn with the body ('fb'), apart from the one drawn with the head (v1.5.0)
 Modified: 2026-10-06 - A petting arm drawn again over the laptop or the paper ('o', to-do T91 in the visit, round-31 audit) (v1.6.0)
 Modified: 2026-10-28 - A pose's columns that end at the desk's edge ('u', T128: her coffee frames' arm in her lap) (v1.7.0)
+Modified: 2026-10-28 - A pose's body for the phone layout ('bn', r33-live: R2's hidden arm ends at that layout's desk edge) (v1.8.0)
 
 export_js.py - write js/desk-sprites.js for the site from the finished sprites.
 
@@ -29,7 +30,8 @@ plain data so the scene needs no image files and no loading step:
                         p: {prop name: layer} (optional: a prop lifted out of the pose, e.g. the laptop),
                         o: layer (optional: the arm the scene draws again over the laptop or the paper the pose leaves out),
                         oh: 1 when the pose brings its own head (the scene draws no head or face over it),
-                        u: [x0, x1] (optional: these figure columns end at the desk's edge, as a pose under the desk does)}}
+                        u: [x0, x1] (optional: these figure columns end at the desk's edge, as a pose under the desk does),
+                        bn: layer (optional: the body in the phone layout, where the desk's back edge is 2 rows lower)}}
           eyes, brows, mouth   frames as flat [x, y, colour, x, y, colour, ...] lists drawn over the head (-1 clears a pixel)
           down          {head: layer, eyes: {open, closed}, mouth: frames}: the head tipped toward the desk, drawn instead
                         of the head while looking down at something (its brows are part of it)
@@ -79,7 +81,7 @@ def figure(c):
     for spr in (torso, head):
         for i in spr.used(): add(spr.pal[i])
     for q in built.values():
-        for part in [q['body'], q['front'], q.get('front_body'), q.get('over')] + list(q.get('props', {}).values()):
+        for part in [q['body'], q['front'], q.get('front_body'), q.get('over'), q.get('body_narrow')] + list(q.get('props', {}).values()):
             if part is not None:
                 for i in part[0].used(): add(part[0].pal[i])
     for group in fr.values():
@@ -111,6 +113,7 @@ def figure(c):
         if q.get('over') is not None: o, sx, sy = q['over']; entry['o'] = layer(o, pal, sx, sy)   # T91 (visit): over the prop
         if q.get('own_head'): entry['oh'] = 1
         if q.get('under'): entry['u'] = [int(v) for v in q['under']]
+        if q.get('body_narrow') is not None: n_, nx, ny = q['body_narrow']; entry['bn'] = layer(n_, pal, nx, ny)   # r33-live: the phone layout's body
         out['poses'][name] = entry
     out['joints'] = {k: list(v) for k, v in c.joints.items()}
     out['points'] = {k: list(v) for k, v in c.points.items()}

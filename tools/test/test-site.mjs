@@ -247,8 +247,10 @@ const memberFill = { email: "t@example.com", gym_name: "Ironworks", gym_location
   const info = await page.evaluate(() => {
     const D = window.NutrimaticDesk, A = window.NutrimaticDeskArt; if (!D || !A) return { missing: true };
     const started = {}, cv = document.querySelector("[data-desk-scene] canvas");
+    // (go-live, r33-live: scenes not finished are switched off in the scene's SCENE_ON; an off one must not start, an on one must)
+    const on = D.scenesOn ? D.scenesOn() : {}, want = { airplane: !!on.airplane, shake: !!on.shake, spark: !!on.spark, latenight: on.lateNight !== false };
     for (const name of ["ds", "airplane", "pigeon", "visit", "laptop", "shake", "call"]) {   // (the coffee run is shelved, T128: checked below that it does not start)
-      D.activity("cole", name === "laptop" ? "type" : "rest", 60); D.activity("ilinca", "rest", 60); started[name] = D.scenario(name); D.step(400);   // long enough for any of them to finish
+      D.activity("cole", "rest", 60); D.activity("ilinca", name === "laptop" ? "type" : "rest", 60); started[name] = D.scenario(name); D.step(400);   // long enough for any of them to finish (Maker on her laptop: his is off)
     }
     const catDuringSolder = (D.activity("cole", "solder", 60), D.scenario("visit"));
     D.activity("cole", "rest", 60); D.activity("ilinca", "rest", 60); const coffeeRun = D.scenario("coffee"); const mugs = D.state().mugs;
@@ -258,12 +260,13 @@ const memberFill = { email: "t@example.com", gym_name: "Ironworks", gym_location
     D.react("cole"); D.react("ilinca"); D.converse(); D.step(30);
     D.scenario("visit"); D.step(200);
     const px = cv.getContext("2d").getImageData(0, 0, cv.width, cv.height).data; let lit = 0; for (let i = 0; i < px.length; i += 4 * 97) { if (px[i] + px[i + 1] + px[i + 2] > 0) lit++; }
-    return { state: D.state(), started, catDuringSolder, coffeeRun, mugs, art: Object.keys(A), size: [cv.getAttribute("width"), cv.getAttribute("height")], lit, frames: Object.keys(A.cole.mouth).length };
+    return { state: D.state(), started, want, catDuringSolder, coffeeRun, mugs, art: Object.keys(A), size: [cv.getAttribute("width"), cv.getAttribute("height")], lit, frames: Object.keys(A.cole.mouth).length };
   });
   if (info.missing) problems.push("desk scene | NutrimaticDesk or NutrimaticDeskArt missing");
   else {
     if (info.state.layout !== "wide" || info.state.size.join("x") !== "360x160") problems.push("desk scene | wide layout: " + JSON.stringify(info.state));
-    const failed = Object.keys(info.started).filter(k => !info.started[k]); if (failed.length) problems.push("desk scene | scenarios did not start: " + failed.join(", "));
+    const failed = Object.keys(info.started).filter(k => !info.started[k] && info.want[k] !== false); if (failed.length) problems.push("desk scene | scenarios did not start: " + failed.join(", "));
+    const offStarted = Object.keys(info.started).filter(k => info.started[k] && info.want[k] === false); if (offStarted.length) problems.push("desk scene | switched-off scenarios started: " + offStarted.join(", "));
     if (info.coffeeRun) problems.push("desk scene | the shelved coffee run started (T128)");
     if (!info.mugs || info.mugs.join() !== "true,true") problems.push("desk scene | their mugs are not both standing on the desk: " + JSON.stringify(info.mugs));
     if (["cole", "ilinca", "maker"].some(k => !info.art.includes(k))) problems.push("desk scene | art missing: " + info.art.join(", "));
