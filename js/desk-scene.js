@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.27.1
+ * Version 0.27.2
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -246,6 +246,10 @@
  *   as in the shake break), and the work goes on after it; anyone still at work when a scene ends works on a while; the DS
  *   waits while he types (its console is held where the screen stands). His mug's steam a pixel further out, 2 px clear of
  *   his lamp's shade (v0.27.1)
+ * Modified: 2026-10-28 - Re-audit: at his laptop he yawns where he sits, hands at the keyboard (his raised wrist had sat
+ *   exactly on the screen's top edge, as if resting on it; the hand to his mouth, Y1, when he is not typing); on the call
+ *   she tells him the news with her hands back at her laptop (her talking forearm ran down its edge); the test state says
+ *   whose laptop or paper is on the desk (.state().work), the kept ones included (v0.27.2)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks (.state().mugs: whether each one's mug stands on the desk): window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(i),
@@ -1083,7 +1087,11 @@
   // -1: his shut eyes and raised brows; the mouth is under his hand) from YAWN_TIP[0] to YAWN_TIP[1] frames into it. (The whole
   // head lifted a pixel instead doubled his jaw line against the neck below it: work/r33/live.)
   var YAWN_TIP = [3, 17];
-  function yawnTip(p) { return p === cole && p.activity === "yawn" && !p.react && p.actFrame >= YAWN_TIP[0] && p.actFrame < YAWN_TIP[1]; }
+  function yawnTip(p) {
+    if (p !== cole || p.react) { return false; }
+    var k = p.activity === "yawn" ? p.actFrame : p.yawnAt ? frame - p.yawnAt : -1;   // (or yawning at his laptop: yawnAt)
+    return k >= YAWN_TIP[0] && k < YAWN_TIP[1];
+  }
   // A stretch: eyes shut, mouth open (the face keeps its own proportions: moving the features read as a different face).
   function stretching(p) { return p.activity === "stretch" && !p.react && !p.talking; }
   function drawFace(p, o, f) {
@@ -1272,6 +1280,12 @@
   // writing, in front of them as it is then, the hands that stay on the desk behind it, none below its front edge (p.deskProp,
   // as the shake break keeps her work: drawDeskPropOver, drawOnDesk, sheetLeft); the work goes on after the break (p.resume).
   // A change of task (thinking, soldering, the phone, resting) puts it away as before: its hands and things need that place.
+  // (the test state: "laptop" or "paper" while one of theirs is on the desk, in the pose or kept there; null when not)
+  function workOnDesk(p) {
+    var n = (!p.hidden && p.drawn && p.drawn.name) || "", q;
+    if (/^type/.test(n) || p.deskProp === "type") { return "laptop"; } if (/^write/.test(n) || p.deskProp === "write") { return "paper"; }
+    q = leftOnDesk(p); return q && q.props.laptop ? "laptop" : q && q.props.paper ? "paper" : null;
+  }
   function leaveWork(p) { if (!p.deskProp && (p.activity === "type" || p.activity === "write")) { p.deskProp = p.resume = p.activity; } }
   function resumeWork(p, secs) { var a = p.resume; p.deskProp = null; p.resume = null; setActivity(p, a, secs); }
   function setActivity(p, a, seconds) {
@@ -1683,11 +1697,15 @@
     latenight: {
       dur: 7, when: function () { return SCENE_ON.lateNight && isDark(hourNow()) && !soldering(); },   // (T48: his yawning arm and his hands at rest lie where the board and the tools would)
       steps: [
-        [0, function () { leaveWork(cole); setActivity(cole, "yawn", 99); cole.mouth = "yawn"; cole.lookTarget = { x: 0, y: -1 }; }],   // (the laptop stays: leaveWork)
-        [1.8, function () { setActivity(cole, "rubEye", 99); cole.mouth = "neutral"; }],
+        // (re-audit: at his laptop he yawns where he sits, his hands at the keyboard behind the screen, eyes shut, his face
+        // tipping back: Y1's hand to his mouth would rise from behind the screen with his wrist exactly on its top edge, as if
+        // resting on it; the screen cannot move. Not typing, Y1 as picked)
+        // (at 5.0, yawning at his laptop he types on)
+        [0, function () { if (cole.activity === "type") { cole.yawnAt = frame; } else { leaveWork(cole); setActivity(cole, "yawn", 99); } cole.mouth = "yawn"; cole.lookTarget = { x: 0, y: -1 }; }],
+        [1.8, function () { if (cole.yawnAt) { cole.yawnAt = 0; } else { setActivity(cole, "rubEye", 99); } cole.mouth = "neutral"; }],
         [2.4, function () { lookAt(ilinca, cole.x, faceLevel(cole)); }],
         [3.2, function () { leaveWork(ilinca); setActivity(ilinca, "yawn", 99); ilinca.mouth = "yawn"; ilinca.turn = 0; ilinca.lookTarget = { x: 0, y: -1 }; }],
-        [5.0, function () { [ilinca, cole].forEach(function (p) { if (p.resume) { resumeWork(p, 99); } else { setActivity(p, "rest", 99); } }); ilinca.mouth = "smile"; lookAt(cole, ilinca.x, faceLevel(ilinca)); cole.mouth = "smile"; }]
+        [5.0, function () { [ilinca, cole].forEach(function (p) { if (p.resume) { resumeWork(p, 99); } else if (p.activity !== "type") { setActivity(p, "rest", 99); } }); ilinca.mouth = "smile"; lookAt(cole, ilinca.x, faceLevel(ilinca)); cole.mouth = "smile"; }]
       ]
     },
     // A bigger spark while soldering: a puff of smoke from the board, he starts back, then puts a hand to his head,
@@ -1719,7 +1737,9 @@
         [0, function () { actors.buzz = { t0: frame }; }],
         [1.4, function () { leaveWork(ilinca); setActivity(ilinca, "call", 99); actors.buzz = null; ilinca.phoneOnDesk = false; faceOf(ilinca, { mouth: "talk", look: { x: 0, y: 0 }, turn: 0 }); }],
         [5.6, function () { ilinca.mouth = "smile"; ilinca.nodAt = frame + 1; }],
-        [7.0, function () { setActivity(ilinca, "rest", 99); lookAt(ilinca, cole.x, faceLevel(cole)); ilinca.gesture = true; ilinca.mouth = "talk"; lookAt(cole, ilinca.x, faceLevel(ilinca)); }],
+        // (re-audit: with her laptop on the desk she tells him with her hands back at it; her talking forearm ran down the
+        // screen's edge, touching it. Not from typing: her talking hand, as before)
+        [7.0, function () { if (ilinca.resume) { resumeWork(ilinca, 99); } else { setActivity(ilinca, "rest", 99); ilinca.gesture = true; } lookAt(ilinca, cole.x, faceLevel(cole)); ilinca.mouth = "talk"; lookAt(cole, ilinca.x, faceLevel(ilinca)); }],
         [8.6, function () { ilinca.gesture = false; ilinca.mouth = "laugh"; leaveWork(cole); setActivity(cole, "fistpump", 99); cole.mouth = "laugh"; }],
         [10.2, function () { if (cole.resume) { resumeWork(cole, 99); } else { setActivity(cole, "rest", 99); } if (ilinca.resume) { resumeWork(ilinca, 99); } cole.mouth = "smile"; ilinca.mouth = "smile"; }]
       ],
@@ -1736,7 +1756,7 @@
     scenario = null; actors = {}; convo = null; extras = [];
     people.forEach(function (p) {
       p.react = null; p.talking = false; p.gesture = false; p.turn = 0; p.turnUntil = 0; p.brows = null; p.mouth = "neutral"; p.hold = null; p.hidden = false; p.slide = 0;
-      p.held = false; p.laptopOut = false; p.keepProps = null; p.deskProp = null; p.resume = null; p.benchFrom = null; p.catLift = null; p.petFrom = null; p.nodAt = 0; p.nod = 0; p.bob = 0; p.smileUntil = 0; p.lookTarget = { x: 0, y: 1 };
+      p.held = false; p.laptopOut = false; p.keepProps = null; p.deskProp = null; p.resume = null; p.yawnAt = 0; p.benchFrom = null; p.catLift = null; p.petFrom = null; p.nodAt = 0; p.nod = 0; p.bob = 0; p.smileUntil = 0; p.lookTarget = { x: 0, y: 1 };
     });
   }
   function pickScenario() {
@@ -1881,7 +1901,7 @@
       p.look.x += (p.lookTarget.x - p.look.x) * 0.6; p.look.y += (p.lookTarget.y - p.look.y) * 0.6;
       if (still) { p.blink = 0; } else if (p.blink > 0) { p.blink--; } else if (--p.nextBlink <= 0) { p.blink = 2; p.nextBlink = 24 + Math.random() * 48; }
       if (!p.react && !(scenario && scenario.name === "spark")) { p.bob = 0; }
-      p.tilt = stretching(p) ? 0 : yawnTip(p) ? -1 : (p.nod > 0 || (p.workLook[p.activity] && !convo && !p.react && !(pointerActive && !scenario))) ? 1 : 0;
+      p.tilt = stretching(p) ? 0 : yawnTip(p) ? -1 : p.yawnAt ? 0 : (p.nod > 0 || (p.workLook[p.activity] && !convo && !p.react && !(pointerActive && !scenario))) ? 1 : 0;
       p.lookDown = !!p.headDown && !stretching(p) && p.activity !== "stretch" && p.activity !== "coffee" && p.activity !== "holdcup" && p.activity !== "yawn" && p.activity !== "rubEye" && (p.nod > 0 || (!p.react && p.look.y > 0.5));     // at the work, the cat, a pointer on the desk; never over a coffee (T43)
       if (!still) { stepExpression(p, f); }
     }
@@ -2029,6 +2049,6 @@
     step: function (n) { for (var i = 0; i < (n || 1); i++) { frame++; update(frame); } render(frame); },
     poses: function (n) { return Object.keys(who(n).poses); },
     scenesOn: function () { return JSON.parse(JSON.stringify(SCENE_ON)); },   // (go-live: which scenes are switched on)
-    state: function () { return { layout: layoutName, size: [W, H], cole: cole.activity, ilinca: ilinca.activity, poses: [cole.drawn ? cole.drawn.name : null, ilinca.drawn ? ilinca.drawn.name : null], set: setIndex, hour: hourNow(), running: running, convo: !!convo, scenario: scenario ? scenario.name : null, lamp: { on: lamp.on, x: Math.round(lamp.hx) }, art: ENV.ready, lamps: [lampIsOn(0, hourNow()), lampIsOn(1, hourNow())], cat: actors.cat ? { x: Math.round(actors.cat.x), y: Math.round(actors.cat.y || 0), state: actors.cat.state, behind: !!actors.cat.behind } : null, laptopOut: [cole.laptopOut, ilinca.laptopOut], mugs: [mugStands(cole), mugStands(ilinca)], down: [cole.lookDown, ilinca.lookDown], react: [cole.react, ilinca.react], review: !!review }; }
+    state: function () { return { layout: layoutName, size: [W, H], cole: cole.activity, ilinca: ilinca.activity, poses: [cole.drawn ? cole.drawn.name : null, ilinca.drawn ? ilinca.drawn.name : null], set: setIndex, hour: hourNow(), running: running, convo: !!convo, scenario: scenario ? scenario.name : null, lamp: { on: lamp.on, x: Math.round(lamp.hx) }, art: ENV.ready, lamps: [lampIsOn(0, hourNow()), lampIsOn(1, hourNow())], cat: actors.cat ? { x: Math.round(actors.cat.x), y: Math.round(actors.cat.y || 0), state: actors.cat.state, behind: !!actors.cat.behind } : null, laptopOut: [cole.laptopOut, ilinca.laptopOut], mugs: [mugStands(cole), mugStands(ilinca)], down: [cole.lookDown, ilinca.lookDown], react: [cole.react, ilinca.react], review: !!review, work: [workOnDesk(cole), workOnDesk(ilinca)] }; }
   };
 })();
