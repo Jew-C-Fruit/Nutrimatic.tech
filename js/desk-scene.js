@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.28.0
+ * Version 0.28.1
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -262,6 +262,8 @@
  *   brighter white for visibility"): three white wisps a mug, swaying as they rise, out of step, each with a soft grey edge
  *   so it reads on the pale brick at every hour; clear of the lamps and every pose in both layouts, none on Maker. T152:
  *   the vase and the wall behind it cleaned up in tools/desk/env_build.py (v0.28.0)
+ * Modified: 2026-10-30 - Audit of T150: the sunrise light blends into the morning's (orange to cool white, 6.5-7.5 h),
+ *   comes up over half an hour from 6 h and into the window glass from 7 h, so no tick jumps at sunrise (v0.28.1)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks (.state().mugs: whether each one's mug stands on the desk): window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(i),
@@ -1845,14 +1847,24 @@
   // way, down to the right, in a cooler, paler blue-white, a little stronger, and the room takes a faint cool cast
   // (drawNightArt); at sunrise it is the low warm sun's orange as before.
   function drawSunPatch(h) {
-    var day = (1 - nightAmount(h)) * (h > 6 && h < 19.5 ? 1 : 0); if (day <= 0.05) { return; }
-    var dusk = duskAmount(h), col = dusk > 0.3 ? "rgba(255,170,90," + (0.16 * day).toFixed(3) + ")" : "rgba(255,240,200," + (0.20 * day).toFixed(3) + ")", reach = 40 + dusk * 30;
-    var m = morningAmount(h);
+    var m = morningAmount(h), day = (1 - nightAmount(h)) * (h > 6 && h < 19.5 ? 1 : 0);
+    if (m > 0) { day = (1 - nightAmount(h)) * clamp((h - 6) / 0.5, 0, 1); }   // (audit of 251a7ce: in the morning it comes up over half an hour)
+    if (day <= 0.05) { return; }
+    var dusk = duskAmount(h), col = dusk > 0.3 ? "rgba(255,170,90," + (0.16 * day).toFixed(3) + ")" : "rgba(255,240,200," + (0.20 * day).toFixed(3) + ")", reach = 40 + dusk * 30, glass = 1;
     if (m > 0) {                                                         // the morning: the slant turns over, the light cools
-      reach = lerp(reach, -34, m);
-      if (dusk <= 0.3) { col = "rgba(" + [lerp(255, 222, m), lerp(240, 236, m), lerp(200, 255, m)].map(Math.round).join(",") + "," + (lerp(0.20, 0.26, m) * day).toFixed(3) + ")"; }
+      // Audit of 251a7ce: no switch at sunrise (the orange patch had flipped to the morning's in one tick at 7.04). The low
+      // sun's orange (all of it until 6.5) gives way to the morning's cool white by 7.5 in colour and strength; the slant
+      // turns with morningAmount; the light comes into the window glass from 7 to 7.75 (until the night has gone, 7 h, the
+      // night's last pass had cut it out of the glass, and its return in one tick was the other jump).
+      var k = clamp((7.5 - h) / 1, 0, 1), rgb = [lerp(lerp(255, 222, m), 255, k), lerp(lerp(240, 236, m), 170, k), lerp(lerp(200, 255, m), 90, k)];
+      reach = lerp(reach, -34, m); glass = clamp((h - 7) / 0.75, 0, 1);
+      col = "rgba(" + rgb.map(Math.round).join(",") + "," + (lerp(lerp(0.20, 0.26, m), 0.16, k) * day).toFixed(3) + ")";
     }
-    for (var y = WIN.y + 6; y < DESK_Y; y++) { var t = (y - WIN.y) / (DESK_Y - WIN.y); rect(WIN.x - 10 - Math.round(t * reach), y, WIN.w + 6 - Math.round(t * 8), 1, col); }
+    var band = function () { for (var y = WIN.y + 6; y < DESK_Y; y++) { var t = (y - WIN.y) / (DESK_Y - WIN.y); rect(WIN.x - 10 - Math.round(t * reach), y, WIN.w + 6 - Math.round(t * 8), 1, col); } };
+    if (glass >= 1) { band(); return; }
+    g.save(); g.globalCompositeOperation = "source-atop"; band();          // on the room (the wall and the frame)
+    if (glass > 0) { g.globalCompositeOperation = "destination-over"; g.globalAlpha = glass; band(); }   // into the glass, coming in
+    g.restore();
   }
   function pool(cx, top, bottom, w0, w1, strength) {
     // light falling in a cone: 'overlay' warms and lifts what is lit and leaves black black; a faint haze on top
