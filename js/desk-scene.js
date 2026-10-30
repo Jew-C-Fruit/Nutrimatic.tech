@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.27.3
+ * Version 0.27.4
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -252,6 +252,10 @@
  *   whose laptop or paper is on the desk (.state().work), the kept ones included (v0.27.2)
  * Modified: 2026-10-28 - T141 ("paper moves under ilinca's hand", on the go-live page): with writing off, asked to write
  *   (the approval page's cards held her at her paper) they type, so no sheet is on the desk (v0.27.3)
+ * Modified: 2026-10-30 - Cole's go-live tags: the late-night yawn needs work ("cole's left arm needs smoothing, especially
+ *   around the wrist. ilinca's hand looks like a paw and isn't ready"; at the keyboard: "Cole's mouth should be slightly
+ *   larger at max"): switched off (SCENE_ON.lateNight), the yawn from rest, at the keyboard and the eye rub; no hold of the
+ *   test hooks draws a yawn pose either; late hours go on with the other scenes (v0.27.4)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks (.state().mugs: whether each one's mug stands on the desk): window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(i),
@@ -291,7 +295,9 @@
     laptopIlinca: true,     // Maker on her laptop (OK'd on the round-31 page)
     paperCole: true,        // Maker on his paper, stroked with E2 (the pick); it only starts while he writes (coleWrite)
     paperIlinca: false,     // Maker on her paper (her stroke IE2 needs work; her writing is off too)
-    lateNight: true         // the late-night yawn (his Y1, the pick)
+    lateNight: false        // the late-night yawn, his and hers, from rest and at the keyboard, and his eye rub (Cole, 2026-10-30:
+                            // "cole's left arm needs smoothing, especially around the wrist. ilinca's hand looks like a paw and isn't
+                            // ready"; at the keyboard "Cole's mouth should be slightly larger at max")
   };
 
   var ART = window.NutrimaticDeskArt;
@@ -1064,7 +1070,7 @@
       var from = p.greetAct === "coffee" ? "rest" : (POSE_OF[p.greetAct] || p.greetAct);   // (from a coffee the mug stands on the desk: T128)
       name = p.poses[from + "Wave"] ? from + "Wave" : p.poses.restWave ? "restWave" : "wave";
     }
-    if ((name === "talk" && p === cole && !SCENE_ON.coleTalkHands) || (/^highfive/.test(name) && !SCENE_ON.highFive)) { name = "rest"; }   // (go-live: off, SCENE_ON)
+    if ((name === "talk" && p === cole && !SCENE_ON.coleTalkHands) || (/^highfive/.test(name) && !SCENE_ON.highFive) || (name === "yawn" && !SCENE_ON.lateNight)) { name = "rest"; }   // (go-live: off, SCENE_ON)
     if (name === "wave" && p.poses.wave2 && (a === "fan" || p.name === "ilinca") && ((p.actFrame >> 2) % 2)) { name = "wave2"; }   // her wave rocks a pixel; his only fans smoke
     if (name === "write" && p.poses.write1) { name = WRITING[(p.actFrame >> 1) % WRITING.length]; }
     if (name === "fold" && p.poses.fold3) { name = p.actFrame < 14 ? "fold" : "fold3"; }   // T42: the sheet folded, then the plane
@@ -1295,6 +1301,7 @@
     // approval page's cards) still sat her at her paper, whose writing frames move the sheet with the hand. Off is off: asked
     // to write while writing is off, they type; no paper is ever on the desk)
     if (a === "write" && !SCENE_ON[p === cole ? "coleWrite" : "ilincaWrite"]) { a = "type"; }
+    if ((a === "yawn" || a === "rubEye") && !SCENE_ON.lateNight) { a = "rest"; }   // (the yawn is off: asked to yawn, they rest)
     // T48 (round-31 integration): a scene that takes his hands off the board while he solders (scenario.bench) leaves the
     // bench as the spark does: the station and the board stay on the desk and his tools lie on it (p.benchFrom: stationShows,
     // leftOnDesk, restingIron, restingPick); he picks them up again when he goes back to soldering

@@ -258,15 +258,22 @@ const memberFill = { email: "t@example.com", gym_name: "Ironworks", gym_location
     D.setHour(11); D.activity("cole", "solder", 60); started.spark = D.scenario("spark"); D.step(120);
     for (const a of ["type", "solder", "write", "think", "coffee", "phone", "stretch", "wave"]) { D.activity("cole", a, 5); D.activity("ilinca", a, 5); D.step(8); }
     D.react("cole"); D.react("ilinca"); D.converse(); D.step(30);
+    // (go-live: while the late-night yawn is off, no yawn pose is ever drawn, asked or not: held, at night, with the scene running)
+    const yawns = []; if (on.lateNight === false) {
+      D.setHour(23); for (const w of ["cole", "ilinca"]) { for (const a of ["yawn", "rubEye"]) { D.activity(w, a, 5); D.step(3); const s = D.state(); if (s.poses.includes("yawn")) yawns.push(w + " " + a); } }
+      D.review(null); for (let i = 0; i < 3000; i++) { D.step(1); if (D.state().poses.includes("yawn")) { yawns.push("free run at 23 h, tick " + i); break; } }
+      D.setHour(11);
+    }
     D.scenario("visit"); D.step(200);
     const px = cv.getContext("2d").getImageData(0, 0, cv.width, cv.height).data; let lit = 0; for (let i = 0; i < px.length; i += 4 * 97) { if (px[i] + px[i + 1] + px[i + 2] > 0) lit++; }
-    return { state: D.state(), started, want, catDuringSolder, coffeeRun, mugs, art: Object.keys(A), size: [cv.getAttribute("width"), cv.getAttribute("height")], lit, frames: Object.keys(A.cole.mouth).length };
+    return { state: D.state(), started, want, yawns, catDuringSolder, coffeeRun, mugs, art: Object.keys(A), size: [cv.getAttribute("width"), cv.getAttribute("height")], lit, frames: Object.keys(A.cole.mouth).length };
   });
   if (info.missing) problems.push("desk scene | NutrimaticDesk or NutrimaticDeskArt missing");
   else {
     if (info.state.layout !== "wide" || info.state.size.join("x") !== "360x160") problems.push("desk scene | wide layout: " + JSON.stringify(info.state));
     const failed = Object.keys(info.started).filter(k => !info.started[k] && info.want[k] !== false); if (failed.length) problems.push("desk scene | scenarios did not start: " + failed.join(", "));
     const offStarted = Object.keys(info.started).filter(k => info.started[k] && info.want[k] === false); if (offStarted.length) problems.push("desk scene | switched-off scenarios started: " + offStarted.join(", "));
+    if (info.yawns && info.yawns.length) problems.push("desk scene | a yawn pose was drawn while the yawn is off: " + info.yawns.join(", "));
     if (info.coffeeRun) problems.push("desk scene | the shelved coffee run started (T128)");
     if (!info.mugs || info.mugs.join() !== "true,true") problems.push("desk scene | their mugs are not both standing on the desk: " + JSON.stringify(info.mugs));
     if (["cole", "ilinca", "maker"].some(k => !info.art.includes(k))) problems.push("desk scene | art missing: " + info.art.join(", "));
