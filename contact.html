@@ -3,12 +3,14 @@
 <head>
 <!--
   Nutrimatic Website - contact.html
-  Version 1.1.1
+  Version 1.2.0
   Created: 2026-09-13 - Initial marketing site (v1.0.0)
   Modified: 2026-09-15 - Language pass: "advertise with us" for brands, no "fresh" (v1.1.0)
   Modified: 2026-09-15 - Contact via LinkedIn; email address removed from markup and structured data (v1.1.1)
+  Modified: 2026-10-30 - About us (about.html) in the nav and footer; plain http goes straight to https (v1.2.0)
 -->
 <meta charset="utf-8">
+<script>if(location.protocol==="http:"&&!/^(localhost|127\.|0\.0\.0\.0|\[?::1)/.test(location.hostname))location.replace("https:"+location.href.slice(5));</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Contact — Nutrimatic</title>
 <meta name="description" content="Questions, press, brand partnerships, or a gym that wants a machine. Get in touch with the Nutrimatic team.">
@@ -112,6 +114,7 @@
     <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Menu"><span></span></button>
     <ul class="nav__links" id="nav-links">
       <li><a href="how-it-works.html">How it works</a></li>
+      <li><a href="about.html">About us</a></li>
       <li><a href="contact.html" aria-current="page">Contact</a></li>
       <li><a class="btn" href="waitlist.html">Join the waitlist</a></li>
     </ul>
@@ -189,6 +192,7 @@
         <h4>Company</h4>
         <ul>
           <li><a href="how-it-works.html">How it works</a></li>
+          <li><a href="about.html">About us</a></li>
           <li><a href="contact.html">Contact</a></li>
           <li><a href="waitlist.html">Waitlist</a></li>
         </ul>

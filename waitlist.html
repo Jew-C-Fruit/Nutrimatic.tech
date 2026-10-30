@@ -3,13 +3,15 @@
 <head>
 <!--
   Nutrimatic Website - waitlist.html
-  Version 1.1.2
+  Version 1.2.0
   Created: 2026-09-13 - Initial marketing site (v1.0.0)
   Modified: 2026-09-15 - Language pass: "advertise with us" for brands, no "fresh" (v1.1.0)
   Modified: 2026-09-15 - Contact via LinkedIn; email address removed from markup and structured data (v1.1.1)
   Modified: 2026-09-16 - "Submit" button; what-happens-next and what-we-collect per role (v1.1.2)
+  Modified: 2026-10-30 - About us (about.html) in the nav and footer; plain http goes straight to https (v1.2.0)
 -->
 <meta charset="utf-8">
+<script>if(location.protocol==="http:"&&!/^(localhost|127\.|0\.0\.0\.0|\[?::1)/.test(location.hostname))location.replace("https:"+location.href.slice(5));</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Join the waitlist — Nutrimatic</title>
 <meta name="description" content="Join the Nutrimatic waitlist as a gym owner or manager who wants a machine, a gym member who wants one where you train, or a nutrition brand that wants to advertise in the machine.">
@@ -105,6 +107,7 @@
     <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Menu"><span></span></button>
     <ul class="nav__links" id="nav-links">
       <li><a href="how-it-works.html">How it works</a></li>
+      <li><a href="about.html">About us</a></li>
       <li><a href="contact.html">Contact</a></li>
       <li><a class="btn" href="waitlist.html" aria-current="page">Join the waitlist</a></li>
     </ul>
@@ -256,6 +259,7 @@
         <h4>Company</h4>
         <ul>
           <li><a href="how-it-works.html">How it works</a></li>
+          <li><a href="about.html">About us</a></li>
           <li><a href="contact.html">Contact</a></li>
           <li><a href="waitlist.html">Waitlist</a></li>
         </ul>

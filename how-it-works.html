@@ -3,7 +3,7 @@
 <head>
 <!--
   Nutrimatic Website - how-it-works.html
-  Version 1.4.3
+  Version 1.5.0
   Created: 2026-09-13 - Initial marketing site (v1.0.0)
   Modified: 2026-09-15 - Now carries all product information: cutaway process story, feature tiles, pricing, audiences, founders; language pass (v1.1.0)
   Modified: 2026-09-15 - Contact via LinkedIn; email address removed from markup and structured data (v1.1.1)
@@ -18,8 +18,10 @@
   Modified: 2026-10-02 - Desk scene v0.6: loads js/desk-sprites.js (the figures' art) before the scene; canvas 360x160 (v1.4.1)
   Modified: 2026-10-02 - Desk scene v0.8: the scene's description names the brick office, the skyline and the lamps (v1.4.2)
   Modified: 2026-10-02 - Desk scene v0.9: the description mentions the Mondrian on the wall (v1.4.3)
+  Modified: 2026-10-30 - The co-founders and their desk scene moved to the new About us page (about.html); About us in the nav and footer; the team photos gone; plain http goes straight to https (v1.5.0)
 -->
 <meta charset="utf-8">
+<script>if(location.protocol==="http:"&&!/^(localhost|127\.|0\.0\.0\.0|\[?::1)/.test(location.hostname))location.replace("https:"+location.href.slice(5));</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>How it works — Nutrimatic</title>
 <meta name="description" content="Why Nutrimatic puts your supplement cabinet on the gym floor, and how the machine builds a 500 ml drink to order from sealed cartridges in about 45 seconds.">
@@ -59,14 +61,8 @@
    "image": "https://nutrimatic.tech/assets/og.png",
    "description": "Nutrimatic builds a self-serve protein shake machine for gyms that mixes a 500 ml shake to order from a sealed cartridge in about 45 seconds, and a point-of-sale trial channel for sports nutrition brands.",
    "founder": [
-    {
-     "@type": "Person",
-     "name": "Cole Maisonpierre"
-    },
-    {
-     "@type": "Person",
-     "name": "Ilinca Iorga"
-    }
+    { "@id": "https://nutrimatic.tech/about.html#cole" },
+    { "@id": "https://nutrimatic.tech/about.html#ilinca" }
    ],
    "sameAs": []
   },
@@ -81,7 +77,7 @@
    "inLanguage": "en"
   },
   {
-   "@type": "AboutPage",
+   "@type": "WebPage",
    "@id": "https://nutrimatic.tech/how-it-works.html#webpage",
    "url": "https://nutrimatic.tech/how-it-works.html",
    "name": "How Nutrimatic works",
@@ -99,37 +95,6 @@
     "width": 1200,
     "height": 630
    }
-  },
-  {
-   "@type": "Person",
-   "@id": "https://nutrimatic.tech/how-it-works.html#cole",
-   "name": "Cole Maisonpierre",
-   "jobTitle": "Co-founder & CEO",
-   "sameAs": ["https://www.linkedin.com/in/maisonpierre"],
-   "worksFor": {
-    "@id": "https://nutrimatic.tech/#organization"
-   },
-   "image": "https://nutrimatic.tech/assets/team/cole-maisonpierre.jpg",
-   "alumniOf": [
-    {
-     "@type": "CollegeOrUniversity",
-     "name": "Brown University"
-    },
-    {
-     "@type": "CollegeOrUniversity",
-     "name": "Rhode Island School of Design"
-    }
-   ]
-  },
-  {
-   "@type": "Person",
-   "@id": "https://nutrimatic.tech/how-it-works.html#ilinca",
-   "name": "Ilinca Iorga",
-   "jobTitle": "Co-founder",
-   "worksFor": {
-    "@id": "https://nutrimatic.tech/#organization"
-   },
-   "image": "https://nutrimatic.tech/assets/team/ilinca-iorga.jpg"
   }
  ]
 }
@@ -146,6 +111,7 @@
     <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Menu"><span></span></button>
     <ul class="nav__links" id="nav-links">
       <li><a href="how-it-works.html" aria-current="page">How it works</a></li>
+      <li><a href="about.html">About us</a></li>
       <li><a href="contact.html">Contact</a></li>
       <li><a class="btn" href="waitlist.html">Join the waitlist</a></li>
     </ul>
@@ -382,34 +348,6 @@
 
 
 
-  <section class="section section--alt">
-    <div class="container prose">
-      <h2>The co-founders</h2>
-      <div class="desk" data-desk-scene>
-        <canvas width="360" height="160" role="img" aria-label="Pixel-art scene: Cole and Ilinca at their desk in a brick-walled office, a Mondrian on the wall, Midtown Manhattan in the window at your time of day, a red and a white anglepoise lamp. Click or tap them to say hello. They work, talk, and get up to small things between tasks. Maker the cat drops by."></canvas>
-        <div class="desk__fallback">
-          <img src="assets/team/cole-maisonpierre.jpg" alt="Cole Maisonpierre" width="640" height="640" loading="lazy">
-          <img src="assets/team/ilinca-iorga.jpg" alt="Ilinca Iorga" width="640" height="640" loading="lazy">
-        </div>
-      </div>
-      <div class="team">
-        <article class="person">
-          <h3>Cole Maisonpierre</h3>
-          <p class="person__role">Co-founder &amp; CEO · Tech development, product management</p>
-          <p class="person__link"><a href="https://www.linkedin.com/in/maisonpierre" rel="noopener noreferrer" target="_blank">linkedin.com/in/maisonpierre</a></p>
-          <p>Master of Design Engineering, Brown University and Rhode Island School of Design.</p>
-          <p>Early and mid-stage startup experience in tech development, product management, and FDA-compliant design control.</p>
-        </article>
-        <article class="person">
-          <h3>Ilinca Iorga</h3>
-          <p class="person__role">Co-founder · Business management, marketing</p>
-          <p>Finance Manager at American Express. Eight years in strategic finance, investment optimization, customer economics and commercial business cases.</p>
-          <p>Early-stage startup experience spanning social media marketing and fundraising.</p>
-        </article>
-      </div>
-    </div>
-  </section>
-
   <section class="band">
     <div class="container band__inner">
       <div>
@@ -432,6 +370,7 @@
         <h4>Company</h4>
         <ul>
           <li><a href="how-it-works.html">How it works</a></li>
+          <li><a href="about.html">About us</a></li>
           <li><a href="contact.html">Contact</a></li>
           <li><a href="waitlist.html">Waitlist</a></li>
         </ul>
@@ -455,7 +394,5 @@
 
 <script src="js/config.js"></script>
 <script src="js/site.js" defer></script>
-<script src="js/desk-sprites.js" defer></script>
-<script src="js/desk-scene.js" defer></script>
 </body>
 </html>

@@ -20,7 +20,7 @@ async function visit(name, url, vp, opts = {}) {
 }
 const desk = { width: 1366, height: 900 }, mob = { width: 390, height: 844 };
 { const nf = await visit("404-desk", "404.html", desk); await nf.ctx.close(); }
-for (const [n, u] of [["index","index.html"],["about","how-it-works.html"],["contact","contact.html"],["waitlist","waitlist.html"]]) {
+for (const [n, u] of [["index","index.html"],["how","how-it-works.html"],["about","about.html"],["contact","contact.html"],["waitlist","waitlist.html"]]) {
   const d = await visit(n + "-desk", u, desk); await d.ctx.close();
   const m = await visit(n + "-mob", u, mob); 
   // mobile nav toggle
@@ -238,9 +238,28 @@ const memberFill = { email: "t@example.com", gym_name: "Ironworks", gym_location
     { "script.google.com": { status: 200, body: "{\"ok\":false}" }, "web3forms": { status: 200, body: "{\"success\":false,\"message\":\"bad key\"}" } });
   if (r.success || !/didn.t send/.test(r.status) || r.hits.length !== 2) problems.push("sheet both fail | " + JSON.stringify(r));
 }
+// the About us page (2026-10-30): the scene up top, the bios, no photos, the credits at the bottom; How it works no longer has
+// the co-founders; every page sends plain http to https
+{
+  const { readFileSync } = await import("node:fs"); const root = new URL("../../", import.meta.url);
+  const nocomments = t => t.replace(/<!--[\s\S]*?-->/g, "");
+  const how = nocomments(readFileSync(new URL("how-it-works.html", root), "utf8")), about = nocomments(readFileSync(new URL("about.html", root), "utf8"));
+  if (/data-desk-scene|The co-founders|assets\/team\//.test(how)) problems.push("how-it-works | still carries the co-founders, the scene or the team photos");
+  if (/assets\/team\//.test(about)) problems.push("about | shows a team photo");
+  if (!/class="footer__credits"[^>]*>Credits:[^<]*Kidfly182/.test(about) || !/palendromist/.test(about) || !/Sailko/.test(about)) problems.push("about | the credits are not at the bottom of the page");
+  for (const f of ["index.html", "how-it-works.html", "about.html", "contact.html", "waitlist.html", "404.html"]) {
+    const t = readFileSync(new URL(f, root), "utf8");
+    if (!t.includes('location.replace("https:"')) problems.push(f + " | no http to https redirect in the head");
+    if (!/<a href="\/?about\.html"[^>]*>About us<\/a>/.test(t)) problems.push(f + " | no About us link");
+  }
+  const { page, ctx } = await visit("about-order", "about.html", desk);
+  const order = await page.evaluate(() => { const d = document.querySelector("[data-desk-scene]"), t = document.querySelector(".team"); return d && t ? (d.compareDocumentPosition(t) & Node.DOCUMENT_POSITION_FOLLOWING ? "scene first" : "bios first") : "missing"; });
+  if (order !== "scene first") problems.push("about | the scene should come before the bios: " + order);
+  await ctx.close();
+}
 // the co-founders' desk scene: live, the right size in both layouts, every scenario starts, nothing throws
 {
-  const { page, ctx } = await visit("desk-scene", "how-it-works.html", desk);
+  const { page, ctx } = await visit("desk-scene", "about.html", desk);
   await page.locator("[data-desk-scene]").scrollIntoViewIfNeeded(); await page.waitForTimeout(300);
   const live = await page.$eval("[data-desk-scene]", el => el.getAttribute("data-live"));
   if (live !== "on") problems.push("desk scene | not live: data-live=" + live);
@@ -283,12 +302,12 @@ const memberFill = { email: "t@example.com", gym_name: "Ironworks", gym_location
   }
   await page.locator("[data-desk-scene] canvas").screenshot({ path: out + "desk-scene-canvas.png" });
   await ctx.close();
-  const m = await visit("desk-scene-mob", "how-it-works.html", mob);
+  const m = await visit("desk-scene-mob", "about.html", mob);
   await m.page.locator("[data-desk-scene]").scrollIntoViewIfNeeded(); await m.page.waitForTimeout(300);
   const ms = await m.page.evaluate(() => window.NutrimaticDesk && window.NutrimaticDesk.state());
   if (!ms || ms.layout !== "narrow" || ms.size.join("x") !== "240x160") problems.push("desk scene | phone layout: " + JSON.stringify(ms));
   await m.ctx.close();
-  const still = await visit("desk-scene-reduced", "how-it-works.html", desk, { reducedMotion: "reduce" });
+  const still = await visit("desk-scene-reduced", "about.html", desk, { reducedMotion: "reduce" });
   const sl = await still.page.$eval("[data-desk-scene]", el => el.getAttribute("data-live")), run = await still.page.evaluate(() => window.NutrimaticDesk.state().running);
   if (sl !== "still" || run) problems.push("desk scene | reduced motion should be a still: data-live=" + sl + " running=" + run);
   await still.ctx.close();

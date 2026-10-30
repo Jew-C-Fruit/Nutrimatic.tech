@@ -3,15 +3,17 @@
 <head>
 <!--
   Nutrimatic Website - index.html (splash page)
-  Version 1.1.4
+  Version 1.2.0
   Created: 2026-09-13 - Initial marketing site (v1.0.0)
   Modified: 2026-09-15 - Splash reduced to the animation plus calls to action; information moved to About; language pass (v1.1.0)
   Modified: 2026-09-15 - Contact via LinkedIn; email address removed from markup and structured data (v1.1.1)
   Modified: 2026-09-15 - Splash headline "Custom nutrition in 45 seconds", subtitle removed (v1.1.2)
   Modified: 2026-09-15 - Cover animation v2 (two doors, callouts, sliding port door), inlined for the site font (v1.1.3)
   Modified: 2026-09-15 - Cover v2.1 (960 wide), headline left-aligned (v1.1.4)
+  Modified: 2026-10-30 - About us (about.html) in the nav and footer; plain http goes straight to https (v1.2.0)
 -->
 <meta charset="utf-8">
+<script>if(location.protocol==="http:"&&!/^(localhost|127\.|0\.0\.0\.0|\[?::1)/.test(location.hostname))location.replace("https:"+location.href.slice(5));</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nutrimatic — The protein shake machine for gyms</title>
 <meta name="description" content="Nutrimatic is a self-serve protein shake machine for gyms. 500 ml, mixed to order from a sealed cartridge in about 45 seconds. Join the waitlist as a gym, a member, or a brand.">
@@ -107,6 +109,7 @@
     <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Menu"><span></span></button>
     <ul class="nav__links" id="nav-links">
       <li><a href="how-it-works.html">How it works</a></li>
+      <li><a href="about.html">About us</a></li>
       <li><a href="contact.html">Contact</a></li>
       <li><a class="btn" href="waitlist.html">Join the waitlist</a></li>
     </ul>
@@ -166,6 +169,7 @@
         <h4>Company</h4>
         <ul>
           <li><a href="how-it-works.html">How it works</a></li>
+          <li><a href="about.html">About us</a></li>
           <li><a href="contact.html">Contact</a></li>
           <li><a href="waitlist.html">Waitlist</a></li>
         </ul>

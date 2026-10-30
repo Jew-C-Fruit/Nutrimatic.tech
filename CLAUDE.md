@@ -1,6 +1,6 @@
 # nutrimatic.tech — notes for Claude Code sessions
 
-Version 1.3.0 · Created 2026-10-02 · Modified 2026-10-02 (desk scene v0.8: the room is generated art in assets/desk)
+Version 1.4.0 · Created 2026-10-02 · Modified 2026-10-30 (the desk scene goes live on the new About us page; https redirect)
 
 This repo **is** the public website. Every push to `main` deploys to https://nutrimatic.tech within a minute via
 `.github/workflows/deploy-website.yml` (GitHub Pages). `README.md`, `GO-LIVE.md`, `CLAUDE.md`, `squarespace/` and
@@ -12,10 +12,11 @@ The full project handover (history, decisions, feedback, open items) lives in th
 ## Branches
 
 - `main`: live. Only push what's ready to be seen.
-- `desk-scene`: work in progress on the co-founders' pixel-art desk scene (How it works page) and the portrait toolkit.
-  Not merged; preview it locally. See the handover for its status.
+- `desk-scene` and the `r3x-*` round branches: work on the co-founders' pixel-art desk scene and the portrait toolkit.
+  The scene went live on 2026-10-30 on the About us page (`about.html`) with only the finished scenes switched on
+  (`SCENE_ON` in `js/desk-scene.js`); the rest stay off until Cole OKs them.
 
-## The desk scene (on `desk-scene`)
+## The desk scene (About us page)
 
 - `js/desk-scene.js` is the scene: light, behaviour, scenarios. `js/desk-sprites.js` is the figures' and Maker's art
   and `assets/desk/*.png` the room's (wall, desk, skyline, lamps, props); both are **generated**: edit the sources in
@@ -27,8 +28,8 @@ The full project handover (history, decisions, feedback, open items) lives in th
 - **Model licences**: only models whose licence allows commercial use may make art for the site. FLUX.2 klein 4B and
   Qwen-Image-Edit 2511 are Apache 2.0. Qwen-Image 2.1 is research-only: not for site art.
 - Reference photos of the founders and the cat are private. They are not in this repo and must not be added.
-- The skyline follows two CC BY photographs (credited in `tools/desk/sources/PROVENANCE.md`). Before the scene goes to
-  `main`, settle with Cole whether the page also shows a credit line.
+- The skyline follows two CC BY photographs and the Mondrian a CC BY photograph (`tools/desk/sources/PROVENANCE.md`);
+  the credits at the bottom of `about.html` (footer) carry them. Keep them whenever the scene is shown.
 - Look before you ship: `npm run shots:desk` in `tools/test` writes screenshots of every activity and scenario.
 
 ## Conventions (keep these)
@@ -38,11 +39,16 @@ The full project handover (history, decisions, feedback, open items) lives in th
 - **No email address anywhere in the tree**, including config and history. Public contact is the LinkedIn URL,
   written out. `contactEmail` in `js/config.js` stays blank.
 - **Language**: never "fresh" (it's protein powder); brands "advertise with us", never "sponsor a slot"; the page is
-  "How it works", not "About"; headline is "Custom nutrition in 45 seconds." The site speaks plainly and short.
+  "How it works" (the product); the co-founders have their own "About us" page (Cole, 2026-10-30); headline is "Custom nutrition in 45 seconds." The site speaks plainly and short.
 - **Design**: hard edges everywhere (`--radius: 0`, no rounded corners in CSS or in the SVG animations; the bottle
   may stay curvy); black / white / red `#e4002b`; Archivo, self-hosted. Image- and animation-forward pages, Apple-style.
 - **Commits**: descriptive subject, body says why; author is `Cole Maisonpierre <67285155+Jew-C-Fruit@users.noreply.github.com>`
   (no real email in public history); end with the Claude attribution footer the private repo's protocol uses.
+
+## HTTPS
+
+Every page's head redirects plain http to https before anything loads (an inline script that leaves localhost alone).
+The proper server-side redirect is GitHub's Settings -> Pages -> "Enforce HTTPS"; keep it ticked.
 
 ## Checks before pushing to main
 

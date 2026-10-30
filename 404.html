@@ -3,10 +3,12 @@
 <head>
 <!--
   Nutrimatic Website - 404.html
-  Version 1.0.0
+  Version 1.1.0
   Created: 2026-09-13 - Not-found page served by GitHub Pages (v1.0.0)
+  Modified: 2026-10-30 - About us (about.html) in the nav; plain http goes straight to https (v1.1.0)
 -->
 <meta charset="utf-8">
+<script>if(location.protocol==="http:"&&!/^(localhost|127\.|0\.0\.0\.0|\[?::1)/.test(location.hostname))location.replace("https:"+location.href.slice(5));</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Page not found — Nutrimatic</title>
 <meta name="robots" content="noindex">
@@ -20,6 +22,7 @@
     <a class="brand" href="/"><img class="brand__mark" src="/assets/nu-mark.svg" alt="" width="26" height="26"><span>Nutrimatic</span></a>
     <ul class="nav__links" id="nav-links" style="display:flex">
       <li><a href="/how-it-works.html">How it works</a></li>
+      <li><a href="/about.html">About us</a></li>
       <li><a href="/contact.html">Contact</a></li>
       <li><a class="btn" href="/waitlist.html">Join the waitlist</a></li>
     </ul>

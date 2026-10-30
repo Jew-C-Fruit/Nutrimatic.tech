@@ -1,11 +1,12 @@
 /*
  * Nutrimatic Website - site.css
- * Version 1.3.0
+ * Version 1.4.0
  *
  * Created: 2026-09-13 - Initial marketing site stylesheet (v1.0.0)
  * Modified: 2026-09-15 - Full-viewport splash, wide scroll story, feature tiles, three-way audience grid (v1.1.0)
  *   - Design tokens from the 2026 pitch deck: Archivo (self-hosted, OFL) headlines, black/white, red accent
  *   - Nav, hero, sections, price ladder, panels, forms, team cards, footer
+ * Modified: 2026-10-30 - About us page: the desk scene as its hero, a still of the scene as its no-script fallback (no photos), the credits at the bottom of the page (v1.4.0)
  */
 
 @font-face {
@@ -348,6 +349,14 @@ h3 { font-size: 1.25rem; font-weight: 800; }
 .person__role { font-size: 0.78rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0.35rem 0 0.9rem; }
 .person p { margin: 0 0 0.6rem; color: var(--ink-2); font-size: 0.98rem; }
 .person__link a { font-weight: 700; text-decoration-color: var(--accent); text-decoration-thickness: 2px; }
+/* About us: the scene up top, the bios underneath */
+.about-hero { padding-block: clamp(2rem, 4vw, 3.5rem) clamp(1.5rem, 3vw, 2.5rem); }
+.about-hero .kicker { font-size: 0.78rem; }
+.desk--hero { margin-top: 0.5rem; }
+.desk:not([data-live]) .desk__fallback:has(img:only-child) { display: block; padding: 0; }
+.desk__fallback img:only-child { image-rendering: pixelated; image-rendering: crisp-edges; }
+.footer .footer__credits { font-size: 0.72rem; color: #8a8a86; margin: 1.25rem 0 0; max-width: none; }
+.footer .footer__credits a { color: inherit; font-weight: 400; text-decoration: underline; }
 
 .two-col { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: clamp(2rem, 4vw, 3.5rem); align-items: start; }
 .card { background: #fff; border: 1px solid var(--line); border-radius: 0; padding: clamp(1.4rem, 3vw, 2.25rem); }

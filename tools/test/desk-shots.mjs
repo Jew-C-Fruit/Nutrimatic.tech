@@ -7,7 +7,7 @@ const errors = [];
 async function open(width, dpr) {
   const page = await browser.newPage({ viewport: { width, height: 900 }, deviceScaleFactor: dpr || 1 });
   page.on("pageerror", e => errors.push(String(e))); page.on("console", m => { if (m.type() === "error" && !/404/.test(m.text())) errors.push(m.text()); });
-  await page.goto((process.env.SITE_BASE || "http://127.0.0.1:8765/") + "how-it-works.html", { waitUntil: "networkidle" });
+  await page.goto((process.env.SITE_BASE || "http://127.0.0.1:8765/") + "about.html", { waitUntil: "networkidle" });
   await page.locator("[data-desk-scene]").scrollIntoViewIfNeeded(); await page.waitForTimeout(600);
   return page;
 }
