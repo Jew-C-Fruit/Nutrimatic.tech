@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - desk-scene.js
- * Version 0.27.4
+ * Version 0.28.0
  *
  * Created: 2026-10-01 - Living pixel-art scene of the co-founders at their desk (v0.1.0)
  * Modified: 2026-10-01 - Likeness pass (v0.2.0); browline glasses, desk lamp, blazer (v0.3.0); redraw at a larger scale (v0.4.0)
@@ -256,6 +256,12 @@
  *   around the wrist. ilinca's hand looks like a paw and isn't ready"; at the keyboard: "Cole's mouth should be slightly
  *   larger at max"): switched off (SCENE_ON.lateNight), the yawn from rest, at the keyboard and the eye rub; no hold of the
  *   test hooks draws a yawn pose either; late hours go on with the other scenes (v0.27.4)
+ * Modified: 2026-10-30 - T150 ("make the morning light a little different from the afternoon light"): in the morning the
+ *   window's light slants the other way (down to the right, the sun on the window's left), cooler and paler, a little
+ *   stronger, with a faint cool cast on the room; afternoon and evening as they were. T154 ("Mugs need more steam trails,
+ *   brighter white for visibility"): three white wisps a mug, swaying as they rise, out of step, each with a soft grey edge
+ *   so it reads on the pale brick at every hour; clear of the lamps and every pose in both layouts, none on Maker. T152:
+ *   the vase and the wall behind it cleaned up in tools/desk/env_build.py (v0.28.0)
  *
  * Markup: <div data-desk-scene><canvas></canvas> ...fallback... </div>, with js/desk-sprites.js loaded first.
  * Test hooks (.state().mugs: whether each one's mug stands on the desk): window.NutrimaticDesk.setHour(h), .activity(who, name, secs), .react(who), .scenario(name), .converse(i),
@@ -435,6 +441,9 @@
   // How much of the night look applies (0 by day, 1 at night) and how much of the low warm sun (around sunrise and sunset).
   function nightAmount(h) { if (h >= 20.5 || h < 5) { return 1; } if (h >= 7 && h < 18) { return 0; } return h >= 18 ? (h - 18) / 2.5 : 1 - (h - 5) / 2; }
   function duskAmount(h) { return Math.max(0, 1 - Math.abs(h - 18.8) / 1.7, 1 - Math.abs(h - 6.2) / 1.2); }
+  // T150 (Cole, 2026-10-30: "make the morning light a little different from the afternoon light"): how much of the morning
+  // look applies, all of it from 7 to 10, coming in from 5.5 and gone by noon (afternoon and evening as they were).
+  function morningAmount(h) { return clamp((h - 5.5) / 1.5, 0, 1) * clamp((12 - h) / 2, 0, 1); }
 
   /* ---------- the room: ceiling, wall, poster, clock, pendant ---------- */
   var NU = ["wwwww.ww.ww", "ww.ww.ww.ww", "ww.ww.ww.ww", "ww.ww.ww.ww", "ww.ww.wwwww"];
@@ -752,32 +761,44 @@
   // (the coffee frames: lifted, the mug is in the hand; held on the desk, the pose draws it where it stands and the scene only
   // its steam; reaching, the scene draws it)
   function mugHeld(n) { return !!MUG_HELD[n] || /^coffeeLift/.test(n || ""); }
-  // The steam: a dash of three pixels rising a row a frame over the mug's outer side and fading (a, b, c: three strengths),
-  // six frames of a quarter second, the two mugs half a loop apart; never while it is held. Clear of the lamps' shades above
-  // (rows 7 to 1 over the rim, the outer three columns inside it). Rows top to bottom, columns from the outside in. It is laid
-  // on last, after the night's dimming and the lamps' light, where nothing has been drawn over it since the mugs (Maker
-  // passing in front), as the bulbs are (steamShown), each pixel STEAM_D levels from the lit wall pixel behind it: darker
-  // and a little cooler (blue taken down less) where the wall behind the wisp is pale (its middle brightness: the brick by
-  // day and at dawn and dusk), lighter where it is darker (night), one way for the whole wisp so it never mixes light and
-  // dark pixels (audit of 6e92bba: a day colour dimmed and a night white on top had cancelled out at dawn and dusk).
-  var STEAM = [['c..', 'c..', '.b.', '...', '...', '...', '..a'],     // (drifting outward as it rises, 2 px clear of the shades)
-               ['c..', 'c..', '...', '...', '...', '..a', '..a'],
-               ['c..', '...', '...', '...', '.a.', '..a', '..a'],
-               ['...', '...', '...', '.b.', '.a.', '..a', '...'],
-               ['...', '...', '.b.', '.b.', '.a.', '...', '...'],
-               ['...', 'c..', '.b.', '.b.', '...', '...', '...']];
-  var STEAM_D = { a: 30, b: 20, c: 12 }, STEAM_COOL = [1, 0.95, 0.7], steamShown = [], steamBox = {};
+  // The steam (T154, Cole, 2026-10-30: "Mugs need more steam trails, brighter white for visibility"): three wisps a mug, each
+  // a column of white pixels rising from the coffee and drifting outward as it goes (its path: the column, as dx from the
+  // mug's left side, at each row above the rim, from the rim up), swaying a pixel either way in a curl that climbs with it
+  // (STEAM_SWAY), shown as dashes of five that climb a row each third of a second and come round every STEAM_LOOP steps
+  // (2.7 s); a mug's wisps are out of step with each other, the two mugs half a loop apart. Each white pixel has a soft grey one on its left (the side away from the window, as the mug's own dark
+  // side), so white on the pale brick still reads; a wisp's top two rows go without it, thinning out. Never while the mug
+  // is held. The paths keep 2 px from the lamps' shades and from every pose either of them takes there, in each layout (the
+  // shade's tip hangs over a different part of the mug in each: his outer and inner wisps rise either side of it, hers
+  // right of it, and a short one under it). It is laid on last, after the night's dimming and the lamps' light, where
+  // nothing has been drawn over it since the mugs (Maker passing in front, or behind a mug: its steam is marked before she
+  // is drawn), as the bulbs are (steamShown): white by day, its edge a soft grey; at night a little dimmer, still the
+  // brightest thing above the mug, its edge a blue grey.
+  var STEAM_WISPS = {                                                    // per layout and mug: [path, phase] (5 px apart, never touching)
+    wide:   { cole:   [[[3, 2, 2, 1, 1, 0, 0, -1, -2, -2], 0], [[8, 8, 8, 8], 3], [[13, 13, 13, 14, 14, 15, 15, 16, 17, 18], 5]],
+              ilinca: [[[5, 5, 5, 5], 2], [[10, 10, 11, 11, 12, 12, 13, 13, 14, 14], 0], [[15, 16, 16, 17, 17, 18, 19, 18], 5]] },
+    narrow: { cole:   [[[2, 1, 1, 0, 0, 0, 1, 1, 2, 3], 0], [[7, 7, 7, 7], 3], [[12, 13, 14, 15, 17, 18, 19, 20, 21], 5]],
+              ilinca: [[[5, 5, 5, 5], 2], [[10, 10, 10, 11, 11, 11, 12, 12, 12, 11], 0], [[15, 15, 16, 16, 17, 17, 18], 5]] }
+  };
+  var STEAM_SWAY = [0, 1, 1, 0, -1, -1], STEAM_LOOP = 8, STEAM_DASH = 5, STEAM_TICKS = 4, steamShown = [];
   function mugStands(p) { return !mugHeld(p.drawn && p.drawn.name); }
-  function drawStandingMug(p, f) {
+  function drawStandingMug(p, f, part) {                               // part: "body", "steam" or both
     if (!mugStands(p)) { return; }                                     // at the lips: the one mug is in the hand, and no steam
     var x0 = p.x + MUG_DX[p.name], top = MUG_Y - MUG_BODY.length + 1, out = p === cole ? -1 : 1, i, j, col = function (k) { return k === "k" && p === ilinca ? "#0b0503" : MUG_COL[k]; };   // out: the side its handle and steam are on
-    if (!(p.drawn && p.drawn.name === "coffeeHold")) {                // (held on the desk the pose draws it)
+    if (part !== "steam" && !(p.drawn && p.drawn.name === "coffeeHold")) {   // (held on the desk the pose draws it)
       for (j = 0; j < MUG_BODY.length; j++) { for (i = 0; i < MUG_BODY[j].length; i++) { var c = col(MUG_BODY[j][i]); if (c) { px(x0 + i, top + j, c); } } }
       for (j = 0; j < MUG_HANDLE.length; j++) { for (i = 0; i < 5; i++) { var ch = col(MUG_HANDLE[j][out < 0 ? i : 4 - i]); if (ch) { px(out < 0 ? x0 - 5 + i : x0 + 15 + i, top + 3 + j, ch); } } }
     }
-    var fr = STEAM[(Math.floor(f / 3) + (p === cole ? 0 : 3)) % STEAM.length], sx = out < 0 ? x0 + 1 : x0 + 12;   // (r33-live: his a pixel further out: 2 clear px from his lamp's shade at 35)
-    for (j = 0; j < fr.length; j++) { for (i = 0; i < 3; i++) { if (fr[j][i] !== ".") { steamShown.push([sx - out * i, top - fr.length + j, fr[j][i], null, p.name]); } } }   // (drawn last: steamDraw)
-    steamBox[p.name] = [out < 0 ? sx : sx - 2, top - fr.length];       // (the wisp's 3 x 7 box)
+    if (part === "body") { return; }
+    var step = Math.floor(f / STEAM_TICKS) + (p === cole ? 0 : STEAM_LOOP / 2);
+    STEAM_WISPS[layoutName][p.name].forEach(function (w) {
+      var path = w[0], n = path.length;
+      for (var u = 1; u <= n; u++) {
+        if ((((step + w[1] - u) % STEAM_LOOP) + STEAM_LOOP) % STEAM_LOOP >= STEAM_DASH) { continue; }   // (the dashes climb a row a step)
+        var x = x0 + path[u - 1] + STEAM_SWAY[(((u - step - w[1]) % STEAM_SWAY.length) + STEAM_SWAY.length) % STEAM_SWAY.length];
+        steamShown.push([x, top - u, "w", null]);                      // (drawn last: steamDraw)
+        if (u <= n - 2) { steamShown.push([x - 1, top - u, "e", null]); }
+      }
+    });
   }
   // (T128 follow-up: the mug 4 rows into the desk top; Maker comes no further back than row 137, at a laptop: there, near the
   // mug, she is behind it, and it is drawn after her)
@@ -787,16 +808,8 @@
   function steamMark() { steamShown.forEach(function (s) { if (s[3] === null) { s[3] = rgbAt(s[0], s[1]); } }); }
   function steamKept() { steamShown = steamShown.filter(function (s) { return rgbAt(s[0], s[1]) === s[3]; }); }
   function steamDraw() {
-    var pale = {};
-    Object.keys(steamBox).forEach(function (n) {                       // the wall behind each wisp: its middle brightness (the mortar lines are few)
-      var b = steamBox[n], d = g.getImageData(b[0], b[1], 3, 7).data, ls = [];
-      for (var k = 0; k < d.length; k += 4) { ls.push(luma([d[k], d[k + 1], d[k + 2]])); }
-      ls.sort(function (u, v) { return u - v; }); pale[n] = ls[ls.length >> 1] > 170;
-    });
-    steamShown.forEach(function (s) {
-      var d = g.getImageData(s[0], s[1], 1, 1).data, k = STEAM_D[s[2]], dn = pale[s[4]];
-      px(s[0], s[1], "rgb(" + [0, 1, 2].map(function (i) { return clamp(Math.round(d[i] + (dn ? -k * STEAM_COOL[i] : k)), 0, 255); }).join(",") + ")");
-    });
+    var n = nightAmount(hourNow()), white = mix("#ffffff", "#e4e8f4", n), edge = mix("#8f94a0", "#9ea5bb", n);
+    steamShown.forEach(function (s) { px(s[0], s[1], s[2] === "w" ? white : edge); });
   }
   // Fourth spark rework (T67/T84, audit of 99c05d7; "Eliminating object clipping is essential"): the station's T holder is gone.
   // The iron no longer goes in it (held while soldering, laid on the desk in the spark and the wave), and it stood exactly
@@ -1244,7 +1257,7 @@
         if (e2.kind === "plane") { propPlane(e2.x, deskAt(0.7), e2.dir); } else if (e2.kind === "bottle") { propArt("bottle", e2.x, deskAt(0.5) + 1); }
         else if (e2.kind === "mug") { propArt("mug", e2.x, deskAt(0.55) + 1); if (e2.steam) { steam(e2.x - 1, deskAt(0.55) - 11, f); } }
       }
-      people.forEach(function (p) { if (!catBehindMug(p)) { drawStandingMug(p, f); } });   // T128: their everlasting mugs (the room drawn in code, while the pictures load, keeps its own desk set)
+      people.forEach(function (p) { if (!catBehindMug(p)) { drawStandingMug(p, f); } else { drawStandingMug(p, f, "steam"); } });   // T128: their everlasting mugs (the room drawn in code, while the pictures load, keeps its own desk set); T154: with Maker behind one, its steam is marked before she is drawn, so none lands on her
       return;
     }
     for (var i = 0; i < L.slots.length && i < set.length; i++) {
@@ -1827,9 +1840,18 @@
   }
 
   /* ---------- light: a sun patch by day, a warm low sun at dusk, blue dark with warm pools at night ---------- */
+  // T150: by day the light through the window slants down to the left, from the sun on the window's right (the sky draws it
+  // there after noon), in a pale warm cream. In the morning the sun stands on the window's left: the light slants the other
+  // way, down to the right, in a cooler, paler blue-white, a little stronger, and the room takes a faint cool cast
+  // (drawNightArt); at sunrise it is the low warm sun's orange as before.
   function drawSunPatch(h) {
     var day = (1 - nightAmount(h)) * (h > 6 && h < 19.5 ? 1 : 0); if (day <= 0.05) { return; }
     var dusk = duskAmount(h), col = dusk > 0.3 ? "rgba(255,170,90," + (0.16 * day).toFixed(3) + ")" : "rgba(255,240,200," + (0.20 * day).toFixed(3) + ")", reach = 40 + dusk * 30;
+    var m = morningAmount(h);
+    if (m > 0) {                                                         // the morning: the slant turns over, the light cools
+      reach = lerp(reach, -34, m);
+      if (dusk <= 0.3) { col = "rgba(" + [lerp(255, 222, m), lerp(240, 236, m), lerp(200, 255, m)].map(Math.round).join(",") + "," + (lerp(0.20, 0.26, m) * day).toFixed(3) + ")"; }
+    }
     for (var y = WIN.y + 6; y < DESK_Y; y++) { var t = (y - WIN.y) / (DESK_Y - WIN.y); rect(WIN.x - 10 - Math.round(t * reach), y, WIN.w + 6 - Math.round(t * 8), 1, col); }
   }
   function pool(cx, top, bottom, w0, w1, strength) {
@@ -1843,6 +1865,7 @@
     var n = nightAmount(h), d = duskAmount(h) * (1 - n);
     if (ENV.ready) { drawNightArt(h, f, n, d); return; }
     if (d > 0.02) { rect(0, CEIL, W, H - CEIL, "rgba(255,150,80," + (0.10 * d).toFixed(3) + ")"); }
+    var mc = morningAmount(h) * (1 - n) * (1 - d); if (mc > 0.02) { rect(0, CEIL, W, H - CEIL, "rgba(200,220,255," + (0.07 * mc).toFixed(3) + ")"); }   // T150: the morning's faint cool cast
     if (n <= 0.02) { return; }
     rect(0, CEIL, W, DESK_Y - CEIL, "rgba(14,18,46," + (0.40 * n).toFixed(3) + ")"); rect(0, DESK_Y, W, H - DESK_Y, "rgba(14,18,46," + (0.38 * n).toFixed(3) + ")");
     drawWindow(h, f);                                                    // the city stays bright
@@ -1858,6 +1881,7 @@
   function drawNightArt(h, f, n, d) {                                    // on the front layer: only what is drawn there darkens
     g.save(); g.globalCompositeOperation = "source-atop";
     if (d > 0.02) { rect(0, 0, W, H, "rgba(255,150,80," + (0.10 * d).toFixed(3) + ")"); }
+    var mc = morningAmount(h) * (1 - n) * (1 - d); if (mc > 0.02) { rect(0, 0, W, H, "rgba(200,220,255," + (0.07 * mc).toFixed(3) + ")"); }   // T150: the morning's faint cool cast
     if (n > 0.02) { rect(0, 0, W, H, "rgba(14,18,46," + (0.46 * n).toFixed(3) + ")"); }
     g.restore();
     if (n <= 0.02) { return; }
@@ -1963,12 +1987,12 @@
     if (art) { g.drawImage(ENV.img["desk-" + layoutName], 0, 0); } else { drawDesk(); }
     people.forEach(drawDeskPropUnder); people.forEach(drawOnDesk); people.forEach(drawLaptopOut); people.forEach(drawDeskPropOver);
     if (art) { drawLampsArt(h, "front"); } else { drawLampBase(); }
-    steamShown = []; steamBox = {}; drawProps(f);
+    steamShown = []; drawProps(f);
     if (art) { steamMark(); }                                            // (T128: the steam goes on last, where nothing covers it)
     if (!art) { drawLampCone(); drawLamp(); }
     people.forEach(drawNamePlate);
     if (scenario && scenario.drawFront) { scenario.drawFront(t, f); }
-    if (art) { people.forEach(function (p) { if (catBehindMug(p)) { drawStandingMug(p, f); } }); steamMark(); }   // (a mug Maker walks behind)
+    if (art) { people.forEach(function (p) { if (catBehindMug(p)) { drawStandingMug(p, f, "body"); } }); steamMark(); }   // (a mug Maker walks behind)
     people.forEach(drawPetHand);
     shadeFig = art && dark && lampIsOn(0, h) && handsOffWork(cole) && !cole.hidden;   // T84: his figure keeps out of his lamp's beam
     if (shadeFig) { figureMask(cole, f); }

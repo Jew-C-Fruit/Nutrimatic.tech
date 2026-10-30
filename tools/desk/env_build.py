@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - env_build.py
-Version 1.9.0
+Version 1.10.0
 
 Created: 2026-10-02 - The room, the skyline and the two anglepoise lamps as generated pictures reduced to the scene's
   pixels, written to assets/desk/ (v1.0.0)
@@ -15,6 +15,9 @@ Modified: 2026-10-04 - The narrow room's leftover poster frame painted out (roun
 Modified: 2026-10-05 - The narrow room's own desk top above the desk line becomes wall (T52: the figures looked seated in the desk) (v1.7.0)
 Modified: 2026-10-05 - The narrow room's desk runs on to the right edge like the left (round-30 audit: it stopped 10 px short, lopsided, its lamp on the very end) (v1.8.0)
 Modified: 2026-10-05 - The desk bottle in the shaker's own colours (the one in their hands): one shaker (re-audit) (v1.9.0)
+Modified: 2026-10-30 - T152 ("vase needs cleanup."): the vase redrawn over its reduction (clean outline, tidy stems, leaves
+  and tulips) and the wide room's own potted plant, which showed round whatever stood at the left end of the desk, painted
+  out (v1.10.0)
 
 The environment was drawn in code until v0.7 and looked low-fi next to the figures, so it is made the same way as they
 are now: pictures generated on the GPU machine (FLUX.2 klein 4B, see sources/PROVENANCE.md) and reduced with
@@ -111,10 +114,26 @@ def unseat(s, boxes):
     return s
 
 
+# T152 (2026-10-30, "vase needs cleanup."): the wide room picture has a little potted plant of its own standing at the
+# wall's foot by the left end of the desk (columns 7-21, rows 110-133); whatever stands in the desk's first place (the
+# vase, the plant, the papers) had its brown pot and dark leaves showing round it, the muddy fringe on Cole's picture of
+# the vase. It becomes wall: each row copied from DX columns to its right (the rows of mortar run on, level), the wall's
+# foot (its dark line and the strip of desk under it) from the picture's edge, which the pot's foot nearly reached.
+OLD_PLANT = {'wide': [(7, 110, 21, 131), (0, 132, 21, 133)]}
+OLD_PLANT_DX = 36
+
+
+def unplant(s, boxes, dx):
+    src = s.idx.copy()
+    for x0, y0, x1, y1 in boxes: s.idx[y0:y1 + 1, x0:x1 + 1] = src[y0:y1 + 1, x0 + dx:x1 + dx + 1]
+    return s
+
+
 def room(name):
     path, box = ROOMS[name]; s = reduce_full(os.path.join(SRC, path), 4, 28)
     if name in OLD_FRAME: s = unframe(s, OLD_FRAME[name])
     if name in OLD_DESK: s = unseat(s, OLD_DESK[name])
+    if name in OLD_PLANT: s = unplant(s, OLD_PLANT[name], OLD_PLANT_DX)
     if name in DESK_END: s = unend(s, *DESK_END[name])
     m = glass(s, box); ys, xs = np.where(m)
     back = s.copy(); back.idx[m] = -1; back.idx[DESK_Y:, :] = -1           # the window glass and the desk are not part of the back wall
@@ -320,7 +339,60 @@ def props():
             sp.pal = [ONE_SHAKER.get(c, c) for c in sp.pal]
         if name == 'papers':                                                    # the desk is seen flat from the front: papers lie edge-on
             sp = edge_on_papers()
+        if name == 'vase':                                                      # T152: redrawn clean over its reduction
+            sp = tidy_vase(sp)
         sp.save(os.path.join(OUT, 'prop-%s.png' % name)); out[name] = [sp.w, sp.h]
+    return out
+
+
+# T152 (Cole, 2026-10-30: "vase needs cleanup."): reduced, the tulips' thin stems and leaves fell below the reduction's
+# cell and came out as clumps of the outline black with a few green and brown pixels, the three heads uneven and the
+# outline broken at the vase's neck. It is redrawn over the reduction, pixel for pixel at its size (19 x 30, so it stands
+# where it stood, as clear of the lamps, the mugs and the other props), in the reduction's own colours: one black
+# outline round the vase and the tulip heads; the vase white with its shade on the right, as the shaker's (rim, neck,
+# shoulders, body); the three heads one tulip shape (two petal tips, the shade on the right), the middle one a little
+# higher; stems and leaves dark-green shapes (the picture's two greens, the darker one their edge).
+VASE = ['.......k...k.......',
+        '......krk.kRk......',
+        '.k...kkrrkrRkk...k.',
+        'krk.kRkrrrrRkrk.kRk',
+        'krrkrRkrrrrRkrrkrRk',
+        'krrrrRkkrrRkkrrrrRk',
+        'krrrrRk.kkk.krrrrRk',
+        '.krrRk...G...krrRk.',
+        '..kkk....G....kkk..',
+        '...G.....G.....G...',
+        '.GGG.....G.....GGG.',
+        '.GgGG....G....GGgG.',
+        '..GggG...G...GggG..',
+        '...GggG..G..GggG...',
+        '....GggG.G.GggG....',
+        '.....GGG.G.GGG.....',
+        '.....kkkkkkkkk.....',
+        '.....kwwwwwwdk.....',
+        '......kwwwwdk......',
+        '......kwwwwdk......',
+        '.....kwwwwwwdk.....',
+        '....kwwwwwwwddk....',
+        '....kwwwwwwwddk....',
+        '....kwwwwwwwddk....',
+        '....kwwwwwwwddk....',
+        '....kwwwwwwwddk....',
+        '....kwwwwwwwddk....',
+        '....kwwwwwwwddk....',
+        '.....kwwwwwddk.....',
+        '......kkkkkkk......']
+VASE_KEY = {'k': '#100c06', 'r': '#e71f1d', 'R': '#a90816', 'g': '#4ba507', 'G': '#267b0f', 'w': '#f8f9f9', 'd': '#cfcfd1'}
+
+
+def tidy_vase(sp):
+    """the vase of tulips redrawn over its reduction (VASE), in the reduction's own colours and at its size"""
+    assert (sp.w, sp.h) == (len(VASE[0]), len(VASE)), (sp.w, sp.h)
+    assert all(c in sp.pal for c in VASE_KEY.values()), sp.pal                 # (the colours are the picture's)
+    out = Sprite(-np.ones((sp.h, sp.w), dtype=np.int16), [])
+    for y, row in enumerate(VASE):
+        for x, ch in enumerate(row):
+            if ch != '.': out.put(x, y, VASE_KEY[ch])
     return out
 
 

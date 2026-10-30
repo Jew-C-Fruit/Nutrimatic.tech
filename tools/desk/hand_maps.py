@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """
 Nutrimatic desk scene - hand_maps.py
-Version 1.1.0
+Version 1.2.0
 
 Created: 2026-10-28 - Cole's go-live picks from the hand pages put into the poses (r33-live; Cole: "let's focus on getting
   some scenes DONE so we can bring this live"): his thinking TB, her phone P1, his resting pose R2 (with T134, T137, T114),
   his yawn Y1, his handheld D1, his soldering S2, his petting E2 (on his paper) and E3 (the visit); D1's two gaps at the
   desk line closed (FIXES) (v1.0.0)
 Modified: 2026-10-29 - T142 ("requires smoothing"): Y1's raised forearm's outer outline smoothed (EDGES) (v1.1.0)
+Modified: 2026-10-30 - T153/T155: her phone pose takes Cole's pick HT3 (P1's approved forearm, CL0's desk hand at its cuff)
+  in P1's place in sprites/picks.json (work/r34/polish/tools/make_ht3.py; nothing here changes but this note) (v1.2.0)
 
 The hand pages (work/hands/rounds/...) drew each candidate as finished pose layers in the exported format and showed them
 in the live scene (D.patchPoses). The picked ones are copied, unchanged, into sprites/picks.json (with the palette each
