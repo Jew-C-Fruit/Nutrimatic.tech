@@ -3,7 +3,7 @@
 <head>
 <!--
   Nutrimatic Website - how-it-works.html
-  Version 1.6.0
+  Version 1.6.1
   Created: 2026-09-13 - Initial marketing site (v1.0.0)
   Modified: 2026-09-15 - Now carries all product information: cutaway process story, feature tiles, pricing, audiences, founders; language pass (v1.1.0)
   Modified: 2026-09-15 - Contact via LinkedIn; email address removed from markup and structured data (v1.1.1)
@@ -20,6 +20,7 @@
   Modified: 2026-10-02 - Desk scene v0.9: the description mentions the Mondrian on the wall (v1.4.3)
   Modified: 2026-10-30 - The co-founders and their desk scene moved to the new About us page (about.html); About us in the nav and footer; the team photos gone; plain http goes straight to https (v1.5.0)
   Modified: 2026-10-30 - "The app" section replaces the old app tile: gym screen, saved drinks ordered ahead, a live scrolling Coachbot chat, stack and streak, with generic product names; three tiles left (v1.6.0)
+  Modified: 2026-11-09 - App section: the full stack card ends the scrolling Coachbot chat; fourth column is the Your plan screen (next shipment, coming up, routine bonus) as a live phone; streak widget dropped (v1.6.1)
 -->
 <meta charset="utf-8">
 <script>if(location.protocol==="http:"&&!/^(localhost|127\.|0\.0\.0\.0|\[?::1)/.test(location.hostname))location.replace("https:"+location.href.slice(5));</script>
@@ -361,7 +362,27 @@
                     <p class="msg msg--you">Go ahead.</p>
                     <p class="msg msg--bot">Training days: your gym shake, plus 40 g casein before bed.<br>Rest days: 30 g whey during the day, 30 g casein before bed.<br>Casein digests slowly, so it keeps feeding muscle repair while you sleep. I'd also take creatine every day. And we can save you money by sending your pre-workout home in bulk. How does that sound?</p>
                     <p class="msg msg--you">Sounds doable. How much is all of that going to cost?</p>
-                    <p class="msg msg--bot">Here's your stack. The same whey you have at the gym for rest days, since we know it works for you, and casein is on sale this month. Creatine moves home, so we'll leave it out of your gym shake. Everything ships now, then each tub reorders just before you run out.</p>
+                    <p class="msg msg--bot">Here's your stack. The same whey you have at the gym for rest days, since we know it works for you, and casein is on sale this month. Creatine moves home, so we'll leave it out of your gym shake. Everything ships now, then each tub reorders just before you run out:</p>
+                    <div class="phone__card">
+                      <p class="phone__line"><span class="phone__big">Your stack</span><span class="phone__sub">ships as you run low</span></p>
+                      <div>
+                        <p class="phone__line"><span class="phone__kicker">EVERY ~5 WEEKS</span><span class="phone__strong">$69.99</span></p>
+                        <div class="phone__item"><span class="phone__tile" style="--c: #b08968"></span><div><p class="phone__name">Casein<span class="phone__sale">Sale</span></p><p class="phone__sub">30 g rest days · 40 g training days, before bed</p><p class="phone__sub">4 lb tub, 53 servings · was $84.99</p></div></div>
+                      </div>
+                      <div>
+                        <p class="phone__line"><span class="phone__kicker">EVERY ~7 WEEKS</span><span class="phone__strong">$81.99</span></p>
+                        <div class="phone__item"><span class="phone__tile" style="--c: #f4b942"></span><div><p class="phone__name">Pre-workout</p><p class="phone__sub">200 mg caffeine on training days</p><p class="phone__sub">30 servings</p></div></div>
+                        <div class="phone__item"><span class="phone__tile" style="--c: #9b8fd6"></span><div><p class="phone__name">EAAs</p><p class="phone__sub">1 scoop on training days</p><p class="phone__sub">30 scoops</p></div></div>
+                      </div>
+                      <div>
+                        <p class="phone__line"><span class="phone__kicker">EVERY ~4 MONTHS</span><span class="phone__strong">$142.98</span></p>
+                        <div class="phone__item"><span class="phone__tile" style="--c: #e9cf9c"></span><div><p class="phone__name">Whey protein</p><p class="phone__sub">30 g protein on rest days</p><p class="phone__sub">5 lb tub, 73 servings</p></div></div>
+                        <div class="phone__item"><span class="phone__tile" style="--c: #e8ecf0"></span><div><p class="phone__name">Creatine</p><p class="phone__sub">5 g every day</p><p class="phone__sub">600 g, 120 servings</p></div></div>
+                      </div>
+                      <p class="phone__total phone__total--thin"><span class="phone__strong">Total now</span><span class="phone__big">$294.96</span></p>
+                      <p class="phone__line phone__muted"><span>Then, on average</span><span>about $152/mo</span></p>
+                      <span class="phone__btn">Set up my stack</span>
+                    </div>
                   </div>
                   <div class="phone__composer" aria-hidden="true"><span>Message Coachbot</span><svg viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></div>
                 </div>
@@ -370,15 +391,46 @@
             </div>
           </div>
           <h3>It finds what's missing.</h3>
-          <p>From your training and a short chat, Coachbot works out how much protein you're short and the simplest way to close the gap.</p>
+          <p>From your training and a short chat, Coachbot works out how much protein you're short and builds a stack to close the gap. Scroll the chat to see it.</p>
         </article>
         <article class="app-col">
           <div class="app-col__art">
-            <img class="app-card" src="assets/app/app-stack.webp" width="350" height="566" loading="lazy" decoding="async" alt="Your stack: casein, pre-workout, EAAs, whey protein and creatine, grouped by how often each ships. $294.96 today, then about $152 a month.">
-            <img class="app-widget" src="assets/app/app-streak.webp" width="390" height="244" loading="lazy" decoding="async" alt="A streak card: streak of 5, earning 18 points per dollar, 740 of 1,000 points toward a free drink.">
+            <div class="phone">
+              <div class="phone__screen">
+                <div class="phone__status" aria-hidden="true">
+                  <span>9:41</span>
+                  <svg viewBox="0 0 66 13" fill="#111111"><rect x="0" y="9" width="3" height="4" rx="1"/><rect x="5" y="6.5" width="3" height="6.5" rx="1"/><rect x="10" y="4" width="3" height="9" rx="1"/><rect x="15" y="1" width="3" height="12" rx="1"/><path d="M24.5 5.2a9.5 9.5 0 0 1 13 0M27 8a5.8 5.8 0 0 1 8 0" fill="none" stroke="#111111" stroke-width="1.8" stroke-linecap="round"/><circle cx="31" cy="11" r="1.2"/><rect x="41.5" y="0.5" width="23" height="12" rx="3.5" fill="none" stroke="#111111" stroke-opacity="0.4"/><rect x="43.5" y="2.5" width="19" height="8" rx="2"/></svg>
+                </div>
+                <div class="phone__island" aria-hidden="true"></div>
+                <div class="phone__body phone__body--plan">
+                  <p class="phone__title" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#111111" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>Your plan</p>
+                  <div class="phone__card phone__card--accent">
+                    <span class="phone__plus">+2</span>
+                    <div><p class="phone__name">Routine bonus</p><p class="phone__sub">+2 on your streak, and 25 points a day while your routine is active</p></div>
+                  </div>
+                  <div class="phone__card">
+                    <p class="phone__kicker">NEXT SHIPMENT · IN 7 DAYS</p>
+                    <div class="phone__item phone__item--bare"><span class="phone__tile" style="--c: #b08968"></span><div><p class="phone__name">Casein</p><p class="phone__sub">4 lb tub, 53 servings</p></div><span class="phone__strong">$84.99</span></div>
+                    <div class="phone__bar"><span style="--p: 26%"></span></div>
+                    <p class="phone__sub">About 9 days of casein left</p>
+                    <span class="phone__btn phone__btn--ghost"><svg viewBox="0 0 24 24" fill="none" stroke="#111111" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Reschedule</span>
+                  </div>
+                  <div class="phone__card phone__card--tight">
+                    <p class="phone__kicker phone__kicker--head">COMING UP</p>
+                    <p class="phone__row"><span>In 3 wks</span><span>Pre-workout + EAAs</span><span>$81.99</span></p>
+                    <p class="phone__row"><span>In 6 wks</span><span>Casein</span><span>$84.99</span></p>
+                    <p class="phone__row"><span>In 10 wks</span><span>Pre-workout + EAAs</span><span>$81.99</span></p>
+                    <p class="phone__sub phone__note">Whey and creatine next ship in 12 weeks</p>
+                  </div>
+                  <div class="phone__spacer"></div>
+                  <p class="phone__total"><span class="phone__muted">On average</span><strong>about $152/mo</strong></p>
+                </div>
+                <div class="phone__home" aria-hidden="true"></div>
+              </div>
+            </div>
           </div>
           <h3>One order, kept topped up.</h3>
-          <p>Pay for the whole stack at once, and each tub reorders before it runs out. Drinks and orders build one streak toward free drinks.</p>
+          <p>Each tub reorders before it runs out, and you can move a delivery whenever you need to. An active routine adds to your streak and earns points every day.</p>
         </article>
       </div>
     </div>

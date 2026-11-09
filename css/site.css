@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - site.css
- * Version 1.5.0
+ * Version 1.5.1
  *
  * Created: 2026-09-13 - Initial marketing site stylesheet (v1.0.0)
  * Modified: 2026-09-15 - Full-viewport splash, wide scroll story, feature tiles, three-way audience grid (v1.1.0)
@@ -8,6 +8,7 @@
  *   - Nav, hero, sections, price ladder, panels, forms, team cards, footer
  * Modified: 2026-10-30 - About us page: the desk scene as its hero, a still of the scene as its no-script fallback (no photos), the credits at the bottom of the page (v1.4.0)
  * Modified: 2026-10-30 - "The app" section on How it works: four app screens at one shared scale; the Coachbot chat is a live phone whose text scrolls; feature tiles three across (v1.5.0)
+ * Modified: 2026-11-09 - App section: the stack card sits at the end of the scrolling chat; Your plan is a live phone; phone card rules added, stack/streak image rules removed (v1.5.1)
  */
 
 @font-face {
@@ -282,8 +283,6 @@ h3 { font-size: 1.25rem; font-weight: 800; }
 .app-col__art { display: grid; justify-items: center; align-content: start; gap: 0.9rem; margin: 0 auto 1.5rem; width: min(100%, 300px); aspect-ratio: 418 / 872; container-type: inline-size; } /* phone-sized box, so every column's copy starts level */
 .app-col__art img { display: block; height: auto; }
 .app-phone { width: 100%; }
-.app-card { width: 83.7%; }   /* 350 of the phone's 418 px, so all screens share one scale */
-.app-widget { width: 93.3%; } /* 390 of 418 */
 .app-col h3 { font-size: clamp(1.2rem, 1.8vw, 1.45rem); letter-spacing: -0.02em; margin: 0 0 0.5rem; }
 .app-col > p { margin: 0; color: var(--ink-2); }
 
@@ -311,6 +310,43 @@ h3 { font-size: 1.25rem; font-weight: 800; }
 .phone__composer span { flex: 1; height: calc(44 * var(--u)); box-sizing: border-box; display: flex; align-items: center; padding: 0 calc(16 * var(--u)); border: calc(1 * var(--u)) solid #e2e2e2; border-radius: calc(22 * var(--u)); background: #f3f3f3; font-size: calc(15 * var(--u)); color: #8a8a8a; }
 .phone__composer svg { flex-shrink: 0; width: calc(44 * var(--u)); height: calc(44 * var(--u)); box-sizing: border-box; padding: calc(13 * var(--u)); border-radius: 50%; background: #111; }
 .phone__home { position: absolute; bottom: calc(8 * var(--u)); left: calc(128 * var(--u)); width: calc(134 * var(--u)); height: calc(5 * var(--u)); border-radius: calc(3 * var(--u)); background: #111; }
+/* Cards inside the phone: the stack at the end of the chat, and the Your plan screen */
+.phone p { margin: 0; }
+.phone__body--plan { gap: calc(12 * var(--u)); }
+.phone__card { flex-shrink: 0; display: flex; flex-direction: column; gap: calc(10 * var(--u)); padding: calc(14 * var(--u)); border: calc(1 * var(--u)) solid #e2e2e2; border-radius: calc(16 * var(--u)); }
+.phone__card--accent { flex-direction: row; align-items: center; gap: calc(14 * var(--u)); border: calc(1.5 * var(--u)) solid var(--accent); }
+.phone__card--tight { gap: 0; padding-block: calc(12 * var(--u)); }
+.phone__line { display: flex; justify-content: space-between; align-items: baseline; gap: calc(12 * var(--u)); font-size: calc(13 * var(--u)); }
+.phone__kicker { font-size: calc(11 * var(--u)); font-weight: 700; letter-spacing: 0.16em; color: #666; }
+.phone__strong { font-weight: 700; }
+.phone__big { font-size: calc(17 * var(--u)); font-weight: 900; }
+.phone__muted { color: #666; }
+.phone__item { display: flex; align-items: center; gap: calc(12 * var(--u)); padding: calc(7 * var(--u)) 0; border-top: calc(1 * var(--u)) solid #eee; font-size: calc(14 * var(--u)); }
+.phone__item > div { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: calc(2 * var(--u)); }
+.phone__tile { flex-shrink: 0; width: calc(40 * var(--u)); height: calc(40 * var(--u)); display: grid; place-items: center; border-radius: calc(10 * var(--u)); background: #f3f3f3; }
+.phone__tile::before { content: ""; width: calc(16 * var(--u)); height: calc(16 * var(--u)); border-radius: 50%; background: var(--c); box-shadow: inset 0 0 0 calc(1 * var(--u)) rgba(0,0,0,0.12); }
+.phone__name { font-size: calc(14 * var(--u)); font-weight: 700; }
+.phone__sub { font-size: calc(12 * var(--u)); color: #666; }
+.phone__sale { margin-left: calc(6 * var(--u)); padding: calc(1 * var(--u)) calc(7 * var(--u)); border: calc(1.5 * var(--u)) solid var(--accent); border-radius: 999px; font-size: calc(11 * var(--u)); color: var(--accent); }
+.phone__btn { display: flex; align-items: center; justify-content: center; gap: calc(8 * var(--u)); height: calc(48 * var(--u)); border-radius: calc(12 * var(--u)); background: var(--accent); color: #fff; font-size: calc(15 * var(--u)); font-weight: 700; }
+.phone__btn--ghost { height: calc(44 * var(--u)); border: calc(1.5 * var(--u)) solid #bdbdbd; background: #fff; color: #111; font-size: calc(14 * var(--u)); }
+.phone__btn svg { width: calc(18 * var(--u)); height: calc(18 * var(--u)); }
+.phone__bar { height: calc(8 * var(--u)); border-radius: 999px; background: #ececec; overflow: hidden; }
+.phone__bar span { display: block; width: var(--p); height: 100%; border-radius: 999px; background: #111; }
+.phone__row { display: flex; align-items: baseline; gap: calc(12 * var(--u)); padding: calc(9 * var(--u)) 0; border-top: calc(1 * var(--u)) solid #eee; font-size: calc(13 * var(--u)); }
+.phone__row > :first-child { flex-shrink: 0; width: calc(66 * var(--u)); font-weight: 700; }
+.phone__row > :nth-child(2) { flex: 1; color: #444; }
+.phone__row > :last-child { font-weight: 700; }
+.phone__total { display: flex; justify-content: space-between; align-items: baseline; padding-top: calc(12 * var(--u)); border-top: calc(2 * var(--u)) solid #111; font-size: calc(14 * var(--u)); }
+.phone__total strong { font-size: calc(22 * var(--u)); font-weight: 900; }
+.phone__total--thin { padding-top: calc(10 * var(--u)); border-top: calc(1 * var(--u)) solid #e2e2e2; font-size: calc(13 * var(--u)); }
+.phone__card--accent > div { display: flex; flex-direction: column; gap: calc(2 * var(--u)); }
+.phone__plus { font-size: calc(30 * var(--u)); font-weight: 900; line-height: 1; color: var(--accent); }
+.phone__item--bare { padding: 0; border: 0; }
+.phone__sub { line-height: 1.35; }
+.phone__kicker--head { padding-bottom: calc(4 * var(--u)); }
+.phone__note { padding-top: calc(4 * var(--u)); }
+.phone__spacer { flex-grow: 1; }
 .app-link { font-weight: 700; text-decoration-color: var(--accent); text-decoration-thickness: 2px; }
 .app-link::after { content: " \2192"; }
 @media (max-width: 1100px) {
