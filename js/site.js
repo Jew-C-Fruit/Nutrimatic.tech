@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - site.js
- * Version 1.5.0
+ * Version 1.6.0
  *
  * Created: 2026-09-13 - Site behaviour (v1.0.0)
  * Modified: 2026-09-15 - Scroll story takes its SVG, scrub length and still from data attributes (v1.1.0)
@@ -8,11 +8,13 @@
  * Modified: 2026-09-21 - Per-form endpoints (formEndpoints.contact / .waitlist); brand sign-ups get their own subject line (v1.3.0)
  * Modified: 2026-09-21 - Web3Forms support: access key and field names adapted per endpoint; JSON error replies count as failures (v1.4.0)
  * Modified: 2026-09-21 - sheetEndpoint: submissions also go to the Google Apps Script that fills the sheet; Web3Forms gets only the human fields, labelled (v1.5.0)
+ * Modified: 2026-11-09 - App section (How it works): the scrolling Coachbot chat is scroll-linked; its row pins, the phones rise and shrink to make room for the captions, then the chat scrolls with the page (v1.6.0)
  *   - Mobile nav toggle
  *   - Hero media: swaps the SVG placeholder for a real render / video when present
  *   - Optional figures that only appear when their image exists
  *   - Scroll-driven story (About page): scrubs a frame sequence (canvas) or the SVG placeholder's
  *     animations with scroll position, crossfading captions (apple.com style)
+ *   - App screens that scroll (How it works): the row pins, the phones rise and shrink, the screen scrolls with the page
  *   - Waitlist role switch (owner / member / brand) synced with ?type= in the URL
  *   - Form validation + submission (JSON POST to config endpoint; mailto fallback if contactEmail is set;
  *     otherwise a note pointing to LinkedIn)
@@ -329,6 +331,122 @@
 
     if (count > 0 && seq.path) { useFrames(); } else { useSvg(); }
     renderCaptions();
+  }
+
+  /* ---------- App section: screens that scroll with the page ---------- */
+  // A column whose screen scrolls ([data-app-scroll]) pins under the nav together with the rest of its grid row.
+  // While pinned, the phones rise and shrink a little so the captions fit below them, then the screen scrolls with
+  // the page, then the row lets go. With reduced motion or a short window the chat scrolls by hand, as before.
+  var appRow = document.querySelector("[data-app-row]");
+  if (appRow && !reduceMotion) { setupAppScroll(appRow); }
+
+  function setupAppScroll(row) {
+    var GAP = 16;                         // px between the nav and the risen phone, and under the caption
+    var MIN_SCALE = 0.78, MAX_SCALE = 0.92;
+    var RISE = 0.35, HOLD = 0.15;         // scroll spent rising, and holding at the end, in viewport heights
+    var nav = document.querySelector(".nav");
+    var probe = document.createElement("div"); // 100svh: the window with the browser bars showing, so it doesn't jump
+    probe.setAttribute("aria-hidden", "true");
+    probe.style.cssText = "position:fixed;left:0;top:0;width:0;height:100vh;height:100svh;visibility:hidden;pointer-events:none";
+    document.body.appendChild(probe);
+    var cols = Array.prototype.slice.call(row.querySelectorAll(".app-col")).map(function (col) {
+      var stick = col.querySelector(".app-col__stick");
+      var art = stick.querySelector(".app-col__art");
+      return {
+        col: col, stick: stick, art: art,
+        copy: Array.prototype.slice.call(stick.children).filter(function (el) { return el !== art; }),
+        scroller: stick.querySelector("[data-app-scroll]")
+      };
+    });
+    var groups = [];
+    var lastW = -1, lastH = -1;
+
+    function clamp01(v) { return Math.max(0, Math.min(1, v)); }
+    function ease(t) { return t * t * (3 - 2 * t); }
+    function overflowOf(c) { return c.scroller.scrollHeight - c.scroller.clientHeight; }
+
+    function measure() {
+      // Natural sizes first: only the wrapper heights and transforms are cleared, so the page keeps its height meanwhile
+      cols.forEach(function (c) {
+        c.stick.style.minHeight = "";
+        c.art.style.transform = "";
+        c.copy.forEach(function (el) { el.style.transform = ""; });
+        c.plan = null;
+      });
+      var vh = probe.offsetHeight || window.innerHeight;
+      var navH = nav ? nav.offsetHeight : 0;
+      var avail = vh - navH;
+      lastW = window.innerWidth; lastH = vh;
+      groups = [];
+      var rows = []; // grid rows: the columns that share a top
+      cols.forEach(function (c) {
+        var top = c.col.offsetTop;
+        var r = rows.filter(function (g) { return Math.abs(g.top - top) < 2; })[0];
+        if (!r) { r = { top: top, cols: [] }; rows.push(r); }
+        r.cols.push(c);
+      });
+      rows.forEach(function (r) {
+        var driven = r.cols.filter(function (c) { return c.scroller && overflowOf(c) > 8; });
+        if (avail < 420 || !driven.length) { return; }
+        var artH = r.cols[0].art.offsetHeight;
+        var stickH = Math.max.apply(null, r.cols.map(function (c) { return c.stick.offsetHeight; }));
+        var copyH = Math.max.apply(null, driven.map(function (c) { return c.stick.offsetHeight - c.art.offsetHeight; }));
+        var scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, (avail - 2 * GAP - copyH) / artH));
+        var startTop = navH + Math.max(GAP, (avail - artH) / 2); // pins with the full-size phone centred
+        var g = {
+          cols: r.cols, driven: driven, startTop: startTop, scale: scale,
+          lift: startTop - navH - GAP, shrink: (1 - scale) * artH,
+          rise: RISE * vh, run: Math.max.apply(null, driven.map(overflowOf)), hold: HOLD * vh
+        };
+        g.pin = g.rise + g.run + g.hold;
+        r.cols.forEach(function (c) { c.plan = { stickH: stickH, top: startTop, colH: stickH + g.pin, margin: -(g.lift + g.shrink) }; });
+        groups.push(g);
+      });
+      cols.forEach(function (c) {
+        var p = c.plan;
+        c.col.classList.toggle("is-pinned", !!p);
+        c.stick.style.minHeight = p ? p.stickH + "px" : "";
+        c.stick.style.top = p ? p.top + "px" : "";
+        c.col.style.minHeight = p ? p.colH + "px" : "";
+        c.col.style.marginBottom = p ? p.margin.toFixed(1) + "px" : ""; // no empty band once the row lets go
+        if (c.scroller) {
+          c.scroller.setAttribute("tabindex", p ? "-1" : "0");
+          if (!p) { c.scroller.scrollTop = 0; }
+        }
+      });
+      row.classList.toggle("has-pins", groups.length > 0);
+      update();
+    }
+
+    function update() {
+      groups.forEach(function (g) {
+        var d = Math.max(0, Math.min(g.pin, g.startTop - g.cols[0].col.getBoundingClientRect().top));
+        var a = ease(clamp01(d / g.rise));
+        var b = clamp01((d - g.rise) / g.run);
+        var art = "translateY(" + (-g.lift * a).toFixed(1) + "px) scale(" + (1 - (1 - g.scale) * a).toFixed(4) + ")";
+        var copy = "translateY(" + (-(g.lift + g.shrink) * a).toFixed(1) + "px)";
+        g.cols.forEach(function (c) {
+          c.art.style.transform = art;
+          c.copy.forEach(function (el) { el.style.transform = copy; });
+        });
+        g.driven.forEach(function (c) { c.scroller.scrollTop = Math.round(b * overflowOf(c)); });
+      });
+    }
+
+    var ticking = false;
+    function schedule() {
+      if (ticking) { return; }
+      ticking = true;
+      window.requestAnimationFrame(function () { ticking = false; update(); });
+    }
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", function () {
+      // phone browsers resize as their bars slide; only re-measure when the width or the small viewport changes
+      if (window.innerWidth !== lastW || (probe.offsetHeight || window.innerHeight) !== lastH) { measure(); }
+    });
+    window.addEventListener("load", measure);
+    if (document.fonts && document.fonts.ready) { document.fonts.ready.then(measure); }
+    measure();
   }
 
   /* ---------- Waitlist role switch ---------- */

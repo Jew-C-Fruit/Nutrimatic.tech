@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - site.css
- * Version 1.5.2
+ * Version 1.6.0
  *
  * Created: 2026-09-13 - Initial marketing site stylesheet (v1.0.0)
  * Modified: 2026-09-15 - Full-viewport splash, wide scroll story, feature tiles, three-way audience grid (v1.1.0)
@@ -10,6 +10,7 @@
  * Modified: 2026-10-30 - "The app" section on How it works: four app screens at one shared scale; the Coachbot chat is a live phone whose text scrolls; feature tiles three across (v1.5.0)
  * Modified: 2026-11-09 - App section: the stack card sits at the end of the scrolling chat; Your plan is a live phone; phone card rules added, stack/streak image rules removed (v1.5.1)
  * Modified: 2026-11-09 - The app section's early-access link stays on one line (v1.5.2)
+ * Modified: 2026-11-09 - App section: rows with a scrolling screen pin under the nav (sticky column wrappers, sized by js/site.js) (v1.6.0)
  */
 
 @font-face {
@@ -285,7 +286,13 @@ h3 { font-size: 1.25rem; font-weight: 800; }
 .app-col__art img { display: block; height: auto; }
 .app-phone { width: 100%; }
 .app-col h3 { font-size: clamp(1.2rem, 1.8vw, 1.45rem); letter-spacing: -0.02em; margin: 0 0 0.5rem; }
-.app-col > p { margin: 0; color: var(--ink-2); }
+.app-col__stick > p { margin: 0; color: var(--ink-2); }
+/* Scroll-linked screens (js/site.js): a row with a scrolling screen pins under the nav; its phones rise and shrink to
+   make room for the captions, then the screen scrolls with the page. The script sets the sizes and transforms. */
+.app-row.has-pins { align-items: stretch; }
+.app-col.is-pinned > .app-col__stick { position: sticky; }
+.app-col.is-pinned .app-col__art { transform-origin: 50% 0; }
+.app-col.is-pinned [data-app-scroll] { overflow-y: hidden; }
 
 /* Live phone: the Coachbot chat is real text that scrolls. --u is one px of the 418 px phone, scaled to the column */
 .phone { --u: calc(100cqw / 418); width: 100%; aspect-ratio: 418 / 872; box-sizing: border-box; padding: calc(14 * var(--u)); background: #111; border-radius: calc(62 * var(--u)); box-shadow: inset 0 0 0 calc(2 * var(--u)) #2e2e2e; }
