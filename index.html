@@ -3,7 +3,7 @@
 <head>
 <!--
   Nutrimatic Website - index.html (splash page)
-  Version 1.3.0
+  Version 1.4.0
   Created: 2026-09-13 - Initial marketing site (v1.0.0)
   Modified: 2026-09-15 - Splash reduced to the animation plus calls to action; information moved to About; language pass (v1.1.0)
   Modified: 2026-09-15 - Contact via LinkedIn; email address removed from markup and structured data (v1.1.1)
@@ -12,6 +12,7 @@
   Modified: 2026-09-15 - Cover v2.1 (960 wide), headline left-aligned (v1.1.4)
   Modified: 2026-10-30 - About us (about.html) in the nav and footer; plain http goes straight to https (v1.2.0)
   Modified: 2026-11-09 - Product reveal film above the machine animation: silent loop, a click plays it with sound full screen; "Learn about us" button, the waitlist button last (v1.3.0)
+  Modified: 2026-11-10 - The film moves below the machine animation and headline; its button is a small "Full screen" (v1.4.0)
 -->
 <meta charset="utf-8">
 <script>if(location.protocol==="http:"&&!/^(localhost|127\.|0\.0\.0\.0|\[?::1)/.test(location.hostname))location.replace("https:"+location.href.slice(5));</script>
@@ -118,14 +119,6 @@
 </header>
 
 <main id="main">
-  <section class="reveal" aria-label="Product reveal film" data-reveal>
-    <video class="reveal__video" muted loop playsinline controls preload="metadata" poster="assets/video/product-reveal-poster.jpg" aria-label="Nutrimatic product reveal: the machine, a bottle being filled and mixed, and the nu logo">
-      <source src="assets/video/product-reveal-720.mp4" type="video/mp4" media="(max-width: 900px)">
-      <source src="assets/video/product-reveal-1080.mp4" type="video/mp4">
-    </video>
-    <button class="btn btn--light reveal__play" type="button" data-reveal-play hidden><svg viewBox="0 0 12 14" aria-hidden="true"><path d="M0 0l12 7-12 7z" fill="currentColor"/></svg>Watch with sound</button>
-  </section>
-
   <section class="splash" aria-label="Nutrimatic">
     <div class="splash__visual" data-hero-media>
       <div class="hero__media">
@@ -143,6 +136,14 @@
         <a class="btn btn--lg" href="waitlist.html">Join the waitlist</a>
       </div>
     </div>
+  </section>
+
+  <section class="reveal" aria-label="Product reveal film" data-reveal>
+    <video class="reveal__video" muted loop playsinline controls preload="metadata" poster="assets/video/product-reveal-poster.jpg" aria-label="Nutrimatic product reveal: the machine, a bottle being filled and mixed, and the nu logo">
+      <source src="assets/video/product-reveal-720.mp4" type="video/mp4" media="(max-width: 900px)">
+      <source src="assets/video/product-reveal-1080.mp4" type="video/mp4">
+    </video>
+    <button class="reveal__play" type="button" data-reveal-play hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1 5.5V1h4.5M10.5 1H15v4.5M15 10.5V15h-4.5M5.5 15H1v-4.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Full screen</button>
   </section>
 
   <section class="section audiences" aria-label="Who it's for">

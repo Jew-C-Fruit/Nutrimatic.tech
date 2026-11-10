@@ -313,7 +313,7 @@ const memberFill = { email: "t@example.com", gym_name: "Ironworks", gym_location
   if (sl !== "still" || run) problems.push("desk scene | reduced motion should be a still: data-live=" + sl + " running=" + run);
   await still.ctx.close();
 }
-// Splash page: the reveal film sits above the machine and loops silently; Watch with sound unmutes it full screen; the
+// Splash page: the reveal film sits below the machine and loops silently; Full screen unmutes it full screen; the
 // buttons end with the waitlist; nothing on the phone splash runs past the screen
 {
   const { page, ctx } = await visit("index-reveal", "index.html", desk);
@@ -321,10 +321,14 @@ const memberFill = { email: "t@example.com", gym_name: "Ironworks", gym_location
   const r = await page.evaluate(() => {
     const v = document.querySelector("[data-reveal] video"), splash = document.querySelector(".splash");
     const ctas = [...document.querySelectorAll(".splash .hero__ctas a")].map(a => a.getAttribute("href"));
-    return { above: !!(v && splash && (v.compareDocumentPosition(splash) & Node.DOCUMENT_POSITION_FOLLOWING)), muted: !!(v && v.muted), playing: !!(v && !v.paused), ctas };
+    if (v) { v.scrollIntoView(); }
+    return { below: !!(v && splash && (v.compareDocumentPosition(splash) & Node.DOCUMENT_POSITION_PRECEDING)), ctas };
   });
-  if (!r.above) problems.push("index | the reveal film is not above the machine animation");
-  if (!r.muted || !r.playing) problems.push("index | the reveal film should loop silently on its own: " + JSON.stringify(r));
+  if (!r.below) problems.push("index | the reveal film is not below the machine animation");
+  await page.waitForTimeout(1500);
+  const lp = await page.evaluate(() => { const v = document.querySelector("[data-reveal] video"); return { muted: v.muted, playing: !v.paused, label: document.querySelector("[data-reveal-play]").textContent.trim() }; });
+  if (!lp.muted || !lp.playing) problems.push("index | the reveal film should loop silently once on screen: " + JSON.stringify(lp));
+  if (lp.label !== "Full screen") problems.push("index | the film's button should read Full screen: " + lp.label);
   if (r.ctas.join(" ") !== "how-it-works.html about.html waitlist.html") problems.push("index | buttons should be How it works, About us, then the waitlist: " + r.ctas.join(", "));
   await page.click("[data-reveal-play]"); await page.waitForTimeout(800);
   const w = await page.evaluate(() => { const v = document.querySelector("[data-reveal] video"); return { muted: v.muted, full: document.fullscreenElement === v }; });

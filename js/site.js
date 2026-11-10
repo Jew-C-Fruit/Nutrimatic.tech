@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - site.js
- * Version 1.7.0
+ * Version 1.7.1
  *
  * Created: 2026-09-13 - Site behaviour (v1.0.0)
  * Modified: 2026-09-15 - Scroll story takes its SVG, scrub length and still from data attributes (v1.1.0)
@@ -11,6 +11,7 @@
  * Modified: 2026-11-09 - App section (How it works): the scrolling Coachbot chat is scroll-linked; its row pins, the phones rise and shrink to make room for the captions, then the chat scrolls with the page (v1.6.0)
  * Modified: 2026-11-09 - App screens: also pins when the caption sits above its screen (phones); where caption and phone can't both fit, the caption rises under the nav and fades as the phone comes into view (v1.6.1)
  * Modified: 2026-11-09 - Product reveal film (splash page): silent loop; a click plays it from the start with sound, full screen (v1.7.0)
+ * Modified: 2026-11-10 - Reveal film sits below the fold now: it starts loading when it comes near the screen (v1.7.1)
  *   - Mobile nav toggle
  *   - Hero media: swaps the SVG placeholder for a real render / video when present
  *   - Product reveal film (splash page): silent loop; a click plays it with sound, full screen
@@ -245,7 +246,16 @@
         if (!watching) { loop(); }
       }).observe(video);
     }
-    if (!reduceMotion) { video.preload = "auto"; }
+    if (!reduceMotion) {
+      if ("IntersectionObserver" in window) { // the film sits below the fold: load it as it comes near
+        var near = new IntersectionObserver(function (entries) {
+          if (entries[0].isIntersecting) { video.preload = "auto"; near.disconnect(); }
+        }, { rootMargin: "100% 0px" });
+        near.observe(video);
+      } else {
+        video.preload = "auto";
+      }
+    }
     loop();
   }
 
