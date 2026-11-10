@@ -12,7 +12,8 @@ async function visit(name, url, vp, opts = {}) {
   page.on("pageerror", e => errs.push("pageerror: " + e.message));
   page.on("requestfailed", r => errs.push("reqfailed: " + r.url() + " " + (r.failure() || {}).errorText));
   page.on("response", r => { if (r.status() >= 400 && r.url().startsWith(base)) errs.push("http " + r.status() + " " + r.url()); });
-  await page.goto(base + url, { waitUntil: "networkidle" });
+  await page.goto(base + url, { waitUntil: "load" });
+  await page.waitForLoadState("networkidle", { timeout: 5000 }).catch(() => {}); // the splash film keeps streaming
   await page.waitForTimeout(400);
   await page.screenshot({ path: out + name + ".png", fullPage: true });
   errs.forEach(e => problems.push(name + " | " + e));
@@ -311,6 +312,28 @@ const memberFill = { email: "t@example.com", gym_name: "Ironworks", gym_location
   const sl = await still.page.$eval("[data-desk-scene]", el => el.getAttribute("data-live")), run = await still.page.evaluate(() => window.NutrimaticDesk.state().running);
   if (sl !== "still" || run) problems.push("desk scene | reduced motion should be a still: data-live=" + sl + " running=" + run);
   await still.ctx.close();
+}
+// Splash page: the reveal film sits above the machine and loops silently; Watch with sound unmutes it full screen; the
+// buttons end with the waitlist; nothing on the phone splash runs past the screen
+{
+  const { page, ctx } = await visit("index-reveal", "index.html", desk);
+  await page.waitForTimeout(1500);
+  const r = await page.evaluate(() => {
+    const v = document.querySelector("[data-reveal] video"), splash = document.querySelector(".splash");
+    const ctas = [...document.querySelectorAll(".splash .hero__ctas a")].map(a => a.getAttribute("href"));
+    return { above: !!(v && splash && (v.compareDocumentPosition(splash) & Node.DOCUMENT_POSITION_FOLLOWING)), muted: !!(v && v.muted), playing: !!(v && !v.paused), ctas };
+  });
+  if (!r.above) problems.push("index | the reveal film is not above the machine animation");
+  if (!r.muted || !r.playing) problems.push("index | the reveal film should loop silently on its own: " + JSON.stringify(r));
+  if (r.ctas.join(" ") !== "how-it-works.html about.html waitlist.html") problems.push("index | buttons should be How it works, About us, then the waitlist: " + r.ctas.join(", "));
+  await page.click("[data-reveal-play]"); await page.waitForTimeout(800);
+  const w = await page.evaluate(() => { const v = document.querySelector("[data-reveal] video"); return { muted: v.muted, full: document.fullscreenElement === v }; });
+  if (w.muted || !w.full) problems.push("index | Watch with sound should unmute the film full screen: " + JSON.stringify(w));
+  await ctx.close();
+  const m = await visit("index-reveal-mob", "index.html", mob);
+  const wide = await m.page.evaluate(() => [...document.querySelectorAll(".splash *")].filter(e => e.getBoundingClientRect().right > document.documentElement.clientWidth + 1).length);
+  if (wide) problems.push("index | " + wide + " splash elements run past a phone's screen");
+  await m.ctx.close();
 }
 await browser.close();
 const real = problems.filter(m => !expected404(m));

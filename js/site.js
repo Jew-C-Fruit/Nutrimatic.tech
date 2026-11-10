@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - site.js
- * Version 1.6.1
+ * Version 1.7.0
  *
  * Created: 2026-09-13 - Site behaviour (v1.0.0)
  * Modified: 2026-09-15 - Scroll story takes its SVG, scrub length and still from data attributes (v1.1.0)
@@ -10,8 +10,10 @@
  * Modified: 2026-09-21 - sheetEndpoint: submissions also go to the Google Apps Script that fills the sheet; Web3Forms gets only the human fields, labelled (v1.5.0)
  * Modified: 2026-11-09 - App section (How it works): the scrolling Coachbot chat is scroll-linked; its row pins, the phones rise and shrink to make room for the captions, then the chat scrolls with the page (v1.6.0)
  * Modified: 2026-11-09 - App screens: also pins when the caption sits above its screen (phones); where caption and phone can't both fit, the caption rises under the nav and fades as the phone comes into view (v1.6.1)
+ * Modified: 2026-11-09 - Product reveal film (splash page): silent loop; a click plays it from the start with sound, full screen (v1.7.0)
  *   - Mobile nav toggle
  *   - Hero media: swaps the SVG placeholder for a real render / video when present
+ *   - Product reveal film (splash page): silent loop; a click plays it with sound, full screen
  *   - Optional figures that only appear when their image exists
  *   - Scroll-driven story (About page): scrubs a frame sequence (canvas) or the SVG placeholder's
  *     animations with scroll position, crossfading captions (apple.com style)
@@ -162,6 +164,89 @@
     } else {
       useStill();
     }
+  }
+
+  /* ---------- Product reveal film (splash page) ---------- */
+  // Plays muted on a loop while it's on screen. A click on the film or its button plays it from the start with sound,
+  // full screen; the end of the film or leaving full screen brings back the silent loop. With reduced motion it waits
+  // for the click. Without the script the native controls stay.
+  var reveal = document.querySelector("[data-reveal]");
+  if (reveal) { setupReveal(reveal); }
+
+  function setupReveal(section) {
+    var video = section.querySelector("video");
+    var button = section.querySelector("[data-reveal-play]");
+    if (!video) { return; }
+    var watching = false;
+    var onScreen = true;
+    video.controls = false;
+    if (button) { button.hidden = false; }
+
+    function play() {
+      var p = video.play();
+      if (p && typeof p.catch === "function") { p.catch(function () { /* autoplay refused: the poster and button stay */ }); }
+    }
+    function loop() {
+      if (reduceMotion || !onScreen) { video.pause(); return; }
+      video.muted = true;
+      play();
+    }
+    function fullscreenElement() { return document.fullscreenElement || document.webkitFullscreenElement || null; }
+    function enterFullscreen() {
+      if (video.requestFullscreen) {
+        var r = video.requestFullscreen();
+        if (r && typeof r.catch === "function") { r.catch(function () {}); }
+      } else if (video.webkitRequestFullscreen) {
+        video.webkitRequestFullscreen();
+      } else if (video.webkitEnterFullscreen) {
+        video.webkitEnterFullscreen(); // iPhone: the native player
+      }
+    }
+    function exitFullscreen() {
+      if (fullscreenElement()) {
+        if (document.exitFullscreen) { document.exitFullscreen().catch(function () {}); } else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
+      } else if (video.webkitDisplayingFullscreen && video.webkitExitFullscreen) {
+        video.webkitExitFullscreen();
+      } else {
+        stopWatching();
+      }
+    }
+    function watch() {
+      if (watching) { return; }
+      watching = true;
+      video.loop = false;
+      video.muted = false;
+      video.controls = true;
+      try { video.currentTime = 0; } catch (e) { /* not seekable yet */ }
+      play();
+      enterFullscreen();
+    }
+    function stopWatching() {
+      if (!watching) { return; }
+      watching = false;
+      video.controls = false;
+      video.loop = true;
+      loop();
+    }
+
+    video.addEventListener("click", function (e) {
+      if (watching) { return; }
+      e.preventDefault();
+      watch();
+    });
+    if (button) { button.addEventListener("click", watch); }
+    video.addEventListener("ended", function () { if (watching) { exitFullscreen(); } });
+    document.addEventListener("fullscreenchange", function () { if (!fullscreenElement()) { stopWatching(); } });
+    document.addEventListener("webkitfullscreenchange", function () { if (!fullscreenElement()) { stopWatching(); } });
+    video.addEventListener("webkitendfullscreen", stopWatching); // iPhone
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver(function (entries) {
+        onScreen = entries[0].isIntersecting;
+        if (!watching) { loop(); }
+      }).observe(video);
+    }
+    if (!reduceMotion) { video.preload = "auto"; }
+    loop();
   }
 
   /* ---------- Optional figures (only shown if the image exists) ---------- */

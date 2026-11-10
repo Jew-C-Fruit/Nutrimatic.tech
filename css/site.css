@@ -1,6 +1,6 @@
 /*
  * Nutrimatic Website - site.css
- * Version 1.7.1
+ * Version 1.8.0
  *
  * Created: 2026-09-13 - Initial marketing site stylesheet (v1.0.0)
  * Modified: 2026-09-15 - Full-viewport splash, wide scroll story, feature tiles, three-way audience grid (v1.1.0)
@@ -13,6 +13,7 @@
  * Modified: 2026-11-09 - App section: rows with a scrolling screen pin under the nav (sticky column wrappers, sized by js/site.js) (v1.6.0)
  * Modified: 2026-11-09 - App section on phones: each caption sits above its own screen, with a rule between screens (v1.7.0)
  * Modified: 2026-11-09 - App section: more space between one screen and the next (rows on tablets, screens on phones) (v1.7.1)
+ * Modified: 2026-11-09 - Splash page: the product reveal film, full width above the machine animation, with a Watch with sound button; the splash column and machine animation no longer grow past a phone's width (headline, buttons and labels were cut off) (v1.8.0)
  */
 
 @font-face {
@@ -191,10 +192,19 @@ h3 { font-size: 1.25rem; font-weight: 800; }
 }
 .has-render .hero__caption, .has-video .hero__caption { color: rgba(255, 255, 255, 0.7); }
 
+/* ---------- Product reveal film (splash page, js/site.js) ---------- */
+.reveal { position: relative; background: #000; }
+.reveal__video { display: block; width: 100%; aspect-ratio: 16 / 9; max-height: calc(100svh - 72px); object-fit: cover; background: #000; cursor: pointer; }
+.reveal__video:fullscreen { max-height: none; object-fit: contain; cursor: auto; }
+.reveal__video:-webkit-full-screen { max-height: none; object-fit: contain; cursor: auto; }
+.reveal__play { position: absolute; left: clamp(0.75rem, 3vw, 2.5rem); bottom: clamp(0.75rem, 3vw, 2.5rem); }
+.reveal__play[hidden] { display: none; }
+.reveal__play svg { width: 0.75rem; height: 0.85rem; flex-shrink: 0; }
+
 /* ---------- Splash (animation in focus) ---------- */
-.splash { position: relative; min-height: calc(100svh - 72px); display: grid; grid-template-rows: 1fr auto; background: radial-gradient(90% 70% at 50% 40%, #ffffff 0%, var(--paper-2) 60%, var(--paper-3) 100%); overflow: hidden; }
+.splash { position: relative; min-height: calc(100svh - 72px); display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: 1fr auto; background: radial-gradient(90% 70% at 50% 40%, #ffffff 0%, var(--paper-2) 60%, var(--paper-3) 100%); overflow: hidden; }
 .splash__visual { position: relative; display: grid; place-items: center; padding: clamp(0.75rem, 2vh, 1.5rem) 1rem 0; }
-.splash__visual .hero__media { width: auto; height: min(52svh, 580px); max-width: 100%; aspect-ratio: 960 / 900; }
+.splash__visual .hero__media { width: auto; height: min(52svh, 580px, calc((100vw - 2rem) * 900 / 960)); max-width: 100%; min-width: 0; aspect-ratio: 960 / 900; }
 .splash__visual .hero__media img { width: 100%; height: 100%; object-fit: contain; }
 .splash__visual.has-render, .splash__visual.has-video { padding: 0; }
 .splash__visual.has-render .hero__media, .splash__visual.has-video .hero__media { width: 100%; height: min(70svh, 720px); aspect-ratio: auto; }

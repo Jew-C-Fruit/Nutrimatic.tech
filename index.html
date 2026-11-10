@@ -3,7 +3,7 @@
 <head>
 <!--
   Nutrimatic Website - index.html (splash page)
-  Version 1.2.0
+  Version 1.3.0
   Created: 2026-09-13 - Initial marketing site (v1.0.0)
   Modified: 2026-09-15 - Splash reduced to the animation plus calls to action; information moved to About; language pass (v1.1.0)
   Modified: 2026-09-15 - Contact via LinkedIn; email address removed from markup and structured data (v1.1.1)
@@ -11,6 +11,7 @@
   Modified: 2026-09-15 - Cover animation v2 (two doors, callouts, sliding port door), inlined for the site font (v1.1.3)
   Modified: 2026-09-15 - Cover v2.1 (960 wide), headline left-aligned (v1.1.4)
   Modified: 2026-10-30 - About us (about.html) in the nav and footer; plain http goes straight to https (v1.2.0)
+  Modified: 2026-11-09 - Product reveal film above the machine animation: silent loop, a click plays it with sound full screen; "Learn about us" button, the waitlist button last (v1.3.0)
 -->
 <meta charset="utf-8">
 <script>if(location.protocol==="http:"&&!/^(localhost|127\.|0\.0\.0\.0|\[?::1)/.test(location.hostname))location.replace("https:"+location.href.slice(5));</script>
@@ -117,6 +118,14 @@
 </header>
 
 <main id="main">
+  <section class="reveal" aria-label="Product reveal film" data-reveal>
+    <video class="reveal__video" muted loop playsinline controls preload="metadata" poster="assets/video/product-reveal-poster.jpg" aria-label="Nutrimatic product reveal: the machine, a bottle being filled and mixed, and the nu logo">
+      <source src="assets/video/product-reveal-720.mp4" type="video/mp4" media="(max-width: 900px)">
+      <source src="assets/video/product-reveal-1080.mp4" type="video/mp4">
+    </video>
+    <button class="btn btn--light reveal__play" type="button" data-reveal-play hidden><svg viewBox="0 0 12 14" aria-hidden="true"><path d="M0 0l12 7-12 7z" fill="currentColor"/></svg>Watch with sound</button>
+  </section>
+
   <section class="splash" aria-label="Nutrimatic">
     <div class="splash__visual" data-hero-media>
       <div class="hero__media">
@@ -129,8 +138,9 @@
     <div class="container splash__copy">
       <h1>Custom nutrition in 45&nbsp;seconds.</h1>
       <div class="hero__ctas">
-        <a class="btn btn--lg" href="waitlist.html">Join the waitlist</a>
         <a class="btn btn--lg btn--ghost" href="how-it-works.html">See how it works</a>
+        <a class="btn btn--lg btn--ghost" href="about.html">Learn about us</a>
+        <a class="btn btn--lg" href="waitlist.html">Join the waitlist</a>
       </div>
     </div>
   </section>
